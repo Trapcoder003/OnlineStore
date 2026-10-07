@@ -1,0 +1,75 @@
+/* Contact page: fully self-contained */
+:root{--bg:#14103a;--violet:#7b61ff;--pink:#ff77b1;--mint:#5fe3b5;--glass:rgba(255,255,255,.07);--line:rgba(255,255,255,.18);--soft:rgba(255,255,255,.72)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:#fff;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{margin:0;letter-spacing:-.02em}
+:focus-visible{outline:3px solid var(--mint);outline-offset:3px}
+ 
+/* Background orbs */
+body::before,body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(80px);opacity:.5;pointer-events:none;animation:drift 12s ease-in-out infinite alternate}
+body::before{width:440px;height:440px;background:var(--violet);top:-130px;left:-110px}
+body::after{width:360px;height:360px;background:var(--pink);bottom:-110px;right:-70px;animation-delay:-5s}
+@keyframes drift{to{transform:translate(50px,-60px) scale(1.2);border-radius:42% 58% 55% 45%/50% 40% 60% 50%}}
+ 
+/* Top bar */
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;background:rgba(20,16,58,.7);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{font-weight:800;font-size:22px}
+.brand i{display:inline-block;width:13px;height:13px;margin-right:8px;background:var(--mint);border-radius:50%;animation:wob 2.4s ease-in-out infinite}
+@keyframes wob{50%{transform:scale(1.35,.75) translateY(3px)}}
+.top nav{display:flex;gap:4px}
+.top nav a{position:relative;padding:8px 14px;color:var(--soft);transition:color .2s}
+.top nav a::after{content:"";position:absolute;left:14px;right:14px;bottom:2px;height:2px;background:linear-gradient(90deg,var(--pink),var(--mint));transform:scaleX(0);transition:transform .3s}
+.top nav a:hover,.top nav a.on{color:#fff}
+.top nav a:hover::after,.top nav a.on::after{transform:scaleX(1)}
+ 
+/* Layout */
+.page{max-width:1080px;margin:0 auto;padding:30px 20px 60px}
+.head{text-align:center;padding:24px 0 10px}
+.head h1{font-size:clamp(38px,7vw,60px);background:linear-gradient(90deg,#fff,var(--mint),var(--pink),#fff);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rise .8s both,shimmer 7s linear infinite}
+.head p{margin:8px 0 0;color:var(--soft);font-size:18px;animation:rise .8s .15s both}
+@keyframes rise{from{opacity:0;transform:translateY(26px)}}
+@keyframes shimmer{to{background-position:250% 0}}
+.contact{display:grid;grid-template-columns:.8fr 1.2fr;gap:28px;margin-top:30px;align-items:start}
+ 
+/* Info cards */
+.info{display:grid;gap:14px}
+.ci{display:flex;align-items:center;gap:16px;padding:18px 20px;background:var(--glass);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(12px);transition:transform .3s cubic-bezier(.3,1.5,.5,1),border-color .3s;animation:rise .7s both}
+.ci:nth-child(2){animation-delay:.08s}.ci:nth-child(3){animation-delay:.16s}.ci:nth-child(4){animation-delay:.24s}.ci:nth-child(5){animation-delay:.32s}
+a.ci:hover{transform:translateX(8px);border-color:var(--violet)}
+.ci>span{display:grid;place-items:center;flex:none;width:50px;height:50px;border-radius:16px;font-size:24px;background:linear-gradient(135deg,var(--violet),var(--pink));transition:transform .4s cubic-bezier(.3,1.8,.5,1)}
+a.ci:hover>span{transform:rotate(-10deg) scale(1.12)}
+.ci h3{font-size:16px}.ci p{margin:2px 0 0;color:var(--soft);font-size:14px}
+.ci.tip{border-style:dashed}
+ 
+/* Form card */
+.card{padding:32px;background:var(--glass);border:1px solid var(--line);border-radius:28px;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 30px 60px rgba(0,0,0,.35);animation:rise .8s .1s both}
+.card h2{font-size:26px;margin-bottom:22px}
+.field{margin-bottom:20px}
+.field label{display:block;margin-bottom:8px;font-size:14px;font-weight:600;color:rgba(255,255,255,.85);transition:color .2s,transform .25s cubic-bezier(.3,1.8,.5,1)}
+.field:focus-within label{color:var(--mint);transform:translateX(5px)}
+.field input,.field textarea{width:100%;padding:15px 16px;border:2px solid var(--line);border-radius:16px;background:rgba(255,255,255,.06);color:#fff;font:inherit;outline:none;transition:border-color .25s,box-shadow .25s,background .25s,transform .25s}
+.field textarea{min-height:150px;resize:vertical}
+.field input:hover,.field textarea:hover{border-color:rgba(255,255,255,.4)}
+.field input:focus,.field textarea:focus{border-color:var(--violet);background:rgba(255,255,255,.1);box-shadow:0 0 0 5px rgba(123,97,255,.3);transform:translateY(-3px)}
+.field input:user-valid,.field textarea:user-valid{border-color:var(--mint)}
+.field input:user-invalid,.field textarea:user-invalid,.field.bad input,.field.bad textarea{border-color:#ff6b9b;animation:shake .45s}
+@keyframes shake{25%{translate:-7px}50%{translate:6px}75%{translate:-3px}}
+.errorlist{list-style:none;margin:8px 0 0;padding:0}
+.errorlist li{color:#ff9cbc;font-size:13px;padding-left:6px;animation:rise .35s both}
+.alert{margin-bottom:18px;padding:12px 16px;border-radius:14px;background:rgba(255,107,155,.15);border:1px solid rgba(255,107,155,.5)}
+.alert .errorlist{margin:0}
+ 
+/* Button */
+.btn{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;width:100%;padding:17px;border:0;border-radius:99px;background:linear-gradient(120deg,var(--violet),var(--pink),var(--violet));background-size:200% 100%;color:#fff;font:700 17px/1 inherit;cursor:pointer;box-shadow:0 10px 28px rgba(123,97,255,.45);transition:transform .25s cubic-bezier(.3,1.8,.5,1),background-position .6s,box-shadow .25s}
+.btn::after{content:"";position:absolute;top:0;left:-70%;width:40%;height:100%;background:rgba(255,255,255,.4);transform:skewX(-20deg);transition:left .7s}
+.btn:hover{transform:translateY(-4px) scale(1.02);background-position:100% 0;box-shadow:0 16px 38px rgba(255,119,177,.5)}
+.btn:hover::after{left:130%}.btn:active{transform:scale(.97)}
+.spin{display:none;width:22px;height:22px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.btn.loading{pointer-events:none}.btn.loading .lbl{display:none}.btn.loading .spin{display:block}
+.note{margin:14px 0 0;text-align:center;color:var(--soft);font-size:13px}
+ 
+@media(max-width:860px){.contact{grid-template-columns:1fr}}
+@media(max-width:520px){.top nav a:not(.on){display:none}.card{padding:24px 18px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

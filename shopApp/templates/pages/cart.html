@@ -1,0 +1,321 @@
+{% load static %}
+{% load cart_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your cart · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/cart.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'about' %}">About</a>
+      <a href="{% url 'contact' %}">Contact</a>
+      <a href="{% url 'faq' %}">FAQ</a>
+    </nav>
+    <div class="icons">
+      <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
+      <a class="icon active" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
+      <a class="icon" href="#" aria-label="Account">👤</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  {% if messages %}
+    <div class="flash">
+      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  <section class="head">
+    <h1>Your cart</h1>
+    <p>{% if cart|length %}{{ cart|length }} item{{ cart|length|pluralize }} · ready when you are.{% else %}Nothing here yet.{% endif %}</p>
+  </section>
+
+  {% if cart|length %}
+  <div class="layout">
+
+    <!-- ============ ITEMS ============ -->
+    <section class="items">
+      {% for item in cart %}
+      <article class="item" data-id="{{ item.product.id }}" data-price="{{ item.price }}">
+
+        <!-- Left: thumb -->
+        <a class="item-thumb" href="{% url 'product' item.product.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
+          {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+          {% else %}
+            <span>🛍️</span>
+          {% endif %}
+        </a>
+
+        <!-- Middle: meta + qty -->
+        <div class="item-body">
+          <div class="item-meta">
+            <small class="item-cat">{{ item.product.category.name }}</small>
+            <h3 class="item-name"><a href="{% url 'product' item.product.slug %}">{{ item.product.name }}</a></h3>
+            {% if item.product.brand %}<p class="item-brand">{{ item.product.brand }}</p>{% endif %}
+            <p class="item-stock">
+              {% if item.product.stock == 0 %}<em class="out">Out of stock</em>
+              {% elif item.product.stock < 5 %}<em class="low">Only {{ item.product.stock }} left</em>
+              {% else %}<em class="ok">In stock</em>{% endif %}
+            </p>
+          </div>
+
+          <div class="item-controls">
+            <div class="qty" role="group" aria-label="Quantity">
+              <button type="button" class="step" data-action="dec" aria-label="Decrease">−</button>
+              <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.product.stock }}" inputmode="numeric" aria-label="Quantity">
+              <button type="button" class="step" data-action="inc" aria-label="Increase">+</button>
+            </div>
+
+            <div class="item-price">
+              <strong data-line>KES {{ item.subtotal|money }}</strong>
+              <small>KES {{ item.price|floatformat:2 }} each</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: remove -->
+        <div class="item-remove">
+          <input type="checkbox" id="rm{{ item.product.id }}" class="rm-toggle" aria-label="Remove {{ item.product.name }}">
+          <label for="rm{{ item.product.id }}" class="rm-btn" title="Remove">✕</label>
+
+          <div class="rm-popover" role="dialog" aria-label="Confirm removal">
+            <p>Remove this item?</p>
+            <div class="rm-actions">
+              <form method="post" action="{% url 'cart_remove' item.product.id %}">
+                {% csrf_token %}
+                <button class="btn tiny danger" type="submit">Remove</button>
+              </form>
+              <label for="rm{{ item.product.id }}" class="btn tiny ghost">Cancel</label>
+            </div>
+          </div>
+        </div>
+
+      </article>
+      {% endfor %}
+
+      <div class="items-actions">
+        <a class="btn ghost" href="{% url 'home' %}">← Continue shopping</a>
+      </div>
+    </section>
+
+    <!-- ============ SUMMARY ============ -->
+    <aside class="summary">
+      <h2>Order summary</h2>
+
+      <ul class="lines">
+        <li><span>Subtotal</span><strong data-subtotal>KES {{ cart.subtotal|money }}</strong></li>
+
+        {% if cart.coupon %}
+          <li class="discount">
+            <span>Coupon <b>{{ cart.coupon.code }}</b></span>
+            <strong data-discount>− KES {{ cart.discount|money }}</strong>
+          </li>
+        {% else %}
+          <li class="hidden" data-discount-row><span>Discount</span><strong data-discount>− KES 0.00</strong></li>
+        {% endif %}
+
+        <li><span>Shipping</span><strong data-shipping>{% if cart.shipping == 0 %}Free{% else %}KES {{ cart.shipping|money }}{% endif %}</strong></li>
+        <li class="total"><span>Total</span><strong data-total>KES {{ cart.total|money }}</strong></li>
+      </ul>
+
+      <!-- Free-shipping progress -->
+      <div class="ship-bar" data-ship-bar>
+        {% if cart.free_shipping_gap > 0 %}
+          <div class="ship-bar-top">
+            <span data-ship-msg>Add <b>KES {{ cart.free_shipping_gap|money }}</b> more for free shipping</span>
+            <span class="ship-pct" data-ship-pct>0%</span>
+          </div>
+          <div class="ship-track"><i data-ship-fill style="width:0%"></i></div>
+        {% else %}
+          <div class="ship-bar-top">
+            <span>🎉 Free shipping unlocked</span>
+            <span class="ship-pct">100%</span>
+          </div>
+          <div class="ship-track"><i style="width:100%"></i></div>
+        {% endif %}
+      </div>
+
+      <!-- Coupon -->
+      <div class="coupon">
+        {% if cart.coupon %}
+          <div class="coupon-applied">
+            <span>🏷️ <b>{{ cart.coupon.code }}</b> · {{ cart.coupon.percent }}% off</span>
+            <form method="post" action="{% url 'cart_remove_coupon' %}">
+              {% csrf_token %}
+              <button class="link-btn" type="submit">Remove</button>
+            </form>
+          </div>
+        {% else %}
+          <input type="checkbox" id="cp-toggle" class="cp-toggle">
+          <label for="cp-toggle" class="cp-label">Have a coupon? <span>Add code →</span></label>
+          <form class="cp-form" method="post" action="{% url 'cart_apply_coupon' %}">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="e.g. WELCOME10" autocomplete="off" aria-label="Coupon code">
+            <button class="btn tiny" type="submit">Apply</button>
+          </form>
+        {% endif %}
+      </div>
+
+      <a class="btn checkout" href="#">Proceed to checkout →</a>
+      <p class="secure">🔒 Secure checkout · we never store card details.</p>
+    </aside>
+  </div>
+
+  {% else %}
+  <div class="empty">
+    <span aria-hidden="true">🛒</span>
+    <h2>Your cart is empty</h2>
+    <p>Browse the shop and add something you like.</p>
+    <div class="empty-actions">
+      <a class="btn" href="{% url 'shop' %}">Browse the shop →</a>
+      <a class="btn ghost" href="{% url 'home' %}">Back to home</a>
+    </div>
+  </div>
+  {% endif %}
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fgrid">
+      <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
+      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="{% url 'home' %}#categories">Categories</a></div>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a href="{% url 'contact' %}">Contact us</a></div>
+      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></div>
+    </div>
+    <div class="copy">© E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m.pop()) : '';
+  }
+  const csrf = getCookie('csrftoken')
+            || (document.querySelector('input[name=csrfmiddlewaretoken]') || {}).value
+            || '';
+
+  const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+
+  function setShipBar(subtotal, discount) {
+    const bar = document.querySelector('[data-ship-bar]');
+    if (!bar) return;
+    const after = Number(subtotal) - Number(discount);
+    const pct = Math.max(0, Math.min(100, (after / 5000) * 100));
+    const fill = bar.querySelector('[data-ship-fill]');
+    const pctEl = bar.querySelector('[data-ship-pct]');
+    const msg = bar.querySelector('[data-ship-msg]');
+
+    if (fill) fill.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+    if (msg) {
+      if (after >= 5000) {
+        bar.classList.add('unlocked');
+        msg.innerHTML = '🎉 Free shipping unlocked';
+        if (pctEl) pctEl.textContent = '100%';
+        if (fill) fill.style.width = '100%';
+      } else {
+        msg.innerHTML = 'Add <b>' + fmt(5000 - after) + '</b> more for free shipping';
+      }
+    }
+  }
+
+  function updateTotals(json) {
+    document.querySelectorAll('[data-subtotal]').forEach(el => el.textContent = fmt(json.subtotal));
+    document.querySelectorAll('[data-discount]').forEach(el => el.textContent = '− ' + fmt(json.discount));
+    document.querySelectorAll('[data-shipping]').forEach(el =>
+      el.textContent = Number(json.shipping) === 0 ? 'Free' : fmt(json.shipping));
+    document.querySelectorAll('[data-total]').forEach(el => el.textContent = fmt(json.total));
+
+    document.querySelectorAll('[data-cart-count]').forEach(el => {
+      el.textContent = json.cart_count;
+      el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    });
+
+    setShipBar(json.subtotal, json.discount);
+  }
+
+  async function postUpdate(id, qty) {
+    const res = await fetch('/cart/update/' + id + '/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrf,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'qty=' + encodeURIComponent(qty)
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    updateTotals(json);
+
+    const item = document.querySelector('.item[data-id="' + id + '"]');
+    if (item) {
+      const price = parseFloat(item.dataset.price);
+      const line = item.querySelector('[data-line]');
+      if (line) line.textContent = fmt(price * qty);
+    }
+  }
+
+  document.querySelectorAll('.item').forEach(item => {
+    const id = item.dataset.id;
+    const input = item.querySelector('input[name=qty]');
+    const max = parseInt(input.max, 10) || 9999;
+
+    item.querySelectorAll('.step').forEach(btn => {
+      btn.addEventListener('click', () => {
+        let v = parseInt(input.value, 10) || 1;
+        if (btn.dataset.action === 'inc') v = Math.min(max, v + 1);
+        if (btn.dataset.action === 'dec') v = Math.max(1, v - 1);
+        input.value = v;
+        postUpdate(id, v);
+      });
+    });
+
+    input.addEventListener('change', () => {
+      let v = parseInt(input.value, 10) || 1;
+      v = Math.max(1, Math.min(max, v));
+      input.value = v;
+      postUpdate(id, v);
+    });
+  });
+
+  // close remove popovers when clicking elsewhere
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.rm-toggle').forEach(cb => {
+      if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false;
+    });
+  });
+
+  // init shipping bar on load
+  setShipBar(
+    document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0,
+    document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0
+  );
+})();
+</script>
+
+</body>
+</html>

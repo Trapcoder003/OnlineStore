@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About us</title>
+<link rel="stylesheet" href="{% static 'styles/about.css' %}">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+  <nav>
+<a href="{% url 'home' %}">Shop</a>
+    <a class="on" href="{% url 'about' %}">About</a>
+
+    <a href="{% url 'contact' %}">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <!-- Hero -->
+  <section class="hero">
+    <span class="eyebrow">👋 Meet the team</span>
+    <p>We created E-Shop to make online shopping simple, secure and enjoyable, for shoppers and for the shops that serve them.</p>
+  </section>
+
+  <!-- Mission -->
+  <section class="mission">
+    <div class="m"><span>🎯</span><h3>Our mission</h3><p>Make buying and selling online fast, safe and stress-free for everyone.</p></div>
+    <div class="m"><span>🔒</span><h3>Security first</h3><p>Encrypted accounts and tokenized payments. We never store your card details.</p></div>
+    <div class="m"><span>✨</span><h3>Made with care</h3><p>A clean, friendly experience on every device, from phone to desktop.</p></div>
+  </section>
+
+  <!-- Team -->
+  <section class="team">
+    <div class="sec-head"><h2>Founding members</h2><p>The people behind the shop.</p></div>
+    <div class="people">
+
+      <article class="person" style="--c1:#7b61ff;--c2:#ff77b1">
+        <div class="avatar"><!-- To use a photo: <img src="{% static 'images/david.jpg' %}" alt="David Ambale"> --><span>DA</span></div>
+        <h3>David Ambale</h3>
+        <span class="role">Backend</span>
+        <p>Builds the engine: the server, database, accounts and secure payments that keep every order running smoothly.</p>
+        <div class="tags"><em>Server</em><em>Database</em><em>Security</em></div>
+      </article>
+
+      <article class="person" style="--c1:#5fe3b5;--c2:#7b61ff">
+        <div class="avatar"><!-- To use a photo: <img src="{% static 'images/joseph.jpg' %}" alt="Joseph Musili"> --><span>JM</span></div>
+        <h3>Joseph Musili</h3>
+        <span class="role">Front end</span>
+        <p>Turns designs into the pages you see and click, with fast, responsive screens that feel great to use.</p>
+        <div class="tags"><em>Interface</em><em>Animations</em><em>Responsive</em></div>
+      </article>
+
+      <article class="person" style="--c1:#ffc93c;--c2:#ff77b1">
+        <div class="avatar"><!-- To use a photo: <img src="{% static 'images/mourice.jpg' %}" alt="Mourice Otieno"> --><span>MO</span></div>
+        <h3>Mourice Otieno</h3>
+        <span class="role">Analysis &amp; design</span>
+        <p>Studies what shoppers need and shapes it into clear, thoughtful designs and a smooth shopping flow.</p>
+        <div class="tags"><em>Research</em><em>Design</em><em>Planning</em></div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="banner">
+    <h2>Want to say hello?</h2>
+    <p>Questions, feedback or ideas? We'd love to hear from you.</p>
+    <div class="cta">
+      <a class="btn" href="{% url 'contact' %}">Contact us →</a>
+      <a class="btn ghost" href="{% url 'home' %}">Browse the shop</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>© E-Shop. All rights reserved.</p>
+</footer>
+</body>
+</html>

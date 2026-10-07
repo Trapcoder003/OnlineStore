@@ -1,0 +1,421 @@
+{% load static %}
+{% load cart_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ product.name }} · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/product.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'about' %}">About</a>
+      <a href="{% url 'contact' %}">Contact</a>
+      <a href="{% url 'faq' %}">FAQ</a>
+    </nav>
+    <div class="icons">
+      <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
+      <a class="icon" href="#" aria-label="Account">👤</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  <!-- Breadcrumb -->
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'home' %}">Home</a>
+    <span aria-hidden="true">›</span>
+    <a href="{% url 'shop' %}">Shop</a>
+    <span aria-hidden="true">›</span>
+    <a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">{{ product.name }}</span>
+  </nav>
+
+  <!-- Flash messages (e.g. "Added to cart") -->
+  {% if messages %}
+    <div class="flash">
+      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ============ PRODUCT LAYOUT ============ -->
+  <div class="product-layout">
+
+    <!-- ===== GALLERY ===== -->
+    <section class="gallery">
+      <!-- Radio inputs control which image is shown (pure CSS, no JS) -->
+      <input type="radio" name="gimg" id="g1" class="g-radio" checked>
+      <input type="radio" name="gimg" id="g2" class="g-radio">
+      <input type="radio" name="gimg" id="g3" class="g-radio">
+      <input type="radio" name="gimg" id="g4" class="g-radio">
+
+      <div class="main-img">
+        <div class="g-img g-1" style="--c1:#7b61ff;--c2:#ff77b1">
+          {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">{% else %}<span>🛍️</span>{% endif %}
+        </div>
+        <div class="g-img g-2" style="--c1:#5fe3b5;--c2:#7b61ff"><span>📦</span></div>
+        <div class="g-img g-3" style="--c1:#ff77b1;--c2:#ffc93c"><span>🔍</span></div>
+        <div class="g-img g-4" style="--c1:#ffc93c;--c2:#5fe3b5"><span>✨</span></div>
+
+        {% if product.stock == 0 %}
+          <em class="badge low">Out of stock</em>
+        {% elif product.stock < 5 %}
+          <em class="badge low">Only {{ product.stock }} left</em>
+        {% elif product.old_price and product.old_price > product.price %}
+          <em class="badge">Sale</em>
+        {% endif %}
+      </div>
+
+      <div class="thumbs">
+        <label for="g1" class="thumb t-1" style="--c1:#7b61ff;--c2:#ff77b1">
+          {% if product.image %}<img src="{{ product.image.url }}" alt="">{% else %}<span>🛍️</span>{% endif %}
+        </label>
+        <label for="g2" class="thumb t-2" style="--c1:#5fe3b5;--c2:#7b61ff"><span>📦</span></label>
+        <label for="g3" class="thumb t-3" style="--c1:#ff77b1;--c2:#ffc93c"><span>🔍</span></label>
+        <label for="g4" class="thumb t-4" style="--c1:#ffc93c;--c2:#5fe3b5"><span>✨</span></label>
+      </div>
+    </section>
+
+    <!-- ===== INFO ===== -->
+    <section class="info">
+
+      <p class="cat-line">
+        <a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a>
+        {% if product.brand %}<span>· {{ product.brand }}</span>{% endif %}
+      </p>
+
+      <h1>{{ product.name }}</h1>
+
+      <div class="rating">
+        <span class="stars" aria-label="Rating {{ rating_avg }} out of 5">★★★★★</span>
+        <span class="rating-num">{{ rating_avg }}</span>
+        <a href="#reviews" class="rating-count">({{ rating_count }} reviews)</a>
+      </div>
+
+      <div class="price-block">
+        <strong class="price">KES {{ product.price|floatformat:0 }}</strong>
+        {% if product.old_price and product.old_price > product.price %}
+          <s class="old">KES {{ product.old_price|floatformat:0 }}</s>
+          <em class="save">
+            Save KES {{ product.old_price|add:product.price|floatformat:0 }}
+          </em>
+        {% endif %}
+      </div>
+
+      {% if product.description %}
+        <p class="short-desc">{{ product.description|truncatewords:28 }}</p>
+      {% endif %}
+
+      <!-- ===== VARIANTS (pure CSS radio chips) ===== -->
+      <div class="variants">
+        <fieldset class="variant-group">
+          <legend>Size</legend>
+          <div class="chips">
+            <input type="radio" name="size" id="sz-s" checked><label for="sz-s">S</label>
+            <input type="radio" name="size" id="sz-m"><label for="sz-m">M</label>
+            <input type="radio" name="size" id="sz-l"><label for="sz-l">L</label>
+            <input type="radio" name="size" id="sz-xl"><label for="sz-xl">XL</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="variant-group">
+          <legend>Color</legend>
+          <div class="chips colors">
+            <input type="radio" name="color" id="cl-violet" checked><label for="cl-violet" style="--sw:#7b61ff" title="Violet"></label>
+            <input type="radio" name="color" id="cl-mint"><label for="cl-mint" style="--sw:#5fe3b5" title="Mint"></label>
+            <input type="radio" name="color" id="cl-pink"><label for="cl-pink" style="--sw:#ff77b1" title="Pink"></label>
+            <input type="radio" name="color" id="cl-sun"><label for="cl-sun" style="--sw:#ffc93c" title="Sun"></label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- ===== ADD TO CART ===== -->
+      <div class="buy">
+        {% if product.stock > 0 %}
+          <form class="add-form" method="post" action="{% url 'cart_add' product.id %}" data-name="{{ product.name }}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+
+            <div class="qty-picker" data-max="{{ product.stock }}">
+              <button type="button" class="step" data-action="dec" aria-label="Decrease quantity">−</button>
+              <input type="number" name="qty" value="1" min="1" max="{{ product.stock }}" inputmode="numeric" aria-label="Quantity">
+              <button type="button" class="step" data-action="inc" aria-label="Increase quantity">+</button>
+            </div>
+
+            <button class="btn add" type="submit">Add to cart</button>
+          </form>
+
+          <input type="checkbox" id="wish" class="wish-in">
+          <label for="wish" class="wish-btn" aria-label="Add to wishlist">
+            <span class="heart">♡</span>
+            <span class="label">Save</span>
+          </label>
+        {% else %}
+          <button class="btn add" type="button" disabled>Out of stock</button>
+          <input type="checkbox" id="wish" class="wish-in">
+          <label for="wish" class="wish-btn" aria-label="Add to wishlist">
+            <span class="heart">♡</span>
+            <span class="label">Save</span>
+          </label>
+        {% endif %}
+      </div>
+
+      <!-- ===== TRUST ===== -->
+      <ul class="trust-mini">
+        <li><span>🔒</span> Secure checkout</li>
+        <li><span>🚚</span> Fast delivery</li>
+        <li><span>↩️</span> 14-day returns</li>
+        <li><span>💬</span> Real support</li>
+      </ul>
+
+    </section>
+  </div>
+
+  <!-- ============ TABS ============ -->
+  <section class="tabs-block">
+    <input type="radio" name="tab" id="tab-desc" class="tab-r" checked>
+    <input type="radio" name="tab" id="tab-spec" class="tab-r">
+    <input type="radio" name="tab" id="tab-rev" class="tab-r">
+
+    <div class="tab-nav" role="tablist">
+      <label for="tab-desc" role="tab">Description</label>
+      <label for="tab-spec" role="tab">Specifications</label>
+      <label for="tab-rev" role="tab">Reviews ({{ rating_count }})</label>
+    </div>
+
+    <div class="tab-panels">
+      <section class="tab-panel panel-desc">
+        <h3>About this product</h3>
+        <p>{{ product.description|default:"No description available yet." }}</p>
+      </section>
+
+      <section class="tab-panel panel-spec">
+        <h3>Details</h3>
+        <dl class="specs">
+          <dt>Brand</dt><dd>{{ product.brand|default:"—" }}</dd>
+          <dt>Category</dt><dd>{{ product.category.name }}</dd>
+          <dt>SKU</dt><dd>ESHOP-{{ product.id }}</dd>
+          <dt>Stock</dt>
+          <dd>
+            {% if product.stock == 0 %}Out of stock
+            {% elif product.stock < 5 %}Only {{ product.stock }} left
+            {% else %}In stock ({{ product.stock }} available){% endif %}
+          </dd>
+        </dl>
+      </section>
+
+      <section class="tab-panel panel-rev" id="reviews">
+        <h3>Customer reviews</h3>
+
+        <div class="rev-summary">
+          <div class="rev-big">{{ rating_avg }}</div>
+          <div>
+            <div class="stars big">★★★★★</div>
+            <p>Based on {{ rating_count }} verified reviews</p>
+          </div>
+        </div>
+
+        <!-- Sample reviews (replace with a Review model later) -->
+        <article class="review">
+          <header><strong>Jane M.</strong><span class="verified">✓ Verified buyer</span><time>2 weeks ago</time></header>
+          <div class="stars">★★★★★</div>
+          <p>Excellent quality — arrived fast and works exactly as described. Would buy again.</p>
+        </article>
+
+        <article class="review">
+          <header><strong>Peter K.</strong><span class="verified">✓ Verified buyer</span><time>1 month ago</time></header>
+          <div class="stars">★★★★☆</div>
+          <p>Great product for the price. Docked one star because delivery took a day longer than expected.</p>
+        </article>
+
+        <a class="btn ghost write-rev" href="#">Write a review →</a>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ RELATED ============ -->
+  {% if related %}
+  <section class="related">
+    <div class="sec-head">
+      <div>
+        <h2>You might also like</h2>
+        <p>More from {{ product.category.name }}.</p>
+      </div>
+      <a class="link" href="{% url 'category' product.category.slug %}">View category →</a>
+    </div>
+
+    <div class="grid">
+      {% for p in related %}
+      <article class="card">
+        <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1">
+          {% if p.image %}
+            <img src="{{ p.image.url }}" alt="{{ p.name }}">
+          {% else %}
+            <span>🛍️</span>
+          {% endif %}
+          <input class="heart-in" type="checkbox" id="rw{{ p.id }}">
+          <label class="heart" for="rw{{ p.id }}" aria-label="Add to wishlist"></label>
+        </div>
+        <div class="info">
+          <small>{{ p.category.name }}</small>
+          <h3>{{ p.name }}</h3>
+          <div class="price"><strong>KES {{ p.price|floatformat:0 }}</strong>
+            {% if p.old_price %}<s>KES {{ p.old_price|floatformat:0 }}</s>{% endif %}
+          </div>
+          <div class="actions">
+            {% if p.stock > 0 %}
+              <form class="add-form" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
+                {% csrf_token %}
+                <input type="hidden" name="qty" value="1">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="btn" type="submit">Add to cart</button>
+              </form>
+            {% else %}
+              <button class="btn ghost" type="button" disabled>Out of stock</button>
+            {% endif %}
+            <a class="btn ghost" href="{% url 'product' p.slug %}">View</a>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fgrid">
+      <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
+      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="{% url 'home' %}#categories">Categories</a></div>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a href="{% url 'contact' %}">Contact us</a></div>
+      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></div>
+    </div>
+    <div class="copy">© E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+<!-- Sticky mobile Add-to-cart bar -->
+<div class="mobile-bar">
+  <div>
+    <strong>KES {{ product.price|floatformat:0 }}</strong>
+    {% if product.stock == 0 %}<small class="out">Out of stock</small>
+    {% else %}<small>{{ product.stock }} in stock</small>{% endif %}
+  </div>
+  {% if product.stock > 0 %}
+    <form class="add-form" method="post" action="{% url 'cart_add' product.id %}" data-name="{{ product.name }}">
+      {% csrf_token %}
+      <input type="hidden" name="qty" value="1">
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button class="btn" type="submit">Add to cart</button>
+    </form>
+  {% else %}
+    <button class="btn" type="button" disabled>Out of stock</button>
+  {% endif %}
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Add to cart (same handler as other pages) ---------- */
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m.pop()) : '';
+  }
+  function csrfToken() {
+    const el = document.querySelector('input[name=csrfmiddlewaretoken]');
+    return (el && el.value) || getCookie('csrftoken') || '';
+  }
+  function updateBadges(count) {
+    document.querySelectorAll('[data-cart-count]').forEach(el => {
+      el.textContent = count;
+      el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    });
+  }
+  function showToast(msg) {
+    let t = document.getElementById('toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'toast'; t.className = 'toast';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._tm);
+    t._tm = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+  document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form.classList || !form.classList.contains('add-form')) return;
+    e.preventDefault();
+    const btn = form.querySelector('button[type=submit]');
+    if (!btn || btn.disabled) return;
+    const original = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Adding…';
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
+        body: new FormData(form)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      if (json.cart_count !== undefined) updateBadges(json.cart_count);
+      showToast((form.dataset.name || 'Item') + ' added to cart');
+      btn.textContent = '✓ Added';
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
+    } catch (err) {
+      console.error('Add to cart failed:', err);
+      form.submit();
+    }
+  });
+
+  /* ---------- Quantity stepper ---------- */
+  document.querySelectorAll('.qty-picker').forEach(picker => {
+    const input = picker.querySelector('input[name=qty]');
+    const max = parseInt(picker.dataset.max || input.max || 9999, 10);
+    picker.querySelectorAll('.step').forEach(btn => {
+      btn.addEventListener('click', () => {
+        let v = parseInt(input.value, 10) || 1;
+        if (btn.dataset.action === 'inc') v = Math.min(max, v + 1);
+        else v = Math.max(1, v - 1);
+        input.value = v;
+      });
+    });
+    input.addEventListener('change', () => {
+      let v = parseInt(input.value, 10) || 1;
+      v = Math.max(1, Math.min(max, v));
+      input.value = v;
+    });
+  });
+
+  /* ---------- Hide mobile bar when the real .buy section is visible ---------- */
+  const bar = document.querySelector('.mobile-bar');
+  const buy = document.querySelector('.buy');
+  if (bar && buy && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      ([entry]) => bar.classList.toggle('hidden', entry.isIntersecting),
+      { rootMargin: '-40px 0px 0px 0px' }
+    );
+    io.observe(buy);
+  }
+})();
+</script>
+
+</body>
+</html>

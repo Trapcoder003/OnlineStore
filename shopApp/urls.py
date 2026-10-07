@@ -1,0 +1,27 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("", views.home, name="home"),
+    path("shop/", views.shop, name="shop"),
+    path("category/<slug:slug>/", views.category_detail, name="category"),
+    path("product/<slug:slug>/", views.product_detail, name="product"),
+    path("search/", views.search, name="search"),
+
+    # Cart
+    path("cart/", views.cart_detail, name="cart"),
+    path("cart/add/<int:product_id>/", views.cart_add, name="cart_add"),
+    path("cart/update/<int:product_id>/", views.cart_update, name="cart_update"),
+    path("cart/remove/<int:product_id>/", views.cart_remove, name="cart_remove"),
+    path("cart/coupon/apply/", views.cart_apply_coupon, name="cart_apply_coupon"),
+    path("cart/coupon/remove/", views.cart_remove_coupon, name="cart_remove_coupon"),
+
+    # Info pages
+    path("contact/", views.contact, name="contact"),
+    path("contact/success/", views.contact_success, name="contact_success"),
+    path("about/", views.about, name="about"),
+    path("faq/", views.faq, name="faq"),
+    path("shipping-returns/", views.shipping_returns, name="shipping"),
+    path("privacy/", views.privacy, name="privacy"),
+    path("terms/", views.terms, name="terms"),
+]

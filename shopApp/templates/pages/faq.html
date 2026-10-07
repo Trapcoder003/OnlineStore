@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ</title>
+<link rel="stylesheet" href="{% static 'styles/faq.css' %}">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+  <nav>
+    <a href="{% url 'shop' %}">Shop</a>
+    <a href="{% url 'about' %}">About</a>
+    <a class="on" href="{% url 'faq' %}">FAQ</a>
+    <a href="{% url 'contact' %}">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Frequently asked questions</h1>
+    <p>Quick answers to the things people ask us most.</p>
+  </section>
+
+  <!-- Category tabs (pure CSS: radio buttons + labels) -->
+  <div class="faq">
+    <input type="radio" name="cat" id="f-all" checked>
+    <input type="radio" name="cat" id="f-orders">
+    <input type="radio" name="cat" id="f-pay">
+    <input type="radio" name="cat" id="f-returns">
+    <input type="radio" name="cat" id="f-account">
+
+    <div class="tabs" role="tablist">
+      <label for="f-all">All</label>
+      <label for="f-orders">📦 Orders</label>
+      <label for="f-pay">💳 Payments</label>
+      <label for="f-returns">↩️ Returns</label>
+      <label for="f-account">👤 Account</label>
+    </div>
+
+    <div class="groups">
+      <section class="g orders">
+        <h2>📦 Orders &amp; delivery</h2>
+        <details><summary>How long does delivery take?</summary><p>Most orders arrive within 2 to 5 working days. You'll get tracking updates by email.</p></details>
+        <details><summary>How do I track my order?</summary><p>Open your order history and click the tracking link on the order.</p></details>
+        <details><summary>Is delivery free?</summary><p>Yes, on orders over KES 5,000. Smaller orders pay a small delivery fee shown at checkout.</p></details>
+      </section>
+
+      <section class="g pay">
+        <h2>💳 Payments</h2>
+        <details><summary>Is my payment information safe?</summary><p>Yes. Payments go through a trusted gateway using tokens, so your card details never touch our servers.</p></details>
+        <details><summary>Which payment methods do you accept?</summary><p>Cards and mobile money. The full list is shown at checkout.</p></details>
+      </section>
+
+      <section class="g returns">
+        <h2>↩️ Returns &amp; refunds</h2>
+        <details><summary>Can I return an item?</summary><p>Yes, within 14 days if it's unused and in its original packaging.</p></details>
+        <details><summary>When will I get my refund?</summary><p>Refunds are issued within 5 to 7 working days after we receive the item.</p></details>
+      </section>
+
+      <section class="g account">
+        <h2>👤 Your account</h2>
+        <details><summary>I forgot my password. What do I do?</summary><p>Use "Forgot password" on the login page and we'll email you a reset link.</p></details>
+        <details><summary>How do I update my details?</summary><p>Sign in and open your profile to change your name, email or addresses.</p></details>
+      </section>
+    </div>
+  </div>
+
+  <section class="banner">
+    <h2>Still need help?</h2>
+    <p>Send us a message and we'll reply soon.</p>
+    <a class="btn" href="{% url 'contact' %}">Contact us →</a>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>© E-Shop. All rights reserved.</p>
+  <p><a href="{% url 'privacy' %}">Privacy</a> · <a href="{% url 'terms' %}">Terms</a> · <a href="{% url 'shipping' %}">Shipping &amp; Returns</a></p>
+</footer>
+</body>
+</html>

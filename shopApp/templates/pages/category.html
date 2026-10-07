@@ -1,0 +1,230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ category.name }} · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/category.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'about' %}">About</a>
+      <a href="{% url 'contact' %}">Contact</a>
+      <a href="{% url 'faq' %}">FAQ</a>
+    </nav>
+    <div class="icons">
+      <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
+      <a class="icon" href="#" aria-label="Cart">🛒<b>0</b></a>
+      <a class="icon" href="#" aria-label="Account">👤</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  <!-- Breadcrumb -->
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'home' %}">Home</a>
+    <span aria-hidden="true">›</span>
+    <a href="{% url 'shop' %}">Shop</a>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">{{ category.name }}</span>
+  </nav>
+
+  <!-- Page head -->
+  <section class="head">
+    <span class="emoji" aria-hidden="true">{{ category.emoji|default:"🛍️" }}</span>
+    <h1>{{ category.name }}</h1>
+    <p>{{ products|length }} product{{ products|length|pluralize }} in this category.</p>
+  </section>
+
+  <div class="layout">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Mobile toggle (pure CSS, same trick as the nav) -->
+      <input type="checkbox" id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
+      <label class="filter-btn" for="filter-toggle">☰ Filters &amp; categories</label>
+
+      <div class="sidebar-inner">
+
+        <!-- ===== Hierarchical category tree (pure CSS accordion) ===== -->
+        <section class="side-block">
+          <h2>Categories</h2>
+
+          <details class="tree" open>
+            <summary>
+              <span class="dot" style="background:var(--mint)"></span>
+              {{ category.name }}
+              <em>current</em>
+            </summary>
+            <ul class="tree-children">
+              {% for s in siblings %}
+                <li><a href="{% url 'category' s.slug %}">
+                  <span class="dot" style="background:var(--violet)"></span>{{ s.name }}
+                </a></li>
+              {% endfor %}
+            </ul>
+          </details>
+
+          <!--
+            When you add a `parent = ForeignKey('self', ...)` field to Category,
+            replace the block above with a real tree:
+
+            {% for top in top_categories %}
+              <details class="tree" {% if top == category %}open{% endif %}>
+                <summary>{{ top.name }}</summary>
+                <ul class="tree-children">
+                  {% for sub in top.children.all %}
+                    <li><a href="{% url 'category' sub.slug %}">{{ sub.name }}</a></li>
+                  {% endfor %}
+                </ul>
+              </details>
+            {% endfor %}
+          -->
+        </section>
+
+        <!-- ===== Availability filter (pure CSS radios) ===== -->
+        <section class="side-block">
+          <h2>Availability</h2>
+          <div class="opts">
+            <input type="radio" name="avail" id="av-all" checked>
+            <input type="radio" name="avail" id="av-in">
+            <input type="radio" name="avail" id="av-low">
+            <div class="opt-row">
+              <label for="av-all">All items</label>
+              <label for="av-in">In stock</label>
+              <label for="av-low">Low stock</label>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== Price filter (pure CSS checkboxes) ===== -->
+        <section class="side-block">
+          <h2>Price</h2>
+          <ul class="checks">
+            <li><input type="checkbox" id="p1"><label for="p1">Under KES 2,000</label></li>
+            <li><input type="checkbox" id="p2"><label for="p2">KES 2,000 – 5,000</label></li>
+            <li><input type="checkbox" id="p3"><label for="p3">KES 5,000 – 10,000</label></li>
+            <li><input type="checkbox" id="p4"><label for="p4">Over KES 10,000</label></li>
+          </ul>
+        </section>
+
+        <!-- ===== Brand filter (pure CSS checkboxes) ===== -->
+        {% if products %}
+        <section class="side-block">
+          <h2>Brand</h2>
+          <ul class="checks">
+            {% for b in products %}
+              {% if b.brand %}
+                <li><input type="checkbox" id="b{{ forloop.counter }}"><label for="b{{ forloop.counter }}">{{ b.brand }}</label></li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+
+      </div>
+    </aside>
+
+    <!-- ===================== MAIN CONTENT ===================== -->
+    <section class="content">
+
+      <!-- Toolbar: results count + sort -->
+      <div class="toolbar">
+        <p class="count"><strong>{{ products|length }}</strong> result{{ products|length|pluralize }}</p>
+        <form class="sort-form" method="get">
+          <label for="sort">Sort by</label>
+          <select id="sort" name="sort" onchange="this.form.submit()">
+            <option value="" {% if not sort %}selected{% endif %}>Featured</option>
+            <option value="low" {% if sort == "low" %}selected{% endif %}>Price: low to high</option>
+            <option value="high" {% if sort == "high" %}selected{% endif %}>Price: high to low</option>
+            <option value="az" {% if sort == "az" %}selected{% endif %}>Name: A to Z</option>
+          </select>
+          <noscript><button class="btn tiny" type="submit">Go</button></noscript>
+        </form>
+      </div>
+
+      <!-- Product grid -->
+      {% if products %}
+      <div class="grid">
+        {% for p in products %}
+        <article class="card">
+          <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1">
+            {% if p.image %}
+              <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+            {% else %}
+              <span>🛍️</span>
+            {% endif %}
+
+            {% if p.old_price and p.old_price > p.price %}
+              <em class="badge">-{{ p.old_price|add:"0"|floatformat:0 }}%</em>
+            {% elif p.stock < 5 and p.stock > 0 %}
+              <em class="badge low">Only {{ p.stock }} left</em>
+            {% elif p.stock == 0 %}
+              <em class="badge low">Out of stock</em>
+            {% endif %}
+
+            <input class="heart-in" type="checkbox" id="w{{ p.id }}">
+            <label class="heart" for="w{{ p.id }}" aria-label="Add {{ p.name }} to wishlist"></label>
+          </div>
+
+          <div class="info">
+            <small>{{ p.category.name }}</small>
+            <h3>{{ p.name }}</h3>
+
+            <div class="price">
+              <strong>KES {{ p.price|floatformat:0 }}</strong>
+              {% if p.old_price %}<s>KES {{ p.old_price|floatformat:0 }}</s>{% endif %}
+            </div>
+
+            <div class="actions">
+              {% if p.stock > 0 %}
+                <button class="btn" type="button" data-id="{{ p.id }}">Add to cart</button>
+              {% else %}
+                <button class="btn ghost" type="button" disabled>Out of stock</button>
+              {% endif %}
+              <a class="btn ghost" href="{% url 'product' p.slug %}">View</a>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div class="empty">
+        <span aria-hidden="true">🫙</span>
+        <h2>Nothing here yet</h2>
+        <p>We haven't added products to this category. Try another one.</p>
+        <a class="btn" href="{% url 'shop' %}">Browse the shop →</a>
+      </div>
+      {% endif %}
+
+    </section>
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fgrid">
+      <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
+      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="{% url 'home' %}#categories">Categories</a></div>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a href="{% url 'contact' %}">Contact us</a></div>
+      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></div>
+    </div>
+    <div class="copy">© E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>
