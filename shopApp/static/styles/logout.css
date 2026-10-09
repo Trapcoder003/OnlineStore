@@ -1,0 +1,6 @@
+/* logout-specific */
+.cta-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.cta-row .btn{width:auto;flex:1;min-width:180px}
+.btn.ghost{background:transparent;border:2px solid var(--line);box-shadow:none;color:#fff}
+.btn.ghost:hover:not(:disabled){border-color:var(--mint);color:var(--mint);background:transparent}
+.btn.ghost::after{display:none}

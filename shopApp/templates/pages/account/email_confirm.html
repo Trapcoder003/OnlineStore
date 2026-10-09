@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm email · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/email_confirm.css' %}">
+</head>
+<body>
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+    </nav>
+  </div>
+</header>
+
+<main class="auth-wrap">
+  <section class="auth-card narrow center">
+    {% if confirmation %}
+      <div class="icon-head">✅</div>
+      <h1>Confirm your email</h1>
+      <p class="sub">Please confirm that <b>{{ confirmation.email_address.email }}</b> belongs to you.</p>
+      <form method="post" action="{% url 'account_confirm_email' confirmation.key %}" class="form">
+        {% csrf_token %}
+        <button class="btn" type="submit">Confirm email →</button>
+      </form>
+    {% else %}
+      <div class="icon-head">⚠️</div>
+      <h1>Link expired</h1>
+      <p class="sub">This verification link has expired or is invalid. Please sign up again or request a new link.</p>
+      <a class="btn" href="{% url 'account_signup' %}">Sign up again</a>
+    {% endif %}
+  </section>
+</main>
+</body>
+</html>

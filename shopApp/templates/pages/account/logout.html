@@ -1,0 +1,35 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signed out · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/logout.css' %}">
+</head>
+<body>
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+    </nav>
+  </div>
+</header>
+
+<main class="auth-wrap">
+  <section class="auth-card narrow center">
+    <div class="icon-head">👋</div>
+    <h1>You're signed out</h1>
+    <p class="sub">Thanks for stopping by. See you soon!</p>
+    <div class="cta-row">
+      <a class="btn" href="{% url 'account_login' %}">Sign in again</a>
+      <a class="btn ghost" href="{% url 'home' %}">Go to home</a>
+    </div>
+  </section>
+</main>
+</body>
+</html>
