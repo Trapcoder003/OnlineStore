@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/shop.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}" class="active">Shop</a>
+      <a href="{% url 'cart' %}">Cart</a>
+    </nav>
+    <div class="icons">
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  <!-- Page Header -->
+  <section class="page-head">
+    <h1>All Products</h1>
+    <p>Browse our entire collection of high-quality items.</p>
+  </section>
+
+  <div class="shop-layout">
+    
+    <!-- ===== SIDEBAR FILTERS ===== -->
+    <aside class="sidebar">
+      <!-- Mobile filter toggle -->
+      <input type="checkbox" id="filter-toggle" class="filter-toggle">
+      <label for="filter-toggle" class="filter-btn">☰ Filters</label>
+
+      <div class="sidebar-inner">
+        <!-- Categories -->
+        <div class="filter-group">
+          <h3>Categories</h3>
+          <ul class="filter-list">
+            <li><a href="#" class="active">All Categories</a></li>
+            {% for c in categories %}
+              <li><a href="{% url 'category' c.slug %}">{{ c.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- Price -->
+        <div class="filter-group">
+          <h3>Price Range</h3>
+          <ul class="filter-list">
+            <li><a href="#">Under KES 2,000</a></li>
+            <li><a href="#">KES 2,000 - 5,000</a></li>
+            <li><a href="#">KES 5,000 - 10,000</a></li>
+            <li><a href="#">Over KES 10,000</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== PRODUCT GRID ===== -->
+    <section class="products-area">
+      
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <span class="result-count">Showing {{ products|length }} products</span>
+        <div class="sort-box">
+          <select aria-label="Sort products">
+            <option>Sort by: Featured</option>
+            <option>Price: Low to High</option>
+            <option>Price: High to Low</option>
+            <option>Newest Arrivals</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="grid">
+        {% for p in products %}
+        <article class="card">
+          <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1">
+            {% if p.image %}
+              <img src="{{ p.image.url }}" alt="{{ p.name }}">
+            {% else %}
+              <span>🛍️</span>
+            {% endif %}
+
+            {% if p.stock == 0 %}
+              <em class="badge low">Out of stock</em>
+            {% elif p.stock < 5 %}
+              <em class="badge low">Only {{ p.stock }} left</em>
+            {% elif p.old_price and p.old_price > p.price %}
+              <em class="badge">Sale</em>
+            {% endif %}
+            
+            <input class="heart-in" type="checkbox" id="w{{ p.id }}">
+            <label class="heart" for="w{{ p.id }}" aria-label="Add to wishlist"></label>
+          </div>
+
+          <div class="info">
+            <small>{{ p.category.name }}</small>
+            <h3>{{ p.name }}</h3>
+            <div class="price">
+              <strong>KES {{ p.price|floatformat:0 }}</strong>
+              {% if p.old_price %}<s>KES {{ p.old_price|floatformat:0 }}</s>{% endif %}
+            </div>
+            <div class="actions">
+              {% if p.stock > 0 %}
+                <form class="add-form" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
+                  {% csrf_token %}
+                  <input type="hidden" name="qty" value="1">
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <button class="btn" type="submit">Add to cart</button>
+                </form>
+              {% else %}
+                <button class="btn ghost" type="button" disabled>Out of stock</button>
+              {% endif %}
+              <a class="btn ghost" href="{% url 'product' p.slug %}">View</a>
+            </div>
+          </div>
+        </article>
+        {% empty %}
+          <div class="empty-state">
+            <h2>No products found</h2>
+            <p>Check back later or try a different category.</p>
+            <a href="{% url 'home' %}" class="btn">Back to Home</a>
+          </div>
+        {% endfor %}
+      </div>
+
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
+      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="{% url 'home' %}#categories">Categories</a></div>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'contact' %}">Contact us</a></div>
+      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a></div>
+    </div>
+    <div class="copy">© E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m.pop()) : '';
+  }
+
+  function csrfToken() {
+    const el = document.querySelector('input[name=csrfmiddlewaretoken]');
+    return (el && el.value) || getCookie('csrftoken') || '';
+  }
+
+  document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form.classList || !form.classList.contains('add-form')) return;
+    e.preventDefault();
+
+    const btn = form.querySelector('button[type=submit]');
+    if (!btn || btn.disabled) return;
+
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Adding…';
+
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new FormData(form)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const json = await res.json();
+      
+      document.querySelectorAll('[data-cart-count]').forEach(el => {
+        el.textContent = json.cart_count;
+        el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+      });
+
+      let t = document.getElementById('toast');
+      t.textContent = (form.dataset.name || 'Item') + ' added to cart';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+
+      btn.textContent = '✓ Added';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.disabled = false;
+      }, 1100);
+      
+    } catch (err) {
+      console.error('Add to cart failed:', err);
+      form.submit();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

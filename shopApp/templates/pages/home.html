@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home</title>
+<title>Dashboard · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 </head>
 <body>
@@ -16,7 +16,7 @@
     <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
     <nav class="links">
       <a href="{% url 'shop' %}">Shop</a>
-      <a href="#categories">Browse categories</a>
+      <a href="#categories">Categories</a>
       <a href="{% url 'about' %}">About</a>
       <a href="{% url 'contact' %}">Contact</a>
       <a href="{% url 'faq' %}">FAQ</a>
@@ -24,173 +24,167 @@
     <div class="icons">
       <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
-      <a class="icon" href="#" aria-label="Account">👤</a>
+      <a class="icon" href="{% url 'account_logout' %}" aria-label="Sign Out" title="Sign Out">👤</a>
     </div>
   </div>
 </header>
 
-<main>
-  <!-- Hero -->
-  <section class="hero">
-    <div class="wrap">
-      <div>
-        <span class="eyebrow">✨ New season deals are live</span>
-        <h1>Shop smarter. Pay securely.</h1>
-        <p class="lead">Thousands of products, fast delivery and safe checkout. Find what you love in a few taps.</p>
-        <div class="cta">
-          <a class="btn" href="{% url 'shop' %}">Shop now →</a>
-          <a class="btn ghost" href="#categories">Browse categories</a>
-        </div>
-      </div>
-      <div class="orbit" aria-hidden="true">
-        <div class="bubble b1">🎧</div><div class="bubble b2">⌚</div><div class="bubble b3">👟</div>
-      </div>
+<main class="wrap page">
+
+  <!-- Dashboard Header -->
+  <section class="dash-head">
+    <div>
+      <h1>Welcome back{% if user.is_authenticated %}, {{ user.username }}{% endif %} 👋</h1>
+      <p>Here is what's happening with your store today.</p>
+    </div>
+    <div class="dash-actions">
+      <a class="btn" href="{% url 'shop' %}">Start Shopping</a>
     </div>
   </section>
 
-  <!-- Search -->
-  <section id="search" style="padding-top:10px">
-    <div class="wrap">
-      <form class="searchbox" action="{% url 'search' %}" method="get">
-        <input type="search" name="q" placeholder="Search for products, brands…" aria-label="Search">
-        <select name="category" aria-label="Category">
-          <option value="">All categories</option>
-          <option>Electronics</option><option>Fashion</option><option>Home</option><option>Beauty</option><option>Sports</option>
-        </select>
-        <button class="btn" type="submit">Search</button>
-      </form>
-      <div class="trending">Trending: <a class="pill" href="#">Headphones</a><a class="pill" href="#">Sneakers</a><a class="pill" href="#">Smart watch</a><a class="pill" href="#">Backpacks</a></div>
+  <!-- Stats Row (Horizontal) -->
+  <section class="stats-grid">
+    
+    <!-- Cart Stats -->
+    <div class="stat-card stat-cart">
+      <div class="stat-icon">🛒</div>
+      <div class="stat-info">
+        <span class="stat-label">Items in Cart</span>
+        <span class="stat-value">{{ cart_count|default:"0" }}</span>
+      </div>
     </div>
+
+    <!-- Wishlist Stats -->
+    <div class="stat-card stat-wish">
+      <div class="stat-icon">♡</div>
+      <div class="stat-info">
+        <span class="stat-label">Wishlist</span>
+        <span class="stat-value">0</span>
+      </div>
+    </div>
+
+    <!-- Orders Stats -->
+    <div class="stat-card stat-orders">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <span class="stat-label">Total Orders</span>
+        <span class="stat-value">0</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Search & Trending -->
+  <section id="search" class="search-section">
+    <form class="searchbox" action="{% url 'search' %}" method="get">
+      <input type="search" name="q" placeholder="Search for products, brands…" aria-label="Search">
+      <button class="btn" type="submit">Search</button>
+    </form>
   </section>
 
   <!-- Categories -->
-  <section id="categories">
-    <div class="wrap">
-      <div class="sec-head">
-        <div><h2>Shop by category</h2><p>Pick a department to start browsing.</p></div>
-        <a class="link" href="{% url 'shop' %}">All categories →</a>
-      </div>
-      <div class="cats">
-        {% for c in categories %}
-          <a class="cat" href="{% url 'category' c.slug %}">
-            <span class="e">{{ c.emoji }}</span><h3>{{ c.name }}</h3>
-          </a>
-        {% endfor %}
-      </div>
+  <section id="categories" class="dash-section">
+    <div class="sec-head">
+      <div><h2>Shop by Category</h2></div>
+      <a class="link" href="{% url 'shop' %}">View all →</a>
+    </div>
+    <div class="cats">
+      {% for c in categories %}
+        <a class="cat" href="{% url 'category' c.slug %}">
+          <span class="e">{{ c.emoji }}</span>
+          <h3>{{ c.name }}</h3>
+        </a>
+      {% empty %}
+        <p style="color:var(--soft)">No categories added yet.</p>
+      {% endfor %}
     </div>
   </section>
 
   <!-- Promotions -->
-  <section>
-    <div class="wrap">
-      <div class="sec-head"><div><h2>Offers you'll like</h2><p>Limited-time deals and coupons.</p></div></div>
-      <div class="promos">
-        <article class="promo p1"><span class="big">🔥</span><h3>Flash sale: up to 30% off</h3><p>Electronics and fashion favorites, this week only.</p><a class="btn" href="{% url 'shop' %}">Shop the sale</a></article>
-        <article class="promo p2"><span class="big">🎁</span><h3>New here?</h3><p>Get 10% off your first order.</p><span class="code">WELCOME10</span><a class="btn" href="#">Create account</a></article>
-        <article class="promo p3"><span class="big">🚚</span><h3>Free delivery</h3><p>On all orders over KES 5,000.</p><a class="btn" href="{% url 'shipping' %}">Delivery info</a></article>
-      </div>
+  <section class="dash-section">
+    <div class="sec-head"><div><h2>Offers you'll like</h2></div></div>
+    <div class="promos">
+      <article class="promo p1"><span class="big">🔥</span><h3>Flash sale: up to 30% off</h3><p>Electronics and fashion favorites, this week only.</p><a class="btn" href="{% url 'shop' %}">Shop the sale</a></article>
+      <article class="promo p2"><span class="big">🎁</span><h3>New here?</h3><p>Get 10% off your first order.</p><span class="code">WELCOME10</span></article>
+      <article class="promo p3"><span class="big">🚚</span><h3>Free delivery</h3><p>On all orders over KES 5,000.</p></article>
     </div>
   </section>
 
   <!-- Featured products -->
-  <section>
-    <div class="wrap">
-      <div class="sec-head">
-        <div><h2>Featured products</h2><p>Hand-picked favorites from our customers.</p></div>
-        <a class="link" href="{% url 'shop' %}">View all products →</a>
-      </div>
+  <section class="dash-section">
+    <div class="sec-head">
+      <div><h2>Featured products</h2><p>Hand-picked favorites from our customers.</p></div>
+      <a class="link" href="{% url 'shop' %}">View all products →</a>
+    </div>
 
-      <div class="grid">
-        {% for p in featured %}
-        <article class="card">
-          <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1">
-            {% if p.image %}
-              <img src="{{ p.image.url }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover">
+    <div class="grid">
+      {% for p in featured %}
+      <article class="card">
+        <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1">
+          {% if p.image %}
+            <img src="{{ p.image.url }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover">
+          {% else %}
+            <span>🛍️</span>
+          {% endif %}
+          
+          {% if p.stock < 5 and p.stock > 0 %}
+            <em class="badge low">Only {{ p.stock }} left</em>
+          {% endif %}
+          
+          <input class="heart-in" type="checkbox" id="w{{ p.id }}">
+          <label class="heart" for="w{{ p.id }}" aria-label="Add {{ p.name }} to wishlist"></label>
+        </div>
+
+        <div class="info">
+          <small>{{ p.category.name }}</small>
+          <h3>{{ p.name }}</h3>
+          <div class="price">
+            <strong>KES {{ p.price|floatformat:0 }}</strong>
+            {% if p.old_price %}<s>KES {{ p.old_price|floatformat:0 }}</s>{% endif %}
+          </div>
+          <div class="actions">
+            {% if p.stock > 0 %}
+              <form class="add-form" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
+                {% csrf_token %}
+                <input type="hidden" name="qty" value="1">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="btn" type="submit">Add to cart</button>
+              </form>
             {% else %}
-              <span>🛍️</span>
+              <button class="btn ghost" type="button" disabled>Out of stock</button>
             {% endif %}
-
-            {% if p.stock == 0 %}
-              <em class="badge low">Out of stock</em>
-            {% elif p.stock < 5 %}
-              <em class="badge low">Only {{ p.stock }} left</em>
-            {% elif p.old_price and p.old_price > p.price %}
-              <em class="badge">Sale</em>
-            {% endif %}
-
-            <input class="heart-in" type="checkbox" id="w{{ p.id }}">
-            <label class="heart" for="w{{ p.id }}" aria-label="Add {{ p.name }} to wishlist"></label>
+            <a class="btn ghost" href="{% url 'product' p.slug %}">View</a>
           </div>
-
-          <div class="info">
-            <small>{{ p.category.name }}</small>
-            <h3>{{ p.name }}</h3>
-            <div class="price">
-              <strong>KES {{ p.price|floatformat:0 }}</strong>
-              {% if p.old_price %}<s>KES {{ p.old_price|floatformat:0 }}</s>{% endif %}
-            </div>
-            <div class="actions">
-              {% if p.stock > 0 %}
-                <form class="add-form" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
-                  {% csrf_token %}
-                  <input type="hidden" name="qty" value="1">
-                  <input type="hidden" name="next" value="{{ request.path }}">
-                  <button class="btn" type="submit">Add to cart</button>
-                </form>
-              {% else %}
-                <button class="btn ghost" type="button" disabled>Out of stock</button>
-              {% endif %}
-              <a class="btn ghost" href="{% url 'product' p.slug %}">View</a>
-            </div>
-          </div>
-        </article>
-        {% empty %}
-          <p style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.6);padding:30px 0">
-            No featured products yet — mark some in the admin.
-          </p>
-        {% endfor %}
-      </div>
-
-      <div class="center">
-        <a class="btn" href="{% url 'shop' %}">Browse all products →</a>
-      </div>
+        </div>
+      </article>
+      {% empty %}
+        <p style="grid-column:1/-1;text-align:center;color:var(--soft);padding:30px 0">
+          No featured products yet — mark some in the admin.
+        </p>
+      {% endfor %}
     </div>
   </section>
 
   <!-- Trust -->
-  <section>
-    <div class="wrap">
-      <div class="sec-head"><div><h2>Why shop with us</h2></div><a class="link" href="{% url 'about' %}">About us →</a></div>
-      <div class="trust">
-        <div class="t"><span>🔒</span><h3>Secure payments</h3><p>Tokenized checkout. We never store your card details.</p></div>
-        <div class="t"><span>🚚</span><h3>Fast delivery</h3><p>Track every order from checkout to your door.</p></div>
-        <div class="t"><span>↩️</span><h3>Easy returns</h3><p>Not right? Send it back, no stress.</p></div>
-        <div class="t"><span>💬</span><h3>Real support</h3><p>Friendly help whenever you need it.</p></div>
-      </div>
+  <section class="dash-section">
+    <div class="sec-head"><div><h2>Why shop with us</h2></div></div>
+    <div class="trust">
+      <div class="t"><span>🔒</span><h3>Secure payments</h3><p>Tokenized checkout. We never store your card details.</p></div>
+      <div class="t"><span>🚚</span><h3>Fast delivery</h3><p>Track every order from checkout to your door.</p></div>
+      <div class="t"><span>↩️</span><h3>Easy returns</h3><p>Not right? Send it back, no stress.</p></div>
+      <div class="t"><span>💬</span><h3>Real support</h3><p>Friendly help whenever you need it.</p></div>
     </div>
   </section>
 
-  <!-- FAQ preview -->
-  <section>
-    <div class="wrap">
-      <div class="sec-head"><div><h2>Quick answers</h2></div></div>
-      <div class="faq">
-        <details><summary>How long does delivery take?</summary><p>Most orders arrive within 2 to 5 working days. You'll get tracking updates by email.</p></details>
-        <details><summary>Is my payment information safe?</summary><p>Yes. Payments go through a trusted gateway using tokens, so your card details never touch our servers.</p></details>
-        <details><summary>Can I return an item?</summary><p>You can return most items within 14 days if they're unused and in their original packaging.</p></details>
-        <div class="center"><a class="btn ghost" href="{% url 'faq' %}">See all FAQs</a></div>
-      </div>
-    </div>
-  </section>
 </main>
 
 <footer>
   <div class="wrap">
     <div class="fgrid">
       <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
-      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="#categories">Categories</a><a href="#search">Search</a></div>
-      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a href="{% url 'contact' %}">Contact us</a></div>
-      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></div>
+      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="#categories">Categories</a></div>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'contact' %}">Contact us</a></div>
+      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a></div>
     </div>
     <div class="copy">© E-Shop. All rights reserved.</div>
   </div>
@@ -210,30 +204,6 @@
   function csrfToken() {
     const el = document.querySelector('input[name=csrfmiddlewaretoken]');
     return (el && el.value) || getCookie('csrftoken') || '';
-  }
-
-  function updateBadges(count) {
-    document.querySelectorAll('[data-cart-count]').forEach(el => {
-      el.textContent = count;
-      el.classList.remove('bump');
-      void el.offsetWidth;
-      el.classList.add('bump');
-    });
-  }
-
-  function showToast(msg) {
-    let t = document.getElementById('toast');
-    if (!t) {
-      t = document.createElement('div');
-      t.id = 'toast';
-      t.className = 'toast';
-      t.setAttribute('role', 'status');
-      document.body.appendChild(t);
-    }
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(t._tm);
-    t._tm = setTimeout(() => t.classList.remove('show'), 2200);
   }
 
   document.addEventListener('submit', async (e) => {
@@ -260,14 +230,23 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
       const json = await res.json();
-      if (json.cart_count !== undefined) updateBadges(json.cart_count);
-      showToast((form.dataset.name || 'Item') + ' added to cart');
+      
+      document.querySelectorAll('[data-cart-count]').forEach(el => {
+        el.textContent = json.cart_count;
+        el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+      });
+
+      let t = document.getElementById('toast');
+      t.textContent = (form.dataset.name || 'Item') + ' added to cart';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
 
       btn.textContent = '✓ Added';
       setTimeout(() => {
         btn.textContent = original;
         btn.disabled = false;
       }, 1100);
+      
     } catch (err) {
       console.error('Add to cart failed:', err);
       form.submit();
@@ -275,5 +254,6 @@
   });
 })();
 </script>
+
 </body>
 </html>

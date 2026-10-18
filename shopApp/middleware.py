@@ -3,7 +3,7 @@ from django.urls import reverse, resolve, Resolver404
 from django.conf import settings
 
 
-# URL name prefixes that must stay public
+# URL names that MUST stay public for allauth to work
 PUBLIC_URL_NAMES = {
     "account_login",
     "account_signup",
@@ -22,36 +22,37 @@ PUBLIC_URL_NAMES = {
     "shipping",
 }
 
-# Path prefixes that must stay public (admin, static, media)
+# Path prefixes that MUST stay public (static files, admin, auth pages)
 PUBLIC_PATH_PREFIXES = (
-    settings.STATIC_URL,
-    settings.MEDIA_URL,
-    "/admin/",
-    "/accounts/",
+    settings.STATIC_URL,   # Usually "/static/"
+    settings.MEDIA_URL,    # Usually "/media/"
+    "/admin/",             # Django admin panel
+    "/accounts/",          # Allauth login/signup/reset pages
 )
 
 
 class LoginRequiredMiddleware:
     """
-    Redirects unauthenticated users to LOGIN_URL for every page
-    that isn't explicitly public.
+    Forces unauthenticated users to the login page for ALL pages
+    except the ones listed in the public sets above.
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
+        # 1. If the user is already logged in, let them see everything
         if request.user.is_authenticated:
             return self.get_response(request)
 
         path = request.path
 
-        # Allow static / media / admin
+        # 2. Allow static files, media, admin, and /accounts/ paths
         for prefix in PUBLIC_PATH_PREFIXES:
             if path.startswith(prefix):
                 return self.get_response(request)
 
-        # Allow explicitly public URL names
+        # 3. Allow explicitly public URL names
         try:
             match = resolve(path)
             if match.url_name in PUBLIC_URL_NAMES:
@@ -59,6 +60,6 @@ class LoginRequiredMiddleware:
         except Resolver404:
             pass
 
-        # Otherwise — bounce to login with ?next=
+        # 4. Block everything else and send them to login
         login_url = reverse(settings.LOGIN_URL)
         return redirect(f"{login_url}?next={path}")

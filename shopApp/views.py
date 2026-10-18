@@ -4,6 +4,11 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.db.models import Q
 from django.core.mail import send_mail
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from .mpesa_service import initiate_stk_push
+import json
 
 from .models import Category, Product
 from .cart import Cart
@@ -16,13 +21,7 @@ def home(request):
     })
 
 def shop(request):
-    return render(request, "shop.html", {"products": Product.objects.all()})
-
-
-
-def product_detail(request, slug):
-    return render(request, "product.html", {"product": get_object_or_404(Product, slug=slug)})
-
+    return render(request, "pages/shop.html", {"products": Product.objects.all()})
 
 # Simple pages: each just shows its template
 def about(request): 
@@ -217,3 +216,53 @@ def product_detail(request, slug):
         "rating_avg": rating_avg,
         "rating_count": rating_count,
     })
+
+
+
+# ---------------- M-PESA INTEGRATION ----------------
+
+@require_POST
+def mpesa_pay(request):
+    try:
+        data = json.loads(request.body)
+        phone = data.get("phone")
+        amount = data.get("amount")
+        
+        # You can replace "ORDER123" with a real order ID later
+        response = initiate_stk_push(phone, amount, "ORDER123", "E-Shop Payment")
+        return JsonResponse(response)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=400)
+
+
+@csrf_exempt
+def mpesa_callback(request):
+    """
+    Safaricom sends the payment result to this URL.
+    """
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            # Extract the result code (0 means success)
+            result_code = data["Body"]["stkCallback"]["ResultCode"]
+            
+            if result_code == 0:
+                # Payment successful! Extract receipt number
+                metadata = data["Body"]["stkCallback"]["CallbackMetadata"]["Item"]
+                receipt = next(item["Value"] for item in metadata if item["Name"] == "MpesaReceiptNumber")
+                amount = next(item["Value"] for item in metadata if item["Name"] == "Amount")
+                phone = next(item["Value"] for item in metadata if item["Name"] == "PhoneNumber")
+                
+                print(f"✅ PAYMENT SUCCESS: Receipt {receipt} | Phone: {phone} | Amount: {amount}")
+                
+                # TODO: Here you would mark the user's order as 'Paid' in your database.
+                
+            else:
+                # Payment failed or was cancelled by the user
+                print(f"❌ PAYMENT FAILED: ResultCode {result_code}")
+                
+        except Exception as e:
+            print(f"Error processing callback: {e}")
+            
+    # Always return a success response to Safaricom so they don't retry
+    return JsonResponse({"ResultCode": 0, "ResultDesc": "Success"})

@@ -24,4 +24,7 @@ urlpatterns = [
     path("shipping-returns/", views.shipping_returns, name="shipping"),
     path("privacy/", views.privacy, name="privacy"),
     path("terms/", views.terms, name="terms"),
+    path("mpesa/pay/", views.mpesa_pay, name="mpesa_pay"),
+    path("mpesa/callback/", views.mpesa_callback, name="mpesa_callback"),
+
 ]

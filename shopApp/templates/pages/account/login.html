@@ -74,11 +74,6 @@
           <div class="field">
             <input type="password" name="password" id="id_password" placeholder=" " required autocomplete="current-password">
             <label for="id_password">Password</label>
-            <input type="checkbox" id="pwd-toggle" class="pwd-toggle">
-            <label for="pwd-toggle" class="pwd-btn" aria-label="Show password">
-              <span class="eye-open"></span>
-              <span class="eye-closed">🙈</span>
-            </label>
             {% if form.password.errors %}<span class="err">{{ form.password.errors.0 }}</span>{% endif %}
           </div>
 
@@ -121,11 +116,6 @@
             <input type="password" name="password1" id="id_password1" placeholder=" " required
                    autocomplete="new-password" data-strength>
             <label for="id_password1">Password</label>
-            <input type="checkbox" id="pwd-toggle1" class="pwd-toggle">
-            <label for="pwd-toggle1" class="pwd-btn" aria-label="Show password">
-              <span class="eye-open">👁️</span>
-              <span class="eye-closed">🙈</span>
-            </label>
             {% if form.password1.errors %}<span class="err">{{ form.password1.errors.0 }}</span>{% endif %}
           </div>
 
@@ -137,11 +127,6 @@
           <div class="field">
             <input type="password" name="password2" id="id_password2" placeholder=" " required autocomplete="new-password">
             <label for="id_password2">Confirm password</label>
-            <input type="checkbox" id="pwd-toggle2" class="pwd-toggle">
-            <label for="pwd-toggle2" class="pwd-btn" aria-label="Show password">
-              <span class="eye-open">👁️</span>
-              <span class="eye-closed">🙈</span>
-            </label>
             {% if form.password2.errors %}<span class="err">{{ form.password2.errors.0 }}</span>{% endif %}
           </div>
 
@@ -189,15 +174,6 @@
       label.textContent = ['', 'Weak', 'Fair', 'Good', 'Strong'][s] || '';
     });
   }
-
-  /* Show/hide password */
-  document.querySelectorAll('.pwd-toggle').forEach(t => {
-    const field = t.closest('.field');
-    const input = field.querySelector('input[type=password]');
-    t.addEventListener('change', () => {
-      input.type = t.checked ? 'text' : 'password';
-    });
-  });
 
   /* Submit spinner */
   document.querySelectorAll('.form').forEach(f => {
