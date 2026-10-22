@@ -62,10 +62,16 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "home"
 ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_LOGOUT_ON_GET = True
 
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_SESSION_REMEMBER = None
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+# Tell allauth the User model has no username field for auth
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+
+# Auto-generate a username from the email (keeps DB happy)
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_REQUIRED = True
 
 
 # ---------------------------------------------------------------
