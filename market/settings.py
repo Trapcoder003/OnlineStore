@@ -59,19 +59,14 @@ SITE_ID = 1
 LOGIN_URL = "account_login"
 LOGIN_REDIRECT_URL = "home"
 ACCOUNT_LOGOUT_REDIRECT_URL = "home"
-ACCOUNT_LOGIN_METHODS = {"username"}
 ACCOUNT_LOGOUT_ON_GET = True
 
+ACCOUNT_LOGIN_METHODS = {"username"}
+ACCOUNT_SIGNUP_FIELDS = ["username*", "email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_SESSION_REMEMBER = None
-ACCOUNT_SIGNUP_FIELDS = ["username*", "password1*", "password2*"]
-# Tell allauth the User model has no username field for auth
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-
-# Auto-generate a username from the email (keeps DB happy)
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 
 
 # ---------------------------------------------------------------
@@ -173,7 +168,9 @@ CONTACT_RECEIVER = "you@yourshop.com"
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://trapcoder.pythonanywhere.com",
 ]
+
 
 # ---------------------------------------------------------------
 # Coupons
@@ -198,12 +195,13 @@ SECURE_HSTS_PRELOAD = os.environ.get("SECURE_HSTS_PRELOAD", "False").lower() == 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# market/settings.py
 
+# ---------------------------------------------------------------
 # M-Pesa Sandbox Credentials
-MPESA_CONSUMER_KEY = "cbmfQaQTmycHr7yZXmhyfeWF9Fu2ict8r6TDRY0rFNtlJlVg"          # Paste your full key
-MPESA_CONSUMER_SECRET = "xTVCrDJlWuGemIOiQRrzmCAjeUNgdCDT1qT2aDgb5SN1iGPnqZa3RAsl8uqJBabv"       # Paste your full secret
-MPESA_SHORTCODE = "174379"              # Sandbox shortcode
-MPESA_PASSKEY = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919" # Standard sandbox passkey
+# ---------------------------------------------------------------
+MPESA_CONSUMER_KEY = "cbmfQaQTmycHr7yZXmhyfeWF9Fu2ict8r6TDRY0rFNtlJlVg"
+MPESA_CONSUMER_SECRET = "xTVCrDJlWuGemIOiQRrzmCAjeUNgdCDT1qT2aDgb5SN1iGPnqZa3RAsl8uqJBabv"
+MPESA_SHORTCODE = "174379"
+MPESA_PASSKEY = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
 MPESA_ENV = "sandbox"
-MPESA_CALLBACK_URL = "https://tactics-capacity-disclose.ngrok-free.dev"
+MPESA_CALLBACK_URL = "https://tactics-capacity-disclose.ngrok-free.dev/mpesa/callback/"
