@@ -23,7 +23,8 @@
     </nav>
     <div class="icons">
       <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
-      <a class="icon" href="#" aria-label="Cart">🛒<b>0</b></a>
+      <!-- FIXED: Added real URL and data-cart-count -->
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
       <a class="icon" href="#" aria-label="Account">👤</a>
     </div>
   </div>
@@ -76,22 +77,6 @@
               {% endfor %}
             </ul>
           </details>
-
-          <!--
-            When you add a `parent = ForeignKey('self', ...)` field to Category,
-            replace the block above with a real tree:
-
-            {% for top in top_categories %}
-              <details class="tree" {% if top == category %}open{% endif %}>
-                <summary>{{ top.name }}</summary>
-                <ul class="tree-children">
-                  {% for sub in top.children.all %}
-                    <li><a href="{% url 'category' sub.slug %}">{{ sub.name }}</a></li>
-                  {% endfor %}
-                </ul>
-              </details>
-            {% endfor %}
-          -->
         </section>
 
         <!-- ===== Availability filter (pure CSS radios) ===== -->
@@ -190,7 +175,13 @@
 
             <div class="actions">
               {% if p.stock > 0 %}
-                <button class="btn" type="button" data-id="{{ p.id }}">Add to cart</button>
+                <!-- FIXED: Wrapped in a form -->
+                <form class="add-form" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
+                  {% csrf_token %}
+                  <input type="hidden" name="qty" value="1">
+                  <input type="hidden" name="next" value="{{ request.path }}">
+                  <button class="btn" type="submit">Add to cart</button>
+                </form>
               {% else %}
                 <button class="btn ghost" type="button" disabled>Out of stock</button>
               {% endif %}
@@ -225,6 +216,74 @@
     <div class="copy">© E-Shop. All rights reserved.</div>
   </div>
 </footer>
+
+<!-- FIXED: Added Toast element and JavaScript handler -->
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m.pop()) : '';
+  }
+
+  function csrfToken() {
+    const el = document.querySelector('input[name=csrfmiddlewaretoken]');
+    return (el && el.value) || getCookie('csrftoken') || '';
+  }
+
+  document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form.classList || !form.classList.contains('add-form')) return;
+    e.preventDefault();
+
+    const btn = form.querySelector('button[type=submit]');
+    if (!btn || btn.disabled) return;
+
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Adding…';
+
+    try {
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken(),
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: new FormData(form)
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      const json = await res.json();
+      
+      // Update cart count badge
+      document.querySelectorAll('[data-cart-count]').forEach(el => {
+        el.textContent = json.cart_count;
+        el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+      });
+
+      // Show toast
+      let t = document.getElementById('toast');
+      t.textContent = (form.dataset.name || 'Item') + ' added to cart';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+
+      btn.textContent = '✓ Added';
+      setTimeout(() => {
+        btn.textContent = original;
+        btn.disabled = false;
+      }, 1100);
+      
+    } catch (err) {
+      console.error('Add to cart failed:', err);
+      form.submit();
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
