@@ -270,18 +270,25 @@ def mpesa_callback(request):
 from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
 from allauth.account.forms import UserTokenForm
 
+from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
+from allauth.account.forms import UserTokenForm
+
 class CustomPasswordResetFromKeyView(AllauthPasswordResetFromKeyView):
     def dispatch(self, request, uidb36, key, **kwargs):
         self.request = request
         self.key = key
-        # Check if the token in the URL is valid
+        
+        print("=== PASSWORD RESET LINK CLICKED ===")
+        print(f"UIDB36: {uidb36}")
+        print(f"KEY: {key}")
+        
         token_form = UserTokenForm(data={'uidb36': uidb36, 'key': self.key})
         
         if token_form.is_valid():
-            # Save the user to the view instance so the form can render
+            print("TOKEN IS VALID. Rendering form.")
             self.reset_user = token_form.reset_user
             return self.render_to_response(self.get_context_data())
             
-        # If the link is bad/expired, pass token_fail=True to show an error
+        print("TOKEN IS INVALID OR EXPIRED. Rendering fail state.")
         self.reset_user = None
         return self.render_to_response(self.get_context_data(token_fail=True))
