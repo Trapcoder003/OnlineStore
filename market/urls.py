@@ -7,19 +7,20 @@ from django.conf.urls.static import static
 from shopApp.views import CustomPasswordResetFromKeyView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    # 1. SECURE ADMIN: Only you know this URL
+    path("trapcoder-master-panel/", admin.site.urls),
     
-    # 1. OVERRIDE: This custom route must be placed BEFORE the allauth include
+    # 2. OVERRIDE: This custom route must be placed BEFORE the allauth include
     path(
         "accounts/password/reset/key/<uidb36>-<key>/", 
         CustomPasswordResetFromKeyView.as_view(), 
         name="account_reset_password_from_key"
     ),
     
-    # 2. STANDARD ALLAUTH URLS
+    # 3. STANDARD ALLAUTH URLS
     path("accounts/", include("allauth.urls")),
     
-    # 3. YOUR APP URLS
+    # 4. YOUR APP URLS
     path("", include("shopApp.urls")),
 ]
 

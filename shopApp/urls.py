@@ -26,5 +26,7 @@ urlpatterns = [
     path("terms/", views.terms, name="terms"),
     path("mpesa/pay/", views.mpesa_pay, name="mpesa_pay"),
     path("mpesa/callback/", views.mpesa_callback, name="mpesa_callback"),
+    path("wishlist/", views.wishlist_detail, name="wishlist"),
+    path("wishlist/toggle/<int:product_id>/", views.toggle_wishlist, name="toggle_wishlist"),
 
 ]

@@ -20,6 +20,7 @@
       <a href="{% url 'cart' %}">Cart</a>
     </nav>
     <div class="icons">
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
     </div>
   </div>
@@ -27,22 +28,16 @@
 
 <main class="wrap page">
 
-  <!-- Page Header -->
   <section class="page-head">
     <h1>All Products</h1>
     <p>Browse our entire collection of high-quality items.</p>
   </section>
 
   <div class="shop-layout">
-    
-    <!-- ===== SIDEBAR FILTERS ===== -->
     <aside class="sidebar">
-      <!-- Mobile filter toggle -->
       <input type="checkbox" id="filter-toggle" class="filter-toggle">
       <label for="filter-toggle" class="filter-btn">☰ Filters</label>
-
       <div class="sidebar-inner">
-        <!-- Categories -->
         <div class="filter-group">
           <h3>Categories</h3>
           <ul class="filter-list">
@@ -52,37 +47,14 @@
             {% endfor %}
           </ul>
         </div>
-
-        <!-- Price -->
-        <div class="filter-group">
-          <h3>Price Range</h3>
-          <ul class="filter-list">
-            <li><a href="#">Under KES 2,000</a></li>
-            <li><a href="#">KES 2,000 - 5,000</a></li>
-            <li><a href="#">KES 5,000 - 10,000</a></li>
-            <li><a href="#">Over KES 10,000</a></li>
-          </ul>
-        </div>
       </div>
     </aside>
 
-    <!-- ===== PRODUCT GRID ===== -->
     <section class="products-area">
-      
-      <!-- Toolbar -->
       <div class="toolbar">
         <span class="result-count">Showing {{ products|length }} products</span>
-        <div class="sort-box">
-          <select aria-label="Sort products">
-            <option>Sort by: Featured</option>
-            <option>Price: Low to High</option>
-            <option>Price: High to Low</option>
-            <option>Newest Arrivals</option>
-          </select>
-        </div>
       </div>
 
-      <!-- Grid -->
       <div class="grid">
         {% for p in products %}
         <article class="card">
@@ -101,7 +73,7 @@
               <em class="badge">Sale</em>
             {% endif %}
             
-            <input class="heart-in" type="checkbox" id="w{{ p.id }}">
+            <input class="heart-in wishlist-checkbox" type="checkbox" id="w{{ p.id }}" data-id="{{ p.id }}" {% if p.id in wishlist_product_ids %}checked{% endif %}>
             <label class="heart" for="w{{ p.id }}" aria-label="Add to wishlist"></label>
           </div>
 
@@ -135,7 +107,6 @@
           </div>
         {% endfor %}
       </div>
-
     </section>
   </div>
 </main>
@@ -183,16 +154,12 @@
     try {
       const res = await fetch(form.action, {
         method: 'POST',
-        headers: {
-          'X-CSRFToken': csrfToken(),
-          'X-Requested-With': 'XMLHttpRequest'
-        },
+        headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
         body: new FormData(form)
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
       const json = await res.json();
-      
       document.querySelectorAll('[data-cart-count]').forEach(el => {
         el.textContent = json.cart_count;
         el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
@@ -204,15 +171,33 @@
       setTimeout(() => t.classList.remove('show'), 2200);
 
       btn.textContent = '✓ Added';
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.disabled = false;
-      }, 1100);
-      
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
     } catch (err) {
       console.error('Add to cart failed:', err);
       form.submit();
     }
+  });
+
+  document.querySelectorAll('.wishlist-checkbox').forEach(cb => {
+    cb.addEventListener('change', async function() {
+      const productId = this.dataset.id;
+      try {
+        const res = await fetch(`/wishlist/toggle/${productId}/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (res.status === 401) {
+          window.location.href = "{% url 'account_login' %}?next=" + window.location.pathname;
+          return;
+        }
+        const json = await res.json();
+        document.querySelectorAll('[data-wishlist-count]').forEach(el => el.textContent = json.count);
+        if (!json.in_wishlist) this.checked = false;
+      } catch (err) {
+        console.error(err);
+        this.checked = !this.checked;
+      }
+    });
   });
 })();
 </script>

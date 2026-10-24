@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from django.core.mail import send_mail
 import json
+from .models import Wishlist, Product
 
 # Allauth imports for password reset
 from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
@@ -298,3 +299,36 @@ class CustomPasswordResetFromKeyView(AllauthPasswordResetFromKeyView):
         print("TOKEN IS INVALID OR EXPIRED. Rendering fail state.")
         self.reset_user = None
         return self.render_to_response(self.get_context_data(token_fail=True))
+
+def wishlist_detail(request):
+    """Page to display all wishlisted items."""
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+    
+    items = Wishlist.objects.filter(user=request.user).select_related('product')
+    return render(request, "pages/wishlist.html", {"items": items})
+
+@require_POST
+def toggle_wishlist(request, product_id):
+    """AJAX view to add/remove an item from the wishlist."""
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "login_required"}, status=401)
+
+    product = get_object_or_404(Product, id=product_id)
+    wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
+
+    if not created:
+        # It already existed, so remove it
+        wishlist_item.delete()
+        in_wishlist = False
+    else:
+        in_wishlist = True
+
+    # Count total wishlist items for the navbar badge
+    count = Wishlist.objects.filter(user=request.user).count()
+
+    return JsonResponse({
+        "status": "success",
+        "in_wishlist": in_wishlist,
+        "count": count
+    })

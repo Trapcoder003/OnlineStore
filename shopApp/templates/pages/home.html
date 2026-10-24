@@ -22,7 +22,7 @@
       <a href="{% url 'faq' %}">FAQ</a>
     </nav>
     <div class="icons">
-      <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
       <a class="icon" href="{% url 'account_logout' %}" aria-label="Sign Out" title="Sign Out">👤</a>
     </div>
@@ -31,7 +31,6 @@
 
 <main class="wrap page">
 
-  <!-- Dashboard Hero Header (Reverted to clean text) -->
   <section class="dash-head" style="margin-top: 30px; margin-bottom: 50px; justify-content: center; text-align: center;">
     <div>
       <h1 style="font-size: clamp(36px, 5vw, 54px); margin-bottom: 16px;">
@@ -47,9 +46,7 @@
     </div>
   </section>
 
-  <!-- Stats Row (Horizontal) -->
   <section class="stats-grid">
-    <!-- Cart Stats -->
     <div class="stat-card stat-cart" style="position: relative;">
       <div class="stat-icon">🛒</div>
       <div class="stat-info">
@@ -59,16 +56,15 @@
       <a href="{% url 'cart' %}" style="position:absolute; inset:0; z-index:10;" aria-label="Go to cart"></a>
     </div>
 
-    <!-- Wishlist Stats -->
-    <div class="stat-card stat-wish">
+    <div class="stat-card stat-wish" style="position: relative;">
       <div class="stat-icon">♡</div>
       <div class="stat-info">
         <span class="stat-label">Wishlist</span>
-        <span class="stat-value">0</span>
+        <span class="stat-value">{{ wishlist_count|default:"0" }}</span>
       </div>
+      <a href="{% url 'wishlist' %}" style="position:absolute; inset:0; z-index:10;" aria-label="Go to wishlist"></a>
     </div>
 
-    <!-- Orders Stats -->
     <div class="stat-card stat-orders">
       <div class="stat-icon">📦</div>
       <div class="stat-info">
@@ -78,7 +74,6 @@
     </div>
   </section>
 
-  <!-- Search Section -->
   <section id="search" class="search-section">
     <form class="searchbox" action="{% url 'search' %}" method="get">
       <input type="search" name="q" placeholder="Search for products, brands, or categories…" aria-label="Search" required>
@@ -86,7 +81,6 @@
     </form>
   </section>
 
-  <!-- Categories Section -->
   <section id="categories" class="dash-section">
     <div class="sec-head">
       <div><h2>Shop by Category</h2><p>Pick a department to start browsing.</p></div>
@@ -104,7 +98,6 @@
     </div>
   </section>
 
-  <!-- Promotions Section -->
   <section class="dash-section">
     <div class="sec-head">
       <div><h2>Offers & Announcements</h2><p>Check out the latest deals happening on the store.</p></div>
@@ -116,14 +109,12 @@
         <p>Electronics and fashion favorites, this week only.</p>
         <a class="btn" href="{% url 'shop' %}">Shop the sale</a>
       </article>
-      
       <article class="promo p2">
         <span class="big">🎁</span>
         <h3>New here?</h3>
         <p>Get 10% off your first order.</p>
         <span class="code">WELCOME10</span>
       </article>
-      
       <article class="promo p3">
         <span class="big">🚚</span>
         <h3>Free delivery</h3>
@@ -133,7 +124,6 @@
     </div>
   </section>
 
-  <!-- Trust Section -->
   <section class="dash-section">
     <div class="sec-head">
       <div><h2>Why shop with us</h2></div>

@@ -14,7 +14,7 @@
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
   <div class="wrap">
     <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
-    <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
+    <label class="burger" for="nav-toggle"><span></span><span></span></label>
     <nav class="links">
       <a href="{% url 'home' %}">Home</a>
       <a href="{% url 'shop' %}">Shop</a>
@@ -23,16 +23,14 @@
       <a href="{% url 'faq' %}">FAQ</a>
     </nav>
     <div class="icons">
-      <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
-      <a class="icon" href="#" aria-label="Cart">🛒<b>0</b></a>
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
       <a class="icon" href="#" aria-label="Account">👤</a>
     </div>
   </div>
 </header>
 
 <main class="wrap page">
-
-  <!-- Search hero -->
   <section class="search-hero">
     <h1>{% if q %}Results for "{{ q }}"{% else %}Search the shop{% endif %}</h1>
     <p class="sub">
@@ -50,41 +48,23 @@
       {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
       <button class="btn" type="submit">Search</button>
     </form>
-
-    <div class="quick">
-      <span>Try:</span>
-      <a class="pill" href="{% url 'search' %}?q=headphones">🎧 Headphones</a>
-      <a class="pill" href="{% url 'search' %}?q=watch">⌚ Smart watch</a>
-      <a class="pill" href="{% url 'search' %}?q=shoes">👟 Shoes</a>
-      <a class="pill" href="{% url 'search' %}?q=backpack">🎒 Backpacks</a>
-      <a class="pill" href="{% url 'search' %}?q=mug">☕ Mugs</a>
-    </div>
   </section>
 
-  <!-- Only show the split layout when we actually have a query -->
   {% if q %}
   <div class="layout">
-
-    <!-- ============ SIDEBAR FILTERS ============ -->
     <aside class="sidebar">
-
       <input type="checkbox" id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
       <label class="filter-btn" for="filter-toggle">☰ Filters</label>
 
       <form class="sidebar-inner" method="get" action="{% url 'search' %}">
         <input type="hidden" name="q" value="{{ q }}">
-
-        <!-- Category -->
         <section class="side-block">
           <h2>Category</h2>
           <div class="radios">
             <input type="radio" name="category" id="c-all" value="" {% if not selected_category %}checked{% endif %}>
-            <input type="radio" name="category" id="c-none" value="" hidden>
             {% for c in categories %}
-              <input type="radio" name="category" id="c-{{ c.slug }}" value="{{ c.slug }}"
-                     {% if selected_category == c.slug %}checked{% endif %}>
+              <input type="radio" name="category" id="c-{{ c.slug }}" value="{{ c.slug }}" {% if selected_category == c.slug %}checked{% endif %}>
             {% endfor %}
-
             <div class="radio-row">
               <label for="c-all">All categories</label>
               {% for c in categories %}
@@ -93,33 +73,6 @@
             </div>
           </div>
         </section>
-
-        <!-- Availability -->
-        <section class="side-block">
-          <h2>Availability</h2>
-          <div class="radios">
-            <input type="radio" name="availability" id="a-all" value="all" {% if availability == "all" or not availability %}checked{% endif %}>
-            <input type="radio" name="availability" id="a-in" value="in" {% if availability == "in" %}checked{% endif %}>
-            <input type="radio" name="availability" id="a-low" value="low" {% if availability == "low" %}checked{% endif %}>
-            <div class="radio-row">
-              <label for="a-all">All items</label>
-              <label for="a-in">In stock</label>
-              <label for="a-low">Low stock (under 5)</label>
-            </div>
-          </div>
-        </section>
-
-        <!-- Sort -->
-        <section class="side-block">
-          <h2>Sort by</h2>
-          <ul class="checks">
-            <li><input type="radio" name="sort" id="s-feat" value="" {% if not sort %}checked{% endif %}><label for="s-feat">Featured</label></li>
-            <li><input type="radio" name="sort" id="s-low" value="low" {% if sort == "low" %}checked{% endif %}><label for="s-low">Price: low → high</label></li>
-            <li><input type="radio" name="sort" id="s-high" value="high" {% if sort == "high" %}checked{% endif %}><label for="s-high">Price: high → low</label></li>
-            <li><input type="radio" name="sort" id="s-az" value="az" {% if sort == "az" %}checked{% endif %}><label for="s-az">Name: A → Z</label></li>
-          </ul>
-        </section>
-
         <div class="side-actions">
           <button class="btn" type="submit">Apply filters</button>
           <a class="btn ghost" href="{% url 'search' %}?q={{ q|urlencode }}">Reset</a>
@@ -127,17 +80,9 @@
       </form>
     </aside>
 
-    <!-- ============ RESULTS ============ -->
     <section class="content">
-
       <div class="toolbar">
-        <p class="count">
-          <strong>{{ products|length }}</strong>
-          result{{ products|length|pluralize }} for "<em>{{ q }}</em>"
-        </p>
-        {% if selected_category or sort or availability != "all" %}
-          <a class="clear-all" href="{% url 'search' %}?q={{ q|urlencode }}">Clear filters ✕</a>
-        {% endif %}
+        <p class="count"><strong>{{ products|length }}</strong> result{{ products|length|pluralize }} for "<em>{{ q }}</em>"</p>
       </div>
 
       {% if products %}
@@ -159,16 +104,13 @@
                 <em class="badge">Sale</em>
               {% endif %}
 
-              <input class="heart-in" type="checkbox" id="w{{ p.id }}">
+              <input class="heart-in wishlist-checkbox" type="checkbox" id="w{{ p.id }}" data-id="{{ p.id }}" {% if p.id in wishlist_product_ids %}checked{% endif %}>
               <label class="heart" for="w{{ p.id }}" aria-label="Add {{ p.name }} to wishlist"></label>
             </div>
 
             <div class="info">
               <small>{{ p.category.name }}</small>
               <h3>{{ p.name|highlight:q }}</h3>
-              {% if p.description %}
-                <p class="desc">{{ p.description|truncatewords:12|highlight:q }}</p>
-              {% endif %}
               <div class="price">
                 <strong>KES {{ p.price|floatformat:0 }}</strong>
                 {% if p.old_price %}<s>KES {{ p.old_price|floatformat:0 }}</s>{% endif %}
@@ -185,32 +127,17 @@
           </article>
           {% endfor %}
         </div>
-
       {% else %}
         <div class="empty">
           <span aria-hidden="true">🔍</span>
           <h2>No matches for "{{ q }}"</h2>
-          <p>Try different keywords, or clear your filters to see everything.</p>
-          <div class="empty-actions">
-            <a class="btn" href="{% url 'search' %}?q={{ q|urlencode }}">Clear filters</a>
-            <a class="btn ghost" href="{% url 'shop' %}">Browse the shop</a>
-          </div>
-          <div class="suggest">
-            <p>Popular right now</p>
-            <div class="quick">
-              <a class="pill" href="{% url 'search' %}?q=headphones">🎧 Headphones</a>
-              <a class="pill" href="{% url 'search' %}?q=watch">⌚ Watches</a>
-              <a class="pill" href="{% url 'search' %}?q=shoes">👟 Shoes</a>
-              <a class="pill" href="{% url 'search' %}?q=home">🏠 Home</a>
-            </div>
-          </div>
+          <p>Try different keywords, or clear your filters.</p>
+          <a class="btn" href="{% url 'search' %}?q={{ q|urlencode }}">Clear filters</a>
         </div>
       {% endif %}
-
     </section>
   </div>
   {% endif %}
-
 </main>
 
 <footer class="foot">
@@ -224,6 +151,46 @@
     <div class="copy">© E-Shop. All rights reserved.</div>
   </div>
 </footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m.pop()) : '';
+  }
+
+  function csrfToken() {
+    const el = document.querySelector('input[name=csrfmiddlewaretoken]');
+    return (el && el.value) || getCookie('csrftoken') || '';
+  }
+
+  document.querySelectorAll('.wishlist-checkbox').forEach(cb => {
+    cb.addEventListener('change', async function() {
+      const productId = this.dataset.id;
+      try {
+        const res = await fetch(`/wishlist/toggle/${productId}/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (res.status === 401) {
+          window.location.href = "{% url 'account_login' %}?next=" + window.location.pathname;
+          return;
+        }
+        const json = await res.json();
+        document.querySelectorAll('[data-wishlist-count]').forEach(el => el.textContent = json.count);
+        if (!json.in_wishlist) this.checked = false;
+      } catch (err) {
+        console.error(err);
+        this.checked = !this.checked;
+      }
+    });
+  });
+})();
+</script>
 
 </body>
 </html>

@@ -22,8 +22,7 @@
       <a href="{% url 'faq' %}">FAQ</a>
     </nav>
     <div class="icons">
-      <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
-      <!-- FIXED: Added real URL and data-cart-count -->
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
       <a class="icon" href="#" aria-label="Account">👤</a>
     </div>
@@ -32,7 +31,6 @@
 
 <main class="wrap page">
 
-  <!-- Breadcrumb -->
   <nav class="crumbs" aria-label="Breadcrumb">
     <a href="{% url 'home' %}">Home</a>
     <span aria-hidden="true">›</span>
@@ -41,7 +39,6 @@
     <span aria-current="page">{{ category.name }}</span>
   </nav>
 
-  <!-- Page head -->
   <section class="head">
     <span class="emoji" aria-hidden="true">{{ category.emoji|default:"🛍️" }}</span>
     <h1>{{ category.name }}</h1>
@@ -49,20 +46,13 @@
   </section>
 
   <div class="layout">
-
-    <!-- ===================== SIDEBAR ===================== -->
     <aside class="sidebar" id="sidebar">
-
-      <!-- Mobile toggle (pure CSS, same trick as the nav) -->
       <input type="checkbox" id="filter-toggle" class="filter-toggle" aria-label="Toggle filters">
       <label class="filter-btn" for="filter-toggle">☰ Filters &amp; categories</label>
 
       <div class="sidebar-inner">
-
-        <!-- ===== Hierarchical category tree (pure CSS accordion) ===== -->
         <section class="side-block">
           <h2>Categories</h2>
-
           <details class="tree" open>
             <summary>
               <span class="dot" style="background:var(--mint)"></span>
@@ -79,7 +69,6 @@
           </details>
         </section>
 
-        <!-- ===== Availability filter (pure CSS radios) ===== -->
         <section class="side-block">
           <h2>Availability</h2>
           <div class="opts">
@@ -94,7 +83,6 @@
           </div>
         </section>
 
-        <!-- ===== Price filter (pure CSS checkboxes) ===== -->
         <section class="side-block">
           <h2>Price</h2>
           <ul class="checks">
@@ -104,28 +92,10 @@
             <li><input type="checkbox" id="p4"><label for="p4">Over KES 10,000</label></li>
           </ul>
         </section>
-
-        <!-- ===== Brand filter (pure CSS checkboxes) ===== -->
-        {% if products %}
-        <section class="side-block">
-          <h2>Brand</h2>
-          <ul class="checks">
-            {% for b in products %}
-              {% if b.brand %}
-                <li><input type="checkbox" id="b{{ forloop.counter }}"><label for="b{{ forloop.counter }}">{{ b.brand }}</label></li>
-              {% endif %}
-            {% endfor %}
-          </ul>
-        </section>
-        {% endif %}
-
       </div>
     </aside>
 
-    <!-- ===================== MAIN CONTENT ===================== -->
     <section class="content">
-
-      <!-- Toolbar: results count + sort -->
       <div class="toolbar">
         <p class="count"><strong>{{ products|length }}</strong> result{{ products|length|pluralize }}</p>
         <form class="sort-form" method="get">
@@ -136,11 +106,9 @@
             <option value="high" {% if sort == "high" %}selected{% endif %}>Price: high to low</option>
             <option value="az" {% if sort == "az" %}selected{% endif %}>Name: A to Z</option>
           </select>
-          <noscript><button class="btn tiny" type="submit">Go</button></noscript>
         </form>
       </div>
 
-      <!-- Product grid -->
       {% if products %}
       <div class="grid">
         {% for p in products %}
@@ -160,22 +128,19 @@
               <em class="badge low">Out of stock</em>
             {% endif %}
 
-            <input class="heart-in" type="checkbox" id="w{{ p.id }}">
+            <input class="heart-in wishlist-checkbox" type="checkbox" id="w{{ p.id }}" data-id="{{ p.id }}" {% if p.id in wishlist_product_ids %}checked{% endif %}>
             <label class="heart" for="w{{ p.id }}" aria-label="Add {{ p.name }} to wishlist"></label>
           </div>
 
           <div class="info">
             <small>{{ p.category.name }}</small>
             <h3>{{ p.name }}</h3>
-
             <div class="price">
               <strong>KES {{ p.price|floatformat:0 }}</strong>
               {% if p.old_price %}<s>KES {{ p.old_price|floatformat:0 }}</s>{% endif %}
             </div>
-
             <div class="actions">
               {% if p.stock > 0 %}
-                <!-- FIXED: Wrapped in a form -->
                 <form class="add-form" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
                   {% csrf_token %}
                   <input type="hidden" name="qty" value="1">
@@ -191,7 +156,6 @@
         </article>
         {% endfor %}
       </div>
-
       {% else %}
       <div class="empty">
         <span aria-hidden="true">🫙</span>
@@ -200,7 +164,6 @@
         <a class="btn" href="{% url 'shop' %}">Browse the shop →</a>
       </div>
       {% endif %}
-
     </section>
   </div>
 </main>
@@ -217,7 +180,6 @@
   </div>
 </footer>
 
-<!-- FIXED: Added Toast element and JavaScript handler -->
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -249,38 +211,50 @@
     try {
       const res = await fetch(form.action, {
         method: 'POST',
-        headers: {
-          'X-CSRFToken': csrfToken(),
-          'X-Requested-With': 'XMLHttpRequest'
-        },
+        headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
         body: new FormData(form)
       });
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
       const json = await res.json();
-      
-      // Update cart count badge
       document.querySelectorAll('[data-cart-count]').forEach(el => {
         el.textContent = json.cart_count;
         el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
       });
 
-      // Show toast
       let t = document.getElementById('toast');
       t.textContent = (form.dataset.name || 'Item') + ' added to cart';
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2200);
 
       btn.textContent = '✓ Added';
-      setTimeout(() => {
-        btn.textContent = original;
-        btn.disabled = false;
-      }, 1100);
-      
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
     } catch (err) {
       console.error('Add to cart failed:', err);
       form.submit();
     }
+  });
+
+  document.querySelectorAll('.wishlist-checkbox').forEach(cb => {
+    cb.addEventListener('change', async function() {
+      const productId = this.dataset.id;
+      try {
+        const res = await fetch(`/wishlist/toggle/${productId}/`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        if (res.status === 401) {
+          window.location.href = "{% url 'account_login' %}?next=" + window.location.pathname;
+          return;
+        }
+        const json = await res.json();
+        document.querySelectorAll('[data-wishlist-count]').forEach(el => el.textContent = json.count);
+        if (!json.in_wishlist) this.checked = false;
+      } catch (err) {
+        console.error(err);
+        this.checked = !this.checked;
+      }
+    });
   });
 })();
 </script>
