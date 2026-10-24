@@ -159,4 +159,16 @@ body::after { width: 380px; height: 380px; background: var(--pink); bottom: -120
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+
+}
+/* ============================================================
+   DISABLE ALL ANIMATIONS FOR MOBILE PERFORMANCE
+   ============================================================ */
+*, *::before, *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
 }

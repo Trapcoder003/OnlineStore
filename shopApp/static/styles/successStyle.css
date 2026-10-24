@@ -53,3 +53,14 @@ h1{font-size:clamp(34px,7vw,48px);margin-bottom:10px;background:linear-gradient(
 
 @media(max-width:520px){.card{padding:36px 20px 30px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.tick circle,.tick path{stroke-dashoffset:0}}
+/* ============================================================
+   DISABLE ALL ANIMATIONS FOR MOBILE PERFORMANCE
+   ============================================================ */
+*, *::before, *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}

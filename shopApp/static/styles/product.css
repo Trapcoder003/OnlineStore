@@ -416,3 +416,14 @@ body::after { width: 380px; height: 380px; background: var(--pink); bottom: -120
   cursor: not-allowed;
   box-shadow: none;
 }li { display: flex; align-items: center; gap: 6px; }
+/* ============================================================
+   DISABLE ALL ANIMATIONS FOR MOBILE PERFORMANCE
+   ============================================================ */
+*, *::before, *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}

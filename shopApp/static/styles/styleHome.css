@@ -202,3 +202,14 @@ footer { margin-top: 40px; padding: 40px 0 24px; border-top: 1px solid var(--lin
 .toast.show { transform: translate(-50%, 0); }
 
 @keyframes rise { from { opacity: 0; transform: translateY(20px); } }
+/* ============================================================
+   DISABLE ALL ANIMATIONS FOR MOBILE PERFORMANCE
+   ============================================================ */
+*, *::before, *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}

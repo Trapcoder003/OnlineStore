@@ -85,3 +85,14 @@ body::after{width:380px;height:380px;background:var(--pink);bottom:-120px;right:
 }
 @media(max-width:560px){.top nav a:not(.on){display:none}.hero{padding-top:44px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-timeline:none!important;transition-duration:.01ms!important}}
+/* ============================================================
+   DISABLE ALL ANIMATIONS FOR MOBILE PERFORMANCE
+   ============================================================ */
+*, *::before, *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}

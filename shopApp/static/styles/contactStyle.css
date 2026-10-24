@@ -73,3 +73,14 @@ a.ci:hover>span{transform:rotate(-10deg) scale(1.12)}
 @media(max-width:860px){.contact{grid-template-columns:1fr}}
 @media(max-width:520px){.top nav a:not(.on){display:none}.card{padding:24px 18px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* ============================================================
+   DISABLE ALL ANIMATIONS FOR MOBILE PERFORMANCE
+   ============================================================ */
+*, *::before, *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
