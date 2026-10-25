@@ -187,16 +187,23 @@
           {% csrf_token %}
           
           <div class="form-group">
-            <label for="rating-select">Your Rating</label>
-            <div class="select-wrapper">
-              <select name="rating" id="rating-select" required>
-                <option value="">Select a star rating...</option>
-                <option value="5" {% if user_review.rating == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ (Excellent)</option>
-                <option value="4" {% if user_review.rating == 4 %}selected{% endif %}>⭐⭐⭐⭐ (Good)</option>
-                <option value="3" {% if user_review.rating == 3 %}selected{% endif %}>⭐⭐⭐ (Average)</option>
-                <option value="2" {% if user_review.rating == 2 %}selected{% endif %}>⭐⭐ (Poor)</option>
-                <option value="1" {% if user_review.rating == 1 %}selected{% endif %}>⭐ (Terrible)</option>
-              </select>
+            <label>Your Rating</label>
+            <!-- CSS-ONLY INTERACTIVE STAR RATING -->
+            <div class="star-rating">
+              <input type="radio" id="star5" name="rating" value="5" {% if user_review.rating == 5 %}checked{% endif %} required />
+              <label for="star5" title="Excellent">★</label>
+              
+              <input type="radio" id="star4" name="rating" value="4" {% if user_review.rating == 4 %}checked{% endif %} />
+              <label for="star4" title="Good">★</label>
+              
+              <input type="radio" id="star3" name="rating" value="3" {% if user_review.rating == 3 %}checked{% endif %} />
+              <label for="star3" title="Average">★</label>
+              
+              <input type="radio" id="star2" name="rating" value="2" {% if user_review.rating == 2 %}checked{% endif %} />
+              <label for="star2" title="Poor">★</label>
+              
+              <input type="radio" id="star1" name="rating" value="1" {% if user_review.rating == 1 %}checked{% endif %} />
+              <label for="star1" title="Terrible">★</label>
             </div>
           </div>
 
