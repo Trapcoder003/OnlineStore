@@ -28,6 +28,6 @@ urlpatterns = [
     path("mpesa/callback/", views.mpesa_callback, name="mpesa_callback"),
     path("wishlist/", views.wishlist_detail, name="wishlist"),
     path("wishlist/toggle/<int:product_id>/", views.toggle_wishlist, name="toggle_wishlist"),
-        path("product/<slug:slug>/review/", views.add_review, name="add_review"),
-
+    path("product/<slug:slug>/review/", views.add_review, name="add_review"),
+    path("review/<int:review_id>/delete/", views.delete_review, name="delete_review"),
 ]

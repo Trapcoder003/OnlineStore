@@ -366,24 +366,47 @@ def product_detail(request, slug):
 
 
 @require_POST
+# Add these imports at the to
+
+# ... your other views ...
+
+@require_POST
 def add_review(request, slug):
-    """Handles the review submission form."""
     if not request.user.is_authenticated:
         return redirect('account_login')
 
     product = get_object_or_404(Product, slug=slug)
     rating = request.POST.get('rating')
     comment = request.POST.get('comment')
+    image = request.FILES.get('image')
+    video = request.FILES.get('video')
 
     if rating and comment:
-        # Update if exists, create if it doesn't
-        Review.objects.update_or_create(
+        review, created = Review.objects.get_or_create(
             product=product, 
             user=request.user,
             defaults={'rating': rating, 'comment': comment}
         )
+        if not created:
+            review.rating = rating
+            review.comment = comment
+        
+        if image:
+            review.image = image
+        if video:
+            review.video = video
+            
+        review.save()
         messages.success(request, "Your review has been saved!")
     else:
         messages.error(request, "Please provide a rating and a comment.")
 
     return redirect('product', slug=slug)
+
+@require_POST
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id, user=request.user)
+    product_slug = review.product.slug
+    review.delete()
+    messages.success(request, "Your review has been deleted.")
+    return redirect('product', slug=product_slug)
