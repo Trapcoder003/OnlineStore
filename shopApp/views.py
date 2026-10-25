@@ -7,6 +7,8 @@ from django.db.models import Q
 from django.core.mail import send_mail
 import json
 from .models import Wishlist, Product
+from django.db.models import Q, Avg
+from .models import Review 
 
 # Allauth imports for password reset
 from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
@@ -332,3 +334,56 @@ def toggle_wishlist(request, product_id):
         "in_wishlist": in_wishlist,
         "count": count
     })
+
+
+
+def product_detail(request, slug):
+    product = get_object_or_404(Product, slug=slug)
+
+    # Get related products
+    related = (Product.objects
+               .filter(category=product.category)
+               .exclude(pk=product.pk)
+               .order_by("-is_featured", "name")[:4])
+
+    # Get reviews and calculate the real average rating
+    reviews = product.reviews.all().order_by('-created_at')
+    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+    
+    # Check if the current user already left a review
+    user_review = None
+    if request.user.is_authenticated:
+        user_review = reviews.filter(user=request.user).first()
+
+    return render(request, "pages/product.html", {
+        "product": product,
+        "related": related,
+        "reviews": reviews,
+        "rating_avg": round(avg_rating, 1),
+        "rating_count": reviews.count(),
+        "user_review": user_review,
+    })
+
+
+@require_POST
+def add_review(request, slug):
+    """Handles the review submission form."""
+    if not request.user.is_authenticated:
+        return redirect('account_login')
+
+    product = get_object_or_404(Product, slug=slug)
+    rating = request.POST.get('rating')
+    comment = request.POST.get('comment')
+
+    if rating and comment:
+        # Update if exists, create if it doesn't
+        Review.objects.update_or_create(
+            product=product, 
+            user=request.user,
+            defaults={'rating': rating, 'comment': comment}
+        )
+        messages.success(request, "Your review has been saved!")
+    else:
+        messages.error(request, "Please provide a rating and a comment.")
+
+    return redirect('product', slug=slug)

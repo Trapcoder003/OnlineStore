@@ -75,10 +75,17 @@
 
       <h1>{{ product.name }}</h1>
 
+      <!-- DYNAMIC RATING -->
       <div class="rating">
-        <span class="stars" aria-label="Rating 4.7 out of 5">★★★★★</span>
-        <span class="rating-num">4.7</span>
-        <span class="rating-count">(128 reviews)</span>
+        <span class="stars" aria-label="Rating {{ rating_avg }} out of 5">
+          {% if rating_avg >= 1 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 2 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 3 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 4 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 5 %}★{% else %}☆{% endif %}
+        </span>
+        <span class="rating-num">{{ rating_avg }}</span>
+        <a href="#reviews" class="rating-count">({{ rating_count }} reviews)</a>
       </div>
 
       <div class="price-block">
@@ -124,6 +131,7 @@
     </section>
   </div>
 
+  <!-- DESCRIPTION SECTION -->
   <section class="product-description" style="margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--line);">
     <h2 style="font-size: 28px; margin-bottom: 20px; color: #fff;">Product Description</h2>
     <div style="background: var(--glass); border: 1px solid var(--line); border-radius: 24px; padding: 30px;">
@@ -149,6 +157,74 @@
     </div>
   </section>
 
+  <!-- ============ NEW REVIEWS SECTION ============ -->
+  <section class="product-reviews" id="reviews" style="margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--line);">
+    <h2 style="font-size: 28px; margin-bottom: 20px; color: #fff;">Customer Reviews</h2>
+
+    <!-- Average summary -->
+    <div class="rev-summary">
+      <div class="rev-big">{{ rating_avg }}</div>
+      <div>
+        <div class="stars big">
+          {% if rating_avg >= 1 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 2 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 3 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 4 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 5 %}★{% else %}☆{% endif %}
+        </div>
+        <p>Based on {{ rating_count }} review{{ rating_count|pluralize }}</p>
+      </div>
+    </div>
+
+    <!-- Review Form -->
+    <div class="review-form-box">
+      <h4>{% if user_review %}Update your review{% else %}Write a review{% endif %}</h4>
+      
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'add_review' product.slug %}">
+          {% csrf_token %}
+          <div class="review-stars">
+            <select name="rating" required>
+              <option value="">Rate this product...</option>
+              <option value="5" {% if user_review.rating == 5 %}selected{% endif %}>5 Stars - Excellent</option>
+              <option value="4" {% if user_review.rating == 4 %}selected{% endif %}>4 Stars - Good</option>
+              <option value="3" {% if user_review.rating == 3 %}selected{% endif %}>3 Stars - Average</option>
+              <option value="2" {% if user_review.rating == 2 %}selected{% endif %}>2 Stars - Poor</option>
+              <option value="1" {% if user_review.rating == 1 %}selected{% endif %}>1 Star - Terrible</option>
+            </select>
+          </div>
+          <textarea name="comment" rows="4" placeholder="Share your experience with this product..." required>{{ user_review.comment|default:'' }}</textarea>
+          <button class="btn" type="submit" style="width: auto; padding: 12px 30px;">Submit Review</button>
+        </form>
+      {% else %}
+        <p style="color: var(--soft);">Please <a href="{% url 'account_login' %}" style="color: var(--mint); font-weight: 600;">log in</a> to write a review.</p>
+      {% endif %}
+    </div>
+
+    <!-- Review List -->
+    <div class="review-list">
+      {% for review in reviews %}
+      <article class="review">
+        <header>
+          <strong>{{ review.user.username }}</strong>
+          <time>{{ review.created_at|date:"M d, Y" }}</time>
+        </header>
+        <div class="stars">
+          {% if review.rating >= 1 %}★{% else %}☆{% endif %}
+          {% if review.rating >= 2 %}★{% else %}☆{% endif %}
+          {% if review.rating >= 3 %}★{% else %}☆{% endif %}
+          {% if review.rating >= 4 %}★{% else %}☆{% endif %}
+          {% if review.rating >= 5 %}★{% else %}☆{% endif %}
+        </div>
+        <p>{{ review.comment }}</p>
+      </article>
+      {% empty %}
+        <p style="color: var(--soft); margin-top: 20px;">No reviews yet. Be the first to review this product!</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- RELATED PRODUCTS -->
   {% if related %}
   <section class="related" style="margin-top: 60px;">
     <div class="sec-head" style="display: flex; justify-content: space-between; align-items: end; margin-bottom: 20px;">
