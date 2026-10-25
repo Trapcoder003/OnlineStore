@@ -67,6 +67,12 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_SESSION_REMEMBER = None
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
+# 🆕 Custom adapter — prevents auto-login right after signup
+ACCOUNT_ADAPTER = "shopApp.adapters.NoAutoLoginAfterSignupAdapter"
+
+# 🆕 Belt-and-braces: never auto-login from other flows either
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
+ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
 
 
 # ---------------------------------------------------------------
