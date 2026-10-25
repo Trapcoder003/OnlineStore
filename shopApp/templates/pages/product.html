@@ -130,24 +130,25 @@
     </section>
   </div>
 
-  <section class="product-description" style="margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--line);">
-    <h2 style="font-size: 28px; margin-bottom: 20px; color: #fff;">Product Description</h2>
-    <div style="background: var(--glass); border: 1px solid var(--line); border-radius: 24px; padding: 30px;">
-      <p style="color: var(--soft); font-size: 16px; line-height: 1.8; margin: 0;">
+  <!-- DESCRIPTION SECTION -->
+  <section class="product-description">
+    <h2>Product Description</h2>
+    <div class="desc-card">
+      <p>
         {{ product.description|default:"No detailed description available for this product yet."|linebreaksbr }}
       </p>
-      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed var(--line); display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+      <div class="desc-details">
         <div>
-          <small style="display: block; color: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Brand</small>
-          <strong style="font-size: 16px;">{{ product.brand|default:"Generic" }}</strong>
+          <small>Brand</small>
+          <strong>{{ product.brand|default:"Generic" }}</strong>
         </div>
         <div>
-          <small style="display: block; color: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">SKU</small>
-          <strong style="font-size: 16px;">ESHOP-{{ product.id }}</strong>
+          <small>SKU</small>
+          <strong>ESHOP-{{ product.id }}</strong>
         </div>
         <div>
-          <small style="display: block; color: var(--soft); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Availability</small>
-          <strong style="font-size: 16px; color: {% if product.stock > 0 %}var(--mint){% else %}var(--danger){% endif %};">
+          <small>Availability</small>
+          <strong class="{% if product.stock > 0 %}text-mint{% else %}text-danger{% endif %}">
             {% if product.stock > 0 %}In Stock ({{ product.stock }}){% else %}Out of Stock{% endif %}
           </strong>
         </div>
@@ -156,8 +157,8 @@
   </section>
 
   <!-- ============ REDESIGNED REVIEWS SECTION ============ -->
-  <section class="product-reviews" id="reviews" style="margin-top: 50px; padding-top: 30px; border-top: 1px solid var(--line);">
-    <h2 style="font-size: 28px; margin-bottom: 30px; color: #fff;">Customer Reviews</h2>
+  <section class="product-reviews" id="reviews">
+    <h2>Customer Reviews</h2>
 
     <!-- Average summary card -->
     <div class="rev-summary">
@@ -204,7 +205,7 @@
             <textarea name="comment" id="comment-area" rows="5" placeholder="What did you like or dislike? How was the quality?" required>{{ user_review.comment|default:'' }}</textarea>
           </div>
 
-          <button class="btn" type="submit" style="width: auto; padding: 14px 32px;">Submit Review</button>
+          <button class="btn" type="submit">Submit Review</button>
         </form>
       {% else %}
         <div class="login-prompt">
@@ -246,32 +247,32 @@
 
   <!-- RELATED PRODUCTS -->
   {% if related %}
-  <section class="related" style="margin-top: 60px;">
-    <div class="sec-head" style="display: flex; justify-content: space-between; align-items: end; margin-bottom: 20px;">
+  <section class="related">
+    <div class="sec-head">
       <div>
-        <h2 style="font-size: 24px;">You might also like</h2>
-        <p style="margin: 4px 0 0; color: var(--soft);">More from {{ product.category.name }}.</p>
+        <h2>You might also like</h2>
+        <p>More from {{ product.category.name }}.</p>
       </div>
-      <a class="link" href="{% url 'category' product.category.slug %}" style="color: var(--mint); font-weight: 600; text-decoration: none;">View category →</a>
+      <a class="link" href="{% url 'category' product.category.slug %}">View category →</a>
     </div>
 
-    <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+    <div class="related-grid">
       {% for p in related %}
-      <article class="card" style="background: var(--glass); border: 1px solid var(--line); border-radius: 20px; overflow: hidden;">
-        <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1; height: 160px; display: grid; place-items: center; background: linear-gradient(135deg, var(--c1), var(--c2));">
+      <article class="related-card">
+        <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1">
           {% if p.image %}
-            <img src="{{ p.image.url }}" alt="{{ p.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="{{ p.image.url }}" alt="{{ p.name }}">
           {% else %}
-            <span style="font-size: 50px;">🛍️</span>
+            <span>🛍️</span>
           {% endif %}
         </div>
-        <div class="info" style="padding: 16px;">
-          <small style="color: var(--mint); font-size: 12px;">{{ p.category.name }}</small>
-          <h3 style="font-size: 16px; margin: 4px 0;">{{ p.name }}</h3>
-          <div class="price" style="margin: 8px 0 12px;">
-            <strong style="font-size: 18px;">KES {{ p.price|floatformat:0 }}</strong>
+        <div class="info">
+          <small>{{ p.category.name }}</small>
+          <h3>{{ p.name }}</h3>
+          <div class="price">
+            <strong>KES {{ p.price|floatformat:0 }}</strong>
           </div>
-          <a class="btn ghost" href="{% url 'product' p.slug %}" style="display: block; text-align: center; width: 100%; padding: 10px; border: 2px solid var(--line); border-radius: 99px; color: #fff; text-decoration: none;">View</a>
+          <a class="btn ghost" href="{% url 'product' p.slug %}">View</a>
         </div>
       </article>
       {% endfor %}
@@ -281,14 +282,14 @@
 
 </main>
 
-<footer class="foot" style="margin-top: 60px; padding: 40px 20px; border-top: 1px solid var(--line); text-align: center;">
+<footer class="foot">
   <div class="wrap">
-    <div class="fgrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; text-align: left; max-width: 1000px; margin: 0 auto;">
-      <div><a class="brand" href="{% url 'home' %}" style="font-weight: 800; font-size: 22px; text-decoration: none; color: #fff;"><i style="display:inline-block;width:13px;height:13px;margin-right:8px;background:var(--mint);border-radius:50%;"></i>E-Shop</a><p style="color: var(--soft); font-size: 14px; margin-top: 10px;">Secure, simple online shopping with fast delivery.</p></div>
-      <div><h4 style="margin: 0 0 12px; font-size: 15px; color: var(--mint);">Shop</h4><a href="{% url 'shop' %}" style="display: block; padding: 4px 0; color: var(--soft); text-decoration: none;">All products</a></div>
-      <div><h4 style="margin: 0 0 12px; font-size: 15px; color: var(--mint);">Help</h4><a href="{% url 'faq' %}" style="display: block; padding: 4px 0; color: var(--soft); text-decoration: none;">FAQ</a><a href="{% url 'contact' %}" style="display: block; padding: 4px 0; color: var(--soft); text-decoration: none;">Contact us</a></div>
+    <div class="fgrid">
+      <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
+      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a></div>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'contact' %}">Contact us</a></div>
     </div>
-    <div style="margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--soft); font-size: 14px;">© E-Shop. All rights reserved.</div>
+    <div class="copy">© E-Shop. All rights reserved.</div>
   </div>
 </footer>
 
