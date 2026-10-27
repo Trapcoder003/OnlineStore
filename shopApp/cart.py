@@ -121,3 +121,6 @@ class Cart:
         if after >= 5000 or after <= 0:
             return Decimal("0.00")
         return (Decimal("5000") - after).quantize(Decimal("0.01"))
+    def clear(self):
+        self.session[settings.CART_SESSION_ID] = {}
+        self.session.modified = True

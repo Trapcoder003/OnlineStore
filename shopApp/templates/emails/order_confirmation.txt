@@ -1,0 +1,25 @@
+Hi {{ order.ship_name }},
+
+Thank you for your order. We received your M-Pesa payment{% if order.mpesa_receipt %} (receipt {{ order.mpesa_receipt }}){% endif %}.
+
+ORDER {{ order.order_number }}
+{{ order.created_at|date:"M d, Y · H:i" }}
+
+ITEMS
+{% for item in order.items.all %}- {{ item.product_name }} ({{ item.qty }} × KES {{ item.unit_price|floatformat:0 }}) = KES {{ item.line_total|floatformat:0 }}
+{% endfor %}
+Subtotal: KES {{ order.subtotal|floatformat:0 }}
+{% if order.discount > 0 %}Discount: -KES {{ order.discount|floatformat:0 }}
+{% endif %}Delivery: {% if order.shipping_fee == 0 %}Free{% else %}KES {{ order.shipping_fee|floatformat:0 }}{% endif %}
+
+TOTAL: KES {{ order.total|floatformat:0 }}
+
+DELIVERING TO
+{{ order.ship_name }}
+{{ order.ship_address }}
+{{ order.ship_town }}, {{ order.ship_county }}
+Phone: {{ order.ship_phone }}
+
+View your order: /orders/{{ order.order_number }}/
+
+© {% now "Y" %} E-Shop

@@ -30,4 +30,10 @@ urlpatterns = [
     path("wishlist/toggle/<int:product_id>/", views.toggle_wishlist, name="toggle_wishlist"),
     path("product/<slug:slug>/review/", views.add_review, name="add_review"),
     path("review/<int:review_id>/delete/", views.delete_review, name="delete_review"),
+        # Orders
+    path("checkout/", views.checkout, name="checkout"),
+    path("orders/<str:number>/", views.order_detail, name="order_detail"),
+    path("orders/<str:number>/waiting/", views.order_waiting, name="order_waiting"),
+    path("orders/<str:number>/status/", views.order_status_json, name="order_status"),
+    path("account/orders/", views.order_history, name="order_history"),
 ]

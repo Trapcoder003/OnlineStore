@@ -7,6 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Your cart · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/cart.css' %}">
+<link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
 
@@ -25,7 +26,7 @@
     <div class="icons">
       <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
       <a class="icon active" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
-      <a class="icon" href="#" aria-label="Account">👤</a>
+<a class="icon" href="{% url 'account_logout' %}" aria-label="Sign Out" title="Sign Out">👤</a>
     </div>
   </div>
 </header>
@@ -108,7 +109,7 @@
       {% endfor %}
 
       <div class="items-actions">
-        <a class="btn ghost" href="{% url 'home' %}">← Continue shopping</a>
+        <a class="btn ghost" href="{% url 'shop' %}">← Continue shopping</a>
       </div>
     </section>
 
@@ -170,15 +171,13 @@
         {% endif %}
       </div>
 
-      <!-- M-Pesa Checkout Section -->
-      <div class="checkout-section" style="margin-top: 20px;">
-        <input type="tel" id="mpesa-phone" placeholder="M-Pesa Number (e.g. 0712345678)" required
-               style="width: 100%; padding: 15px; border-radius: 99px; border: 2px solid var(--line); background: rgba(255,255,255,0.05); color: #fff; font-size: 15px; margin-bottom: 12px; outline: none; transition: border-color 0.2s;">
-        
-        <button class="btn checkout" id="pay-btn" type="button" style="width: 100%; padding: 16px; font-size: 16px;">
-          Pay KES {{ cart.total|money }} with M-Pesa
-        </button>
-        <p class="secure" style="margin-top: 12px;">🔒 Secure checkout · You will receive an STK push prompt on your phone.</p>
+      <!-- Checkout CTA -->
+      <div class="checkout-section">
+        <a class="btn checkout" href="{% url 'checkout' %}">
+          <span>Proceed to checkout</span>
+          <span class="checkout-arrow">→</span>
+        </a>
+        <p class="secure">🔒 Secure payment via M-Pesa on the next step.</p>
       </div>
 
     </aside>
@@ -206,12 +205,12 @@
       <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a href="{% url 'contact' %}">Contact us</a></div>
       <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></div>
     </div>
-    <div class="copy">© E-Shop. All rights reserved.</div>
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
 
 <div class="toast" id="toast" role="status"></div>
-
+<script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
   'use strict';
@@ -264,12 +263,6 @@
     });
 
     setShipBar(json.subtotal, json.discount);
-
-    // Update the M-Pesa Pay button text
-    const payBtn = document.getElementById('pay-btn');
-    if (payBtn) {
-      payBtn.textContent = 'Pay ' + fmt(json.total) + ' with M-Pesa';
-    }
   }
 
   async function postUpdate(id, qty) {
@@ -329,65 +322,6 @@
     document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0,
     document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0
   );
-
-  // ---------- M-Pesa Checkout Logic ----------
-  const payBtn = document.getElementById('pay-btn');
-  if (payBtn) {
-    payBtn.addEventListener('click', async () => {
-      const phoneInput = document.getElementById('mpesa-phone');
-      const phone = phoneInput.value.trim();
-      
-      // Extract the numeric total (e.g., "KES 5,000.00" -> 5000.00)
-      const totalText = document.querySelector('[data-total]').textContent;
-      const amount = parseFloat(totalText.replace(/[^0-9.]/g, ''));
-
-      if (!phone) {
-        alert("Please enter your M-Pesa phone number.");
-        phoneInput.focus();
-        return;
-      }
-
-      // UI loading state
-      const originalText = payBtn.textContent;
-      payBtn.disabled = true;
-      payBtn.textContent = 'Sending prompt...';
-
-      try {
-        const response = await fetch('/mpesa/pay/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrf
-          },
-          body: JSON.stringify({ phone: phone, amount: amount })
-        });
-
-        const data = await response.json();
-
-        if (data.ResponseCode === "0") {
-          // Success! Safaricom accepted the request
-          payBtn.textContent = 'Check your phone! 📱';
-          alert("STK Push sent! Please check your phone and enter your M-Pesa PIN to complete the payment.");
-          
-          // Reset button after 10 seconds
-          setTimeout(() => {
-            payBtn.textContent = originalText;
-            payBtn.disabled = false;
-          }, 10000);
-        } else {
-          // Error from Safaricom or our backend
-          alert("Error: " + (data.errorMessage || data.error || "Could not initiate payment."));
-          payBtn.textContent = originalText;
-          payBtn.disabled = false;
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Network error. Please check your connection and try again.");
-        payBtn.textContent = originalText;
-        payBtn.disabled = false;
-      }
-    });
-  }
 
 })();
 </script>

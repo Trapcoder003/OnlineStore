@@ -1,0 +1,222 @@
+{% load static %}
+{% load cart_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
+<link rel="stylesheet" href="{% static 'styles/checkout.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'cart' %}">Cart</a>
+    </nav>
+    <div class="icons">
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count }}</b></a>
+      <a class="icon active" href="{% url 'cart' %}" aria-label="Cart">🛒<b>{{ cart_count }}</b></a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  <section class="head">
+    <h1>Checkout</h1>
+    <p>Almost there — confirm your details and complete payment.</p>
+  </section>
+
+  {% if messages %}
+    <div class="flash">
+      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" class="checkout-layout" novalidate>
+    {% csrf_token %}
+
+    <!-- ============= LEFT: FORM ============= -->
+    <div class="checkout-form">
+
+      <!-- Contact -->
+      <div class="co-section">
+        <h2><span class="co-num">1</span> Contact</h2>
+        <div class="co-row">
+          <div class="co-field">
+            <label for="{{ form.email.id_for_label }}">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}<ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            <small>We'll send your receipt here.</small>
+          </div>
+          <div class="co-field">
+            <label for="{{ form.phone.id_for_label }}">Phone number</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}<ul class="errorlist">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            <small>M-Pesa STK push will be sent to this number.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping -->
+      <div class="co-section">
+        <h2><span class="co-num">2</span> Delivery details</h2>
+        <div class="co-row">
+          <div class="co-field">
+            <label for="{{ form.ship_name.id_for_label }}">Full name</label>
+            {{ form.ship_name }}
+            {% if form.ship_name.errors %}<ul class="errorlist">{% for e in form.ship_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="co-field">
+            <label for="{{ form.ship_phone.id_for_label }}">Recipient phone</label>
+            {{ form.ship_phone }}
+            {% if form.ship_phone.errors %}<ul class="errorlist">{% for e in form.ship_phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+        </div>
+        <div class="co-row">
+          <div class="co-field">
+            <label for="{{ form.ship_county.id_for_label }}">County</label>
+            {{ form.ship_county }}
+            {% if form.ship_county.errors %}<ul class="errorlist">{% for e in form.ship_county.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+          <div class="co-field">
+            <label for="{{ form.ship_town.id_for_label }}">Town / area</label>
+            {{ form.ship_town }}
+            {% if form.ship_town.errors %}<ul class="errorlist">{% for e in form.ship_town.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          </div>
+        </div>
+        <div class="co-field">
+          <label for="{{ form.ship_address.id_for_label }}">Address details</label>
+          {{ form.ship_address }}
+          {% if form.ship_address.errors %}<ul class="errorlist">{% for e in form.ship_address.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+      </div>
+
+      <!-- Delivery method -->
+      <div class="co-section">
+        <h2><span class="co-num">3</span> Delivery method</h2>
+        <div class="delivery-options">
+          {% for radio in form.delivery_method %}
+            <label class="delivery-option">
+              {{ radio.tag }}
+              <span class="delivery-label">
+                <strong>{{ radio.choice_label }}</strong>
+              </span>
+            </label>
+          {% endfor %}
+        </div>
+        {% if form.delivery_method.errors %}<ul class="errorlist">{% for e in form.delivery_method.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        <small class="delivery-note">Free standard delivery on orders over KES 5,000.</small>
+      </div>
+
+      <!-- Notes -->
+      <div class="co-section">
+        <h2><span class="co-num">4</span> Order notes <em>(optional)</em></h2>
+        <div class="co-field">
+          {{ form.notes }}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============= RIGHT: SUMMARY ============= -->
+    <aside class="checkout-summary">
+      <h2>Order summary</h2>
+
+      <ul class="co-items">
+        {% for item in cart %}
+          <li class="co-item">
+            <div class="co-item-thumb">
+              {% if item.product.image %}
+                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+              {% else %}
+                <span>🛍️</span>
+              {% endif %}
+              <b class="co-qty">{{ item.qty }}</b>
+            </div>
+            <div class="co-item-info">
+              <strong>{{ item.product.name|truncatechars:32 }}</strong>
+              <small>KES {{ item.price|floatformat:0 }} × {{ item.qty }}</small>
+            </div>
+            <span class="co-item-line">KES {{ item.subtotal|money }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <ul class="co-lines">
+        <li><span>Subtotal</span><strong>KES {{ cart.subtotal|money }}</strong></li>
+        {% if cart.discount > 0 %}
+          <li class="co-discount"><span>Discount</span><strong>− KES {{ cart.discount|money }}</strong></li>
+        {% endif %}
+        <li><span>Delivery</span><strong id="co-delivery">Calculated at step 3</strong></li>
+      </ul>
+
+      <div class="co-total">
+        <span>Total</span>
+        <strong id="co-total">KES {{ cart.total|money }}</strong>
+      </div>
+
+      <button class="btn co-submit" type="submit">
+        <span>Pay with M-Pesa</span>
+        <span class="co-submit-icon">📲</span>
+      </button>
+
+      <p class="co-secure">
+        🔒 You'll receive an STK push on your phone. Enter your M-Pesa PIN to confirm.
+      </p>
+
+      <a class="co-back" href="{% url 'cart' %}">← Back to cart</a>
+    </aside>
+  </form>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  // Delivery fee + free-threshold preview
+  const subtotal = {{ cart.subtotal|floatformat:2 }};
+  const discount = {{ cart.discount|floatformat:2 }};
+  const FREE = 5000;
+  const FEES = { pickup: 0, standard: 300, express: 500 };
+
+  const radios = document.querySelectorAll('input[name="delivery_method"]');
+  const deliveryEl = document.getElementById('co-delivery');
+  const totalEl = document.getElementById('co-total');
+
+  const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', {
+    minimumFractionDigits: 2, maximumFractionDigits: 2
+  });
+
+  function update() {
+    const sel = document.querySelector('input[name="delivery_method"]:checked');
+    if (!sel) return;
+    let fee = FEES[sel.value] || 0;
+    if (sel.value !== 'pickup' && subtotal >= FREE) fee = 0;
+
+    deliveryEl.textContent = fee === 0 ? 'Free' : fmt(fee);
+    totalEl.textContent = fmt(subtotal - discount + fee);
+  }
+
+  radios.forEach(r => r.addEventListener('change', update));
+  update();
+})();
+</script>
+
+</body>
+</html>

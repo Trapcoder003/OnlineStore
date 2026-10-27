@@ -1,0 +1,151 @@
+{% load static %}
+{% load cart_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order {{ order.order_number }} · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
+<link rel="stylesheet" href="{% static 'styles/orders.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'cart' %}">Cart</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  {% if order.status == 'paid' %}
+    <section class="order-hero paid">
+      <div class="order-hero-icon">🎉</div>
+      <h1>Payment received!</h1>
+      <p>Thank you, {{ order.ship_name }}. Your order is confirmed.</p>
+    </section>
+  {% elif order.status == 'pending' %}
+    <section class="order-hero pending">
+      <div class="order-hero-icon">⏳</div>
+      <h1>Order placed</h1>
+      <p>We're waiting for your M-Pesa payment to complete.</p>
+    </section>
+  {% elif order.status == 'failed' %}
+    <section class="order-hero failed">
+      <div class="order-hero-icon">❌</div>
+      <h1>Payment failed</h1>
+      <p>Your payment didn't go through. Please try again.</p>
+    </section>
+  {% else %}
+    <section class="order-hero {{ order.status }}">
+      <div class="order-hero-icon">📦</div>
+      <h1>Order {{ order.get_status_display }}</h1>
+    </section>
+  {% endif %}
+
+  <div class="order-detail-card">
+
+    <!-- Header -->
+    <div class="order-meta-head">
+      <div>
+        <small>Order number</small>
+        <strong>{{ order.order_number }}</strong>
+      </div>
+      <div>
+        <small>Date</small>
+        <strong>{{ order.created_at|date:"M d, Y · H:i" }}</strong>
+      </div>
+      <div>
+        <small>Status</small>
+        <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+      </div>
+      {% if order.mpesa_receipt %}
+      <div>
+        <small>M-Pesa receipt</small>
+        <strong>{{ order.mpesa_receipt }}</strong>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Items -->
+    <h2 class="order-section-title">Items ({{ order.item_count }})</h2>
+    <ul class="order-items">
+      {% for item in order.items.all %}
+        <li class="order-item">
+          <div class="order-item-thumb">
+            {% if item.product_image_url %}
+              <img src="{{ item.product_image_url }}" alt="{{ item.product_name }}">
+            {% else %}
+              <span>🛍️</span>
+            {% endif %}
+          </div>
+          <div class="order-item-info">
+            {% if item.product_slug %}
+              <a href="{% url 'product' item.product_slug %}"><strong>{{ item.product_name }}</strong></a>
+            {% else %}
+              <strong>{{ item.product_name }}</strong>
+            {% endif %}
+            <small>KES {{ item.unit_price|floatformat:0 }} × {{ item.qty }}</small>
+          </div>
+          <span class="order-item-line">KES {{ item.line_total|money }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <!-- Totals -->
+    <ul class="order-totals">
+      <li><span>Subtotal</span><strong>KES {{ order.subtotal|money }}</strong></li>
+      {% if order.discount > 0 %}
+        <li class="discount"><span>Discount</span><strong>− KES {{ order.discount|money }}</strong></li>
+      {% endif %}
+      <li><span>Delivery ({{ order.get_delivery_method_display }})</span>
+        <strong>{% if order.shipping_fee == 0 %}Free{% else %}KES {{ order.shipping_fee|money }}{% endif %}</strong>
+      </li>
+      <li class="total"><span>Total</span><strong>KES {{ order.total|money }}</strong></li>
+    </ul>
+
+    <!-- Shipping -->
+    <div class="order-ship">
+      <h2 class="order-section-title">Delivery address</h2>
+      <p>
+        <strong>{{ order.ship_name }}</strong><br>
+        {{ order.ship_address }}<br>
+        {{ order.ship_town }}, {{ order.ship_county }}<br>
+        📞 {{ order.ship_phone }}
+      </p>
+    </div>
+
+    {% if order.notes %}
+      <div class="order-notes">
+        <h2 class="order-section-title">Notes</h2>
+        <p>{{ order.notes|linebreaksbr }}</p>
+      </div>
+    {% endif %}
+
+  </div>
+
+  <div class="order-actions">
+    <a class="btn" href="{% url 'shop' %}">Continue shopping →</a>
+    {% if user.is_authenticated %}
+      <a class="btn ghost" href="{% url 'order_history' %}">My orders</a>
+    {% endif %}
+  </div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

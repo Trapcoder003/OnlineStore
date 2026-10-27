@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔥 Deals · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
+<link rel="stylesheet" href="{% static 'styles/deals.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'deals' %}" class="active">🔥 Deals</a>
+      <a href="{% url 'about' %}">About</a>
+      <a href="{% url 'contact' %}">Contact</a>
+      <a href="{% url 'faq' %}">FAQ</a>
+    </nav>
+    <div class="icons">
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
+      <a class="icon" href="{% url 'account_logout' %}" aria-label="Sign Out" title="Sign Out">👤</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  <!-- ============================================
+       DEALS HERO
+       ============================================ -->
+  <section class="deals-hero">
+    <div class="deals-hero-content">
+      <span class="deals-badge">
+        <span class="deals-badge-dot"></span>
+        Limited Time Offers
+      </span>
+      <h1>Deals of the <span class="grad-text">Week</span></h1>
+      <p>Genuine discounts on products you love. New deals added regularly — grab yours before they're gone.</p>
+
+      <div class="deals-hero-actions">
+        <a class="btn" href="{% url 'shop' %}">Browse all products →</a>
+        <a class="btn ghost" href="{% url 'home' %}">Back to home</a>
+      </div>
+    </div>
+
+    <div class="deals-hero-visual">
+      <div class="deals-flame">🔥</div>
+      <div class="deals-flame-glow"></div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       STATS STRIP
+       ============================================ -->
+  {% if products %}
+  <section class="deals-stats">
+    <div class="deals-stat">
+      <div class="deals-stat-icon">🏷️</div>
+      <div>
+        <strong>{{ products|length }}</strong>
+        <span>Active deal{{ products|length|pluralize }}</span>
+      </div>
+    </div>
+
+    <div class="deals-stat">
+      <div class="deals-stat-icon">💥</div>
+      <div>
+        <strong>Up to {{ max_discount|default:50 }}%</strong>
+        <span>Max discount</span>
+      </div>
+    </div>
+
+    <div class="deals-stat">
+      <div class="deals-stat-icon">💰</div>
+      <div>
+        <strong>KES {{ total_savings|floatformat:0|default:"—" }}</strong>
+        <span>Total savings</span>
+      </div>
+    </div>
+
+    <div class="deals-stat">
+      <div class="deals-stat-icon">⚡</div>
+      <div>
+        <strong>Fast</strong>
+        <span>Free delivery over KES 5,000</span>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- ============================================
+       TOOLBAR: count + sort
+       ============================================ -->
+  {% if products %}
+  <div class="deals-toolbar">
+    <div class="deals-count">
+      Showing <strong>{{ products|length }}</strong> item{{ products|length|pluralize }} on sale
+    </div>
+
+    <div class="deals-sort">
+      <span class="sort-label">Sort:</span>
+      <a href="?sort=biggest" class="sort-pill {% if sort == 'biggest' or not sort %}active{% endif %}">Biggest discount</a>
+      <a href="?sort=newest" class="sort-pill {% if sort == 'newest' %}active{% endif %}">Newest</a>
+      <a href="?sort=price_low" class="sort-pill {% if sort == 'price_low' %}active{% endif %}">Price ↑</a>
+      <a href="?sort=price_high" class="sort-pill {% if sort == 'price_high' %}active{% endif %}">Price ↓</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ============================================
+       PRODUCTS GRID
+       ============================================ -->
+  {% if products %}
+    <div class="deals-grid">
+      {% for p in products %}
+        {% include "pages/_deal_card.html" %}
+      {% endfor %}
+    </div>
+
+    <div class="deals-footer-cta">
+      <p>Looking for something specific?</p>
+      <a class="btn" href="{% url 'shop' %}">Explore the full shop →</a>
+    </div>
+  {% else %}
+    <!-- ============================================
+         EMPTY STATE
+         ============================================ -->
+    <section class="deals-empty">
+      <div class="deals-empty-icon">🔍</div>
+      <h2>No active deals right now</h2>
+      <p>We run new promotions every week. Check back soon — or browse the full catalog in the meantime.</p>
+      <div class="deals-empty-actions">
+        <a class="btn" href="{% url 'shop' %}">Browse the shop →</a>
+        <a class="btn ghost" href="{% url 'home' %}">Back to home</a>
+      </div>
+    </section>
+  {% endif %}
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
+      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="{% url 'deals' %}">Deals</a><a href="{% url 'home' %}#categories">Categories</a></div>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'contact' %}">Contact us</a></div>
+      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a></div>
+    </div>
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status"></div>
+
+</body>
+</html>

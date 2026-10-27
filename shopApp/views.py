@@ -3,30 +3,35 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
-from django.core.mail import send_mail
-import json
-from .models import Wishlist, Product
+from django.db import models, transaction
 from django.db.models import Q, Avg
-from .models import Review 
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.utils import timezone
+from django.conf import settings
+import json
 
-# Allauth imports for password reset
 from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
 from allauth.account.forms import UserTokenForm
 
-# Local imports
-from .models import Category, Product
+from .models import Wishlist, Product, Category, Review, Order, OrderItem
 from .cart import Cart
-from .forms import ContactForm
+from .forms import ContactForm, CheckoutForm
 from .mpesa_service import initiate_stk_push
 
 
 # ---------------- MAIN PAGES ----------------
 
 def home(request):
+    featured = Product.objects.filter(is_featured=True, stock__gt=0).order_by("-sold_count", "name")[:8]
+    new_arrivals = Product.objects.filter(stock__gt=0).order_by("-id")[:8]
+    best_sellers = Product.objects.filter(sold_count__gt=0, stock__gt=0).order_by("-sold_count")[:8]
+
     return render(request, "pages/home.html", {
         "categories": Category.objects.all()[:6],
-        "featured": Product.objects.filter(is_featured=True)[:4],
+        "featured": featured,
+        "new_arrivals": new_arrivals,
+        "best_sellers": best_sellers,
     })
 
 
@@ -34,24 +39,11 @@ def shop(request):
     return render(request, "pages/shop.html", {"products": Product.objects.all()})
 
 
-def about(request): 
-    return render(request, "pages/about.html")
-
-
-def faq(request): 
-    return render(request, "pages/faq.html")
-
-
-def shipping_returns(request): 
-    return render(request, "pages/shipping.html")
-
-
-def privacy(request): 
-    return render(request, "pages/privacy.html")
-
-
-def terms(request): 
-    return render(request, "pages/terms.html")
+def about(request):      return render(request, "pages/about.html")
+def faq(request):        return render(request, "pages/faq.html")
+def shipping_returns(request): return render(request, "pages/shipping.html")
+def privacy(request):    return render(request, "pages/privacy.html")
+def terms(request):      return render(request, "pages/terms.html")
 
 
 def contact(request):
@@ -70,21 +62,13 @@ def contact_success(request):
 def category_detail(request, slug):
     category = get_object_or_404(Category, slug=slug)
     products = category.products.all()
-
-    # Optional filters from the sidebar / sort dropdown (via GET)
     sort = request.GET.get("sort", "")
-    if sort == "low":
-        products = products.order_by("price")
-    elif sort == "high":
-        products = products.order_by("-price")
-    elif sort == "az":
-        products = products.order_by("name")
-
+    if sort == "low":  products = products.order_by("price")
+    elif sort == "high": products = products.order_by("-price")
+    elif sort == "az": products = products.order_by("name")
     return render(request, "pages/category.html", {
-        "category": category,
-        "products": products,
-        "siblings": Category.objects.exclude(pk=category.pk),
-        "sort": sort,
+        "category": category, "products": products,
+        "siblings": Category.objects.exclude(pk=category.pk), "sort": sort,
     })
 
 
@@ -93,64 +77,48 @@ def search(request):
     cat_slug = request.GET.get("category", "").strip()
     sort = request.GET.get("sort", "").strip()
     availability = request.GET.get("availability", "all")
-
     products = Product.objects.all()
 
     if q:
         products = products.filter(
-            Q(name__icontains=q) |
-            Q(description__icontains=q) |
-            Q(brand__icontains=q) |
-            Q(category__name__icontains=q)
+            Q(name__icontains=q) | Q(description__icontains=q) |
+            Q(brand__icontains=q) | Q(category__name__icontains=q)
         )
-
     if cat_slug:
         products = products.filter(category__slug=cat_slug)
-
     if availability == "in":
         products = products.filter(stock__gt=0)
     elif availability == "low":
         products = products.filter(stock__lt=5, stock__gt=0)
 
-    if sort == "low":
-        products = products.order_by("price")
-    elif sort == "high":
-        products = products.order_by("-price")
-    elif sort == "az":
-        products = products.order_by("name")
-    elif sort == "new":
-        products = products.order_by("-id")
-    else:
-        products = products.order_by("-is_featured", "name")
-
-    categories = Category.objects.all()
+    if sort == "low":   products = products.order_by("price")
+    elif sort == "high": products = products.order_by("-price")
+    elif sort == "az":  products = products.order_by("name")
+    elif sort == "new": products = products.order_by("-id")
+    else:               products = products.order_by("-is_featured", "name")
 
     return render(request, "pages/search.html", {
-        "q": q,
-        "products": products,
-        "categories": categories,
-        "selected_category": cat_slug,
-        "sort": sort,
-        "availability": availability,
+        "q": q, "products": products,
+        "categories": Category.objects.all(),
+        "selected_category": cat_slug, "sort": sort, "availability": availability,
     })
 
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
-
     related = (Product.objects
                .filter(category=product.category)
                .exclude(pk=product.pk)
                .order_by("-is_featured", "name")[:4])
-
-    rating_avg = 4.7
-    rating_count = 128
-
+    reviews = product.reviews.all().order_by("-created_at")
+    avg_rating = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
+    user_review = None
+    if request.user.is_authenticated:
+        user_review = reviews.filter(user=request.user).first()
     return render(request, "pages/product.html", {
-        "product": product,
-        "related": related,
-        "rating_avg": rating_avg,
-        "rating_count": rating_count,
+        "product": product, "related": related, "reviews": reviews,
+        "rating_avg": round(avg_rating, 1), "rating_count": reviews.count(),
+        "user_review": user_review,
     })
 
 
@@ -175,12 +143,7 @@ def cart_add(request, product_id):
     messages.success(request, f"{product.name} added to cart.")
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({
-            "ok": True,
-            "cart_count": len(cart),
-            "cart_total": f"{cart.total:.2f}",
-        })
-
+        return JsonResponse({"ok": True, "cart_count": len(cart), "cart_total": f"{cart.total:.2f}"})
     return redirect(request.POST.get("next") or "cart")
 
 
@@ -189,17 +152,12 @@ def cart_update(request, product_id):
     cart = Cart(request)
     qty = int(request.POST.get("qty", 1))
     cart.update(product_id, qty)
-
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
-            "ok": True,
-            "cart_count": len(cart),
-            "subtotal": f"{cart.subtotal:.2f}",
-            "discount": f"{cart.discount:.2f}",
-            "shipping": f"{cart.shipping:.2f}",
-            "total": f"{cart.total:.2f}",
+            "ok": True, "cart_count": len(cart),
+            "subtotal": f"{cart.subtotal:.2f}", "discount": f"{cart.discount:.2f}",
+            "shipping": f"{cart.shipping:.2f}", "total": f"{cart.total:.2f}",
         })
-
     return redirect("cart")
 
 
@@ -207,17 +165,12 @@ def cart_update(request, product_id):
 def cart_remove(request, product_id):
     cart = Cart(request)
     cart.remove(product_id)
-
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
-            "ok": True,
-            "cart_count": len(cart),
-            "subtotal": f"{cart.subtotal:.2f}",
-            "discount": f"{cart.discount:.2f}",
-            "shipping": f"{cart.shipping:.2f}",
-            "total": f"{cart.total:.2f}",
+            "ok": True, "cart_count": len(cart),
+            "subtotal": f"{cart.subtotal:.2f}", "discount": f"{cart.discount:.2f}",
+            "shipping": f"{cart.shipping:.2f}", "total": f"{cart.total:.2f}",
         })
-
     return redirect("cart")
 
 
@@ -237,17 +190,144 @@ def cart_remove_coupon(request):
     return redirect("cart")
 
 
+# ---------------- CHECKOUT ----------------
+
+DELIVERY_FEES = {"pickup": 0, "standard": 300, "express": 500}
+FREE_SHIPPING_THRESHOLD = 5000
+
+
+def checkout(request):
+    cart = Cart(request)
+    if len(cart) == 0:
+        messages.info(request, "Your cart is empty. Add some products first.")
+        return redirect("shop")
+
+    initial = {
+        "email": request.user.email if request.user.is_authenticated else "",
+        "ship_name": request.user.get_full_name() if request.user.is_authenticated else "",
+    }
+
+    form = CheckoutForm(request.POST or None, initial=initial)
+
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+
+        # 1. Re-validate stock (Cart yields dicts → use ["key"])
+        for item in cart:
+            product = item["product"]
+            qty = item["qty"]
+            if product.stock < qty:
+                messages.error(
+                    request,
+                    f"Only {product.stock} of {product.name} left. Please reduce quantity.",
+                )
+                return redirect("cart")
+
+        # 2. Compute totals
+        subtotal = cart.subtotal
+        discount = cart.discount
+        delivery_fee = DELIVERY_FEES[d["delivery_method"]]
+        if d["delivery_method"] != "pickup" and subtotal >= FREE_SHIPPING_THRESHOLD:
+            delivery_fee = 0
+        total = subtotal - discount + delivery_fee
+
+        # 3. Create order atomically
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                email=d["email"],
+                phone=d["phone"],
+                ship_name=d["ship_name"],
+                ship_phone=d["ship_phone"],
+                ship_county=d["ship_county"],
+                ship_town=d["ship_town"],
+                ship_address=d["ship_address"],
+                delivery_method=d["delivery_method"],
+                notes=d.get("notes", ""),
+                subtotal=subtotal,
+                shipping_fee=delivery_fee,
+                discount=discount,
+                total=total,
+            )
+
+            for item in cart:
+                product = item["product"]
+                qty = item["qty"]
+                unit_price = item["price"]
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    product_name=product.name,
+                    product_slug=product.slug,
+                    product_image_url=product.image.url if product.image else "",
+                    unit_price=unit_price,
+                    qty=qty,
+                )
+
+        # 4. Fire STK Push
+        try:
+            response = initiate_stk_push(
+                d["phone"],
+                int(total),
+                order.order_number,
+                f"E-Shop {order.order_number}",
+            )
+            checkout_id = response.get("CheckoutRequestID", "")
+            if checkout_id:
+                order.mpesa_checkout_id = checkout_id
+                order.save()
+        except Exception as e:
+            order.notes = f"{order.notes}\n\nSTK Push error: {e}"
+            order.save()
+            messages.error(request, "Payment could not be initiated. Please try again.")
+            return redirect("order_waiting", number=order.order_number)
+
+        return redirect("order_waiting", number=order.order_number)
+
+    return render(request, "pages/checkout.html", {"form": form, "cart": cart})
+
+
+def order_waiting(request, number):
+    order = get_object_or_404(Order, order_number=number)
+    return render(request, "pages/order_waiting.html", {"order": order})
+
+
+def order_status_json(request, number):
+    order = get_object_or_404(Order, order_number=number)
+    return JsonResponse({
+        "status": order.status,
+        "receipt": order.mpesa_receipt,
+        "url": f"/orders/{order.order_number}/" if order.status == "paid" else "",
+    })
+
+
+def order_detail(request, number):
+    order = get_object_or_404(Order, order_number=number)
+
+    # Guest can access by order number; logged-in user can only see their own
+    if order.user and request.user.is_authenticated and order.user != request.user:
+        messages.error(request, "You don't have access to this order.")
+        return redirect("home")
+
+    return render(request, "pages/order_detail.html", {"order": order})
+
+
+def order_history(request):
+    if not request.user.is_authenticated:
+        return redirect("account_login")
+    orders = Order.objects.filter(user=request.user).prefetch_related("items")
+    return render(request, "pages/order_history.html", {"orders": orders})
+
+
 # ---------------- M-PESA INTEGRATION ----------------
 
 @require_POST
 def mpesa_pay(request):
+    """Legacy endpoint — kept for backwards compat. New flow uses checkout view."""
     try:
         data = json.loads(request.body)
-        phone = data.get("phone")
-        amount = data.get("amount")
-        
-        # You can replace "ORDER123" with a real order ID later
-        response = initiate_stk_push(phone, amount, "ORDER123", "E-Shop Payment")
+        response = initiate_stk_push(data.get("phone"), data.get("amount"), "LEGACY", "E-Shop Payment")
         return JsonResponse(response)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
@@ -257,156 +337,169 @@ def mpesa_pay(request):
 def mpesa_callback(request):
     """
     Safaricom sends the payment result to this URL.
+    Idempotent: safe to receive duplicate callbacks.
     """
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            result_code = data["Body"]["stkCallback"]["ResultCode"]
-            
+    if request.method != "POST":
+        return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
+
+    try:
+        data = json.loads(request.body)
+        stk = data["Body"]["stkCallback"]
+        result_code = stk["ResultCode"]
+        result_desc = stk.get("ResultDesc", "")
+        checkout_id = stk.get("CheckoutRequestID", "")
+
+        # Find the order (atomically, to prevent race conditions)
+        with transaction.atomic():
+            try:
+                order = Order.objects.select_for_update().get(mpesa_checkout_id=checkout_id)
+            except Order.DoesNotExist:
+                # No matching order — silently accept so Safaricom stops retrying
+                print(f"⚠️  Callback for unknown CheckoutRequestID: {checkout_id}")
+                return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
+
+            # Idempotency: if already paid, do nothing
+            if order.status == "paid":
+                print(f"ℹ️  Duplicate callback ignored: {order.order_number}")
+                return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
+
             if result_code == 0:
-                metadata = data["Body"]["stkCallback"]["CallbackMetadata"]["Item"]
-                receipt = next(item["Value"] for item in metadata if item["Name"] == "MpesaReceiptNumber")
-                amount = next(item["Value"] for item in metadata if item["Name"] == "Amount")
-                phone = next(item["Value"] for item in metadata if item["Name"] == "PhoneNumber")
-                
-                print(f"✅ PAYMENT SUCCESS: Receipt {receipt} | Phone: {phone} | Amount: {amount}")
-                
+                metadata = stk.get("CallbackMetadata", {}).get("Item", [])
+                receipt = next((i["Value"] for i in metadata if i["Name"] == "MpesaReceiptNumber"), "")
+                phone = next((i["Value"] for i in metadata if i["Name"] == "PhoneNumber"), "")
+
+                # Decrement stock atomically (OrderItem objects → use .attr)
+                for item in order.items.all():
+                    if item.product_id:
+                        product = Product.objects.select_for_update().get(pk=item.product_id)
+                        if product.stock >= item.qty:
+                            product.stock -= item.qty
+                            product.sold_count += item.qty
+                            product.save()
+                        # If stock dropped between checkout and payment, we still honor the paid order
+                        # (log it for manual review)
+                        else:
+                            order.notes += f"\n⚠️ Oversold: {product.name} (had {product.stock}, needed {item.qty})"
+                            product.stock = 0
+                            product.sold_count += item.qty
+                            product.save()
+
+                order.mark_paid(receipt=str(receipt), phone=str(phone), description=result_desc)
+
+                # Clear the cart
+                try:
+                    cart = Cart(request)
+                    cart.clear()
+                except Exception as e:
+                    print(f"Cart clear error: {e}")
+
+                # Send confirmation email
+                try:
+                    send_order_confirmation_email(order)
+                except Exception as e:
+                    print(f"Email error for {order.order_number}: {e}")
+
+                print(f"✅ PAID: {order.order_number} · Receipt {receipt} · KES {order.total}")
+
             else:
-                print(f"❌ PAYMENT FAILED: ResultCode {result_code}")
-                
-        except Exception as e:
-            print(f"Error processing callback: {e}")
-            
-    return JsonResponse({"ResultCode": 0, "ResultDesc": "Success"})
+                order.status = "failed"
+                order.mpesa_result_desc = result_desc
+                order.save()
+                print(f"❌ FAILED: {order.order_number} · {result_desc}")
+
+    except Exception as e:
+        print(f"Callback error: {e}")
+
+    return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
 
 
-# ---------------- CUSTOM PASSWORD RESET OVERRIDE ----------------
+def send_order_confirmation_email(order):
+    """Send receipt + order summary to the customer."""
+    subject = f"Order confirmed · {order.order_number} · E-Shop"
+    text_body = render_to_string("emails/order_confirmation.txt", {"order": order})
+    html_body = render_to_string("emails/order_confirmation.html", {"order": order})
+    from django.core.mail import EmailMultiAlternatives
+    msg = EmailMultiAlternatives(
+        subject,
+        text_body,
+        settings.DEFAULT_FROM_EMAIL,
+        [order.email],
+    )
+    msg.attach_alternative(html_body, "text/html")
+    msg.send(fail_silently=False)
+
+
+# ---------------- CUSTOM PASSWORD RESET ----------------
 
 class CustomPasswordResetFromKeyView(AllauthPasswordResetFromKeyView):
     def dispatch(self, request, uidb36, key, **kwargs):
         self.request = request
         self.key = key
-        
-        print("=== PASSWORD RESET LINK CLICKED ===")
-        print(f"UIDB36: {uidb36}")
-        print(f"KEY: {key}")
-        
-        token_form = UserTokenForm(data={'uidb36': uidb36, 'key': self.key})
-        
+        token_form = UserTokenForm(data={"uidb36": uidb36, "key": self.key})
         if token_form.is_valid():
-            print("TOKEN IS VALID. Rendering form.")
             self.reset_user = token_form.reset_user
             return self.render_to_response(self.get_context_data())
-            
-        print("TOKEN IS INVALID OR EXPIRED. Rendering fail state.")
         self.reset_user = None
         return self.render_to_response(self.get_context_data(token_fail=True))
 
+
+# ---------------- WISHLIST ----------------
+
 def wishlist_detail(request):
-    """Page to display all wishlisted items."""
     if not request.user.is_authenticated:
-        return redirect('account_login')
-    
-    items = Wishlist.objects.filter(user=request.user).select_related('product')
+        return redirect("account_login")
+    items = Wishlist.objects.filter(user=request.user).select_related("product")
     return render(request, "pages/wishlist.html", {"items": items})
+
 
 @require_POST
 def toggle_wishlist(request, product_id):
-    """AJAX view to add/remove an item from the wishlist."""
     if not request.user.is_authenticated:
         return JsonResponse({"error": "login_required"}, status=401)
-
     product = get_object_or_404(Product, id=product_id)
-    wishlist_item, created = Wishlist.objects.get_or_create(user=request.user, product=product)
-
+    obj, created = Wishlist.objects.get_or_create(user=request.user, product=product)
     if not created:
-        # It already existed, so remove it
-        wishlist_item.delete()
+        obj.delete()
         in_wishlist = False
     else:
         in_wishlist = True
-
-    # Count total wishlist items for the navbar badge
     count = Wishlist.objects.filter(user=request.user).count()
-
-    return JsonResponse({
-        "status": "success",
-        "in_wishlist": in_wishlist,
-        "count": count
-    })
+    return JsonResponse({"status": "success", "in_wishlist": in_wishlist, "count": count})
 
 
-
-def product_detail(request, slug):
-    product = get_object_or_404(Product, slug=slug)
-
-    # Get related products
-    related = (Product.objects
-               .filter(category=product.category)
-               .exclude(pk=product.pk)
-               .order_by("-is_featured", "name")[:4])
-
-    # Get reviews and calculate the real average rating
-    reviews = product.reviews.all().order_by('-created_at')
-    avg_rating = reviews.aggregate(Avg('rating'))['rating__avg'] or 0
-    
-    # Check if the current user already left a review
-    user_review = None
-    if request.user.is_authenticated:
-        user_review = reviews.filter(user=request.user).first()
-
-    return render(request, "pages/product.html", {
-        "product": product,
-        "related": related,
-        "reviews": reviews,
-        "rating_avg": round(avg_rating, 1),
-        "rating_count": reviews.count(),
-        "user_review": user_review,
-    })
-
-
-@require_POST
-# Add these imports at the to
-
-# ... your other views ...
+# ---------------- REVIEWS ----------------
 
 @require_POST
 def add_review(request, slug):
     if not request.user.is_authenticated:
-        return redirect('account_login')
-
+        return redirect("account_login")
     product = get_object_or_404(Product, slug=slug)
-    rating = request.POST.get('rating')
-    comment = request.POST.get('comment')
-    image = request.FILES.get('image')
-    video = request.FILES.get('video')
+    rating = request.POST.get("rating")
+    comment = request.POST.get("comment")
+    image = request.FILES.get("image")
+    video = request.FILES.get("video")
 
     if rating and comment:
         review, created = Review.objects.get_or_create(
-            product=product, 
-            user=request.user,
-            defaults={'rating': rating, 'comment': comment}
+            product=product, user=request.user,
+            defaults={"rating": rating, "comment": comment},
         )
         if not created:
             review.rating = rating
             review.comment = comment
-        
-        if image:
-            review.image = image
-        if video:
-            review.video = video
-            
+        if image: review.image = image
+        if video: review.video = video
         review.save()
         messages.success(request, "Your review has been saved!")
     else:
         messages.error(request, "Please provide a rating and a comment.")
+    return redirect("product", slug=slug)
 
-    return redirect('product', slug=slug)
 
 @require_POST
 def delete_review(request, review_id):
     review = get_object_or_404(Review, id=review_id, user=request.user)
-    product_slug = review.product.slug
+    slug = review.product.slug
     review.delete()
     messages.success(request, "Your review has been deleted.")
-    return redirect('product', slug=product_slug)
+    return redirect("product", slug=slug)

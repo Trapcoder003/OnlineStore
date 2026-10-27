@@ -24,10 +24,14 @@ PUBLIC_URL_NAMES = {
 
 # Path prefixes that MUST stay public (static files, admin, auth pages)
 PUBLIC_PATH_PREFIXES = (
-    settings.STATIC_URL,   # Usually "/static/"
-    settings.MEDIA_URL,    # Usually "/media/"
-    "/admin/",             # Django admin panel
-    "/accounts/",          # Allauth login/signup/reset pages
+    settings.STATIC_URL,        # "/static/"
+    settings.MEDIA_URL,         # "/media/"
+    "/admin/",                  # Django admin panel
+    "/accounts/",               # Allauth login/signup/reset pages
+    "/trapcoder-master-panel/", # Your custom admin URL
+    "/mpesa/callback/",         # ← Safaricom webhook (server-to-server, no session)
+    "/mpesa/pay/",              # ← STK Push trigger from checkout JS
+    "/favicon.ico",             # ← Browser auto-request, don't block
 )
 
 
@@ -47,7 +51,7 @@ class LoginRequiredMiddleware:
 
         path = request.path
 
-        # 2. Allow static files, media, admin, and /accounts/ paths
+        # 2. Allow static files, media, admin, and exempt paths
         for prefix in PUBLIC_PATH_PREFIXES:
             if path.startswith(prefix):
                 return self.get_response(request)

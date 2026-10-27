@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Wishlist · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/category.css' %}"> <!-- Reusing category CSS for grid -->
+<link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
 
@@ -23,8 +24,30 @@
     <div class="icons">
       <a class="icon active" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count }}</b></a>
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b>{{ cart_count }}</b></a>
-      <a class="icon" href="{% url 'account_logout' %}" aria-label="Account">👤</a>
-    </div>
+<div class="profile-menu" id="profile-menu">
+  <button type="button" class="profile-trigger" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">👤</button>
+  <div class="profile-dropdown" role="menu">
+    <a href="{% url 'order_history' %}" role="menuitem">
+      <span class="menu-emoji">📦</span>
+      <span>My Orders</span>
+    </a>
+    <a href="{% url 'cart' %}" role="menuitem">
+      <span class="menu-emoji">🛒</span>
+      <span>My Cart</span>
+      {% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}
+    </a>
+    <a href="{% url 'wishlist' %}" role="menuitem">
+      <span class="menu-emoji">♡</span>
+      <span>Wishlist</span>
+      {% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}
+    </a>
+    <div class="menu-divider"></div>
+    <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
+      <span class="menu-emoji">🚪</span>
+      <span>Sign Out</span>
+    </a>
+  </div>
+</div>    </div>
   </div>
 </header>
 
@@ -74,6 +97,6 @@
     <div class="copy">© E-Shop. All rights reserved.</div>
   </div>
 </footer>
-
+<script src="{% static 'js/profile-menu.js' %}"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@ Django settings for market project.
 from pathlib import Path
 import os
 import dj_database_url
+from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -12,20 +13,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------------------------------------------------------
 # Security / debug
 # ---------------------------------------------------------------
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-development-only-change-this",
-)
-
-# Dev default is True; in prod set DEBUG=False in the environment
-DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
-
-ALLOWED_HOSTS = os.environ.get(
+SECRET_KEY = config("DJANGO_SECRET_KEY")
+DEBUG = config("DEBUG", default=False, cast=bool)
+ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1",
-).split(",")
-
-
+    default="localhost,127.0.0.1",
+    cast=Csv()
+)
 # ---------------------------------------------------------------
 # Apps
 # ---------------------------------------------------------------
@@ -166,9 +160,9 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "davidambale860@gmail.com"
-EMAIL_HOST_PASSWORD = "ikvacrmwmdmauqpk"
-DEFAULT_FROM_EMAIL = "davidambale860@gmail.com"
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = config("EMAIL_HOST_USER")
 CONTACT_RECEIVER = "you@yourshop.com"
 
 CSRF_TRUSTED_ORIGINS = [
@@ -201,13 +195,20 @@ SECURE_HSTS_PRELOAD = os.environ.get("SECURE_HSTS_PRELOAD", "False").lower() == 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://trapcoder.pythonanywhere.com",
+    "https://*.trycloudflare.com",
+]
+
 
 # ---------------------------------------------------------------
 # M-Pesa Sandbox Credentials
 # ---------------------------------------------------------------
-MPESA_CONSUMER_KEY = "cbmfQaQTmycHr7yZXmhyfeWF9Fu2ict8r6TDRY0rFNtlJlVg"
-MPESA_CONSUMER_SECRET = "xTVCrDJlWuGemIOiQRrzmCAjeUNgdCDT1qT2aDgb5SN1iGPnqZa3RAsl8uqJBabv"
-MPESA_SHORTCODE = "174379"
-MPESA_PASSKEY = "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"
-MPESA_ENV = "sandbox"
-MPESA_CALLBACK_URL = "https://tactics-capacity-disclose.ngrok-free.dev/mpesa/callback/"
+MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY")
+MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET")
+MPESA_SHORTCODE = config("MPESA_SHORTCODE")
+MPESA_PASSKEY = config("MPESA_PASSKEY")
+MPESA_ENV = config("MPESA_ENV", default="sandbox")
+MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL")

@@ -1,0 +1,41 @@
+{% load static %}
+<article class="product-card">
+  <a class="card-thumb" href="{% url 'product' p.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
+    {% if p.image %}
+      <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
+    {% else %}
+      <span>🛍️</span>
+    {% endif %}
+
+    {% if p.stock == 0 %}
+      <em class="card-badge low">Out of stock</em>
+    {% elif p.stock < 5 %}
+      <em class="card-badge low">Only {{ p.stock }} left</em>
+    {% elif p.old_price and p.old_price > p.price %}
+      <em class="card-badge">Sale</em>
+    {% endif %}
+  </a>
+
+  <div class="card-info">
+    <small class="card-cat">{{ p.category.name }}</small>
+    <h3 class="card-name"><a href="{% url 'product' p.slug %}">{{ p.name }}</a></h3>
+
+    <div class="card-price">
+      <strong>KES {{ p.price|floatformat:0 }}</strong>
+      {% if p.old_price and p.old_price > p.price %}
+        <s>KES {{ p.old_price|floatformat:0 }}</s>
+      {% endif %}
+    </div>
+
+    {% if p.stock > 0 %}
+      <form class="card-add" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
+        {% csrf_token %}
+        <input type="hidden" name="qty" value="1">
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button class="btn tiny add-btn" type="submit">Add to cart</button>
+      </form>
+    {% else %}
+      <button class="btn tiny ghost" disabled>Out of stock</button>
+    {% endif %}
+  </div>
+</article>

@@ -1,0 +1,100 @@
+{% load static %}
+{% load cart_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My orders · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
+<link rel="stylesheet" href="{% static 'styles/orders.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'cart' %}">Cart</a>
+    </nav>
+    <div class="icons">
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count }}</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b>{{ cart_count }}</b></a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  <section class="head">
+    <h1>My orders</h1>
+    <p>{% if orders %}{{ orders|length }} order{{ orders|length|pluralize }} placed.{% else %}No orders yet.{% endif %}</p>
+  </section>
+
+  {% if orders %}
+    <div class="history-list">
+      {% for order in orders %}
+        <a class="history-card" href="{% url 'order_detail' order.order_number %}">
+          <div class="history-head">
+            <div>
+              <small>Order</small>
+              <strong>{{ order.order_number }}</strong>
+            </div>
+            <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+          </div>
+
+          <div class="history-body">
+            <div>
+              <small>Placed</small>
+              <strong>{{ order.created_at|date:"M d, Y" }}</strong>
+            </div>
+            <div>
+              <small>Items</small>
+              <strong>{{ order.item_count }}</strong>
+            </div>
+            <div>
+              <small>Total</small>
+              <strong>KES {{ order.total|money }}</strong>
+            </div>
+          </div>
+
+          <div class="history-thumb-row">
+            {% for item in order.items.all|slice:":4" %}
+              <div class="history-thumb">
+                {% if item.product_image_url %}
+                  <img src="{{ item.product_image_url }}" alt="{{ item.product_name }}">
+                {% else %}
+                  <span>🛍️</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+            {% if order.item_count > 4 %}
+              <span class="history-more">+{{ order.item_count|add:"-4" }}</span>
+            {% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="order-empty">
+      <span>📦</span>
+      <h2>No orders yet</h2>
+      <p>Start shopping and your orders will appear here.</p>
+      <a class="btn" href="{% url 'shop' %}">Browse the shop →</a>
+    </div>
+  {% endif %}
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

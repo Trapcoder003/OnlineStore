@@ -1,0 +1,50 @@
+{% load static %}
+{% load shop_extras %}
+<article class="deal-card">
+  <a class="deal-thumb" href="{% url 'product' p.slug %}" style="--c1:#ff3d5a;--c2:#ff77b1">
+    {% if p.image %}
+      <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
+    {% else %}
+      <span>🛍️</span>
+    {% endif %}
+
+    {% if p.discount_pct %}
+      <span class="deal-badge">−{{ p.discount_pct|floatformat:0 }}%</span>
+    {% endif %}
+
+    {% if p.stock == 0 %}
+      <span class="deal-urgency">Sold out</span>
+    {% elif p.stock < 5 %}
+      <span class="deal-urgency">Only {{ p.stock }} left</span>
+    {% endif %}
+  </a>
+
+  <div class="deal-info">
+    <small class="deal-cat">{{ p.category.name }}</small>
+    <h3 class="deal-name"><a href="{% url 'product' p.slug %}">{{ p.name }}</a></h3>
+
+    <div class="deal-price-row">
+      <strong class="deal-price">KES {{ p.price|floatformat:0 }}</strong>
+      {% if p.old_price and p.old_price > p.price %}
+        <s class="deal-old">KES {{ p.old_price|floatformat:0 }}</s>
+      {% endif %}
+    </div>
+
+    {% if p.old_price and p.old_price > p.price %}
+      <div class="deal-save">
+        🎉 Save KES {{ p.old_price|subtract:p.price|floatformat:0 }}
+      </div>
+    {% endif %}
+
+    {% if p.stock > 0 %}
+      <form class="deal-add" method="post" action="{% url 'cart_add' p.id %}" data-name="{{ p.name }}">
+        {% csrf_token %}
+        <input type="hidden" name="qty" value="1">
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <button class="btn tiny add-btn" type="submit">Add to cart</button>
+      </form>
+    {% else %}
+      <button class="btn tiny ghost" disabled>Out of stock</button>
+    {% endif %}
+  </div>
+</article>
