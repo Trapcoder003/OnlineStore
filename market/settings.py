@@ -19,8 +19,10 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
     default="localhost,127.0.0.1",
-    cast=Csv()
+    cast=Csv(),
 )
+
+
 # ---------------------------------------------------------------
 # Apps
 # ---------------------------------------------------------------
@@ -62,10 +64,11 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_UNIQUE_EMAIL = True
 ACCOUNT_SESSION_REMEMBER = None
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
-# 🆕 Custom adapter — prevents auto-login right after signup
+
+# Custom adapter — prevents auto-login right after signup
 ACCOUNT_ADAPTER = "shopApp.adapters.NoAutoLoginAfterSignupAdapter"
 
-# 🆕 Belt-and-braces: never auto-login from other flows either
+# Never auto-login from other flows either
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = False
 ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
 
@@ -155,24 +158,30 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 # ---------------------------------------------------------------
-# Email
+# Email — Resend HTTP API
 # ---------------------------------------------------------------
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = config("EMAIL_HOST_USER")
-CONTACT_RECEIVER = "you@yourshop.com"
+# Bypasses SMTP entirely. Works on PythonAnywhere free tier.
+RESEND_API_KEY = config("RESEND_API_KEY", default="")
+resend.api_key = RESEND_API_KEY
 
+EMAIL_BACKEND = "shopApp.email_backends.ResendBackend"
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="onboarding@resend.dev")
+CONTACT_RECEIVER = config("CONTACT_RECEIVER", default="davidambale860@gmail.com")
+
+
+# ---------------------------------------------------------------
+# CSRF & site URL
+# ---------------------------------------------------------------
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://trapcoder.pythonanywhere.com",
+    "https://*.trycloudflare.com",
 ]
-# Public site URL — used in email links
-SITE_URL = os.environ.get("SITE_URL", "trapcoder.pythonanywhere.com")
+
+# Public site URL — used in email links (must include https://)
+SITE_URL = config("SITE_URL", default="http://localhost:8000")
+
 
 # ---------------------------------------------------------------
 # Coupons
@@ -197,16 +206,9 @@ SECURE_HSTS_PRELOAD = os.environ.get("SECURE_HSTS_PRELOAD", "False").lower() == 
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://trapcoder.pythonanywhere.com",
-    "https://*.trycloudflare.com",
-]
-
 
 # ---------------------------------------------------------------
-# M-Pesa Sandbox Credentials
+# M-Pesa
 # ---------------------------------------------------------------
 MPESA_CONSUMER_KEY = config("MPESA_CONSUMER_KEY")
 MPESA_CONSUMER_SECRET = config("MPESA_CONSUMER_SECRET")
@@ -214,11 +216,3 @@ MPESA_SHORTCODE = config("MPESA_SHORTCODE")
 MPESA_PASSKEY = config("MPESA_PASSKEY")
 MPESA_ENV = config("MPESA_ENV", default="sandbox")
 MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL")
-
-RESEND_API_KEY = config("RESEND_API_KEY", default="")
-resend.api_key = RESEND_API_KEY
-
-# Custom email backend
-EMAIL_BACKEND = "shopApp.email_backends.ResendBackend"
-DEFAULT_FROM_EMAIL = "onboarding@resend.dev"  # use their test domain
-# Or after verifying your domain: "noreply@yourdomain.com"
