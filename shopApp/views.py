@@ -503,3 +503,37 @@ def delete_review(request, review_id):
     review.delete()
     messages.success(request, "Your review has been deleted.")
     return redirect("product", slug=slug)
+
+def track_order(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number)
+    history = order.tracking_history.all()
+
+    # Quick lookup: status → history entry
+    history_by_status = {h.status: h for h in history}
+
+    # The pipeline (in order)
+    pipeline = [
+        ("paid",            "Payment confirmed",          "💳"),
+        ("processing",      "Processing your order",      "⚙️"),
+        ("shipped",         "Shipped to pickup station",  "🚚"),
+        ("ready_for_pickup","Ready for pickup",           "📦"),
+        ("picked_up",       "Picked up",                  "✅"),
+    ]
+
+    steps = []
+    for key, label, icon in pipeline:
+        entry = history_by_status.get(key)
+        steps.append({
+            "key": key,
+            "label": label,
+            "icon": icon,
+            "done": entry is not None,
+            "at": entry.created_at if entry else None,
+            "note": entry.note if entry else "",
+        })
+
+    return render(request, "pages/track_order.html", {
+        "order": order,
+        "history": history,
+        "steps": steps,
+    })

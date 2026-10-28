@@ -36,4 +36,5 @@ urlpatterns = [
     path("orders/<str:number>/waiting/", views.order_waiting, name="order_waiting"),
     path("orders/<str:number>/status/", views.order_status_json, name="order_status"),
     path("account/orders/", views.order_history, name="order_history"),
+    path('track/<str:order_number>/', views.track_order, name='track_order'),
 ]

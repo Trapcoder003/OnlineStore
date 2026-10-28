@@ -1,0 +1,211 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track {{ order.order_number }} · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
+<link rel="stylesheet" href="{% static 'styles/tracking.css' %}">
+</head>
+<body>
+
+<header class="nav">
+  <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <label class="burger" for="nav-toggle"><span></span><span></span></label>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'cart' %}">Cart</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'order_history' %}">📦 Orders</a>
+      {% endif %}
+    </nav>
+    <div class="icons">
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count }}</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b>{{ cart_count }}</b></a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap page">
+
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="{% url 'home' %}">Home</a>
+    <span aria-hidden="true">›</span>
+    <a href="{% url 'order_detail' order.order_number %}">Order {{ order.order_number }}</a>
+    <span aria-hidden="true">›</span>
+    <span aria-current="page">Track</span>
+  </nav>
+
+  {% if messages %}
+    <div class="flash">
+      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ============ HERO ============ -->
+  <section class="track-hero">
+    <div class="track-hero-top">
+      <div>
+        <small>Order</small>
+        <h1>{{ order.order_number }}</h1>
+      </div>
+      <span class="track-status status-{{ order.status }}">
+        {{ order.get_status_display }}
+      </span>
+    </div>
+
+    <div class="track-hero-meta">
+      <div>
+        <small>Placed</small>
+        <strong>{{ order.created_at|date:"M d, Y · H:i" }}</strong>
+      </div>
+      <div>
+        <small>Total</small>
+        <strong>KES {{ order.total|floatformat:0 }}</strong>
+      </div>
+      <div>
+        <small>Items</small>
+        <strong>{{ order.item_count }}</strong>
+      </div>
+      {% if order.mpesa_receipt %}
+      <div>
+        <small>M-Pesa receipt</small>
+        <strong>{{ order.mpesa_receipt }}</strong>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- ============ PIPELINE ============ -->
+  {% if order.status == "pending" %}
+    <section class="track-notice pending">
+      ⏳ Waiting for your payment. <a href="{% url 'order_waiting' order.order_number %}">Resume checkout →</a>
+    </section>
+  {% elif order.status == "cancelled" %}
+    <section class="track-notice cancelled">
+      ❌ This order was cancelled. <a href="{% url 'shop' %}">Shop again →</a>
+    </section>
+  {% elif order.status == "failed" %}
+    <section class="track-notice cancelled">
+      ⚠️ Payment failed. <a href="{% url 'checkout' %}">Try again →</a>
+    </section>
+  {% else %}
+    <section class="track-card">
+      <h2 class="track-section-title">Delivery Progress</h2>
+
+      <ol class="track-steps">
+        {% for step in steps %}
+          <li class="track-step {% if step.done %}done{% else %}upcoming{% endif %}">
+            <div class="track-step-marker">
+              <span class="track-step-icon">{{ step.icon }}</span>
+            </div>
+            <div class="track-step-body">
+              <strong>{{ step.label }}</strong>
+              {% if step.done and step.at %}
+                <time>{{ step.at|date:"M d, Y · H:i" }}</time>
+              {% elif step.done %}
+                <time>Completed</time>
+              {% else %}
+                <time class="muted">Pending</time>
+              {% endif %}
+              {% if step.note %}
+                <p class="track-step-note">{{ step.note }}</p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ol>
+    </section>
+  {% endif %}
+
+  <!-- ============ PICKUP STATION ============ -->
+  {% if order.pickup_station_name %}
+    <section class="track-pickup">
+      <div class="track-pickup-icon">📍</div>
+      <div class="track-pickup-info">
+        <small>Pickup station</small>
+        <h3>{{ order.pickup_station_name }}
+          {% if order.pickup_station_code %}
+            <span class="track-pickup-code">{{ order.pickup_station_code }}</span>
+          {% endif %}
+        </h3>
+        {% if order.pickup_station_address %}
+          <p>{{ order.pickup_station_address }}</p>
+        {% endif %}
+        {% if order.estimated_pickup_date %}
+          <p class="track-eta">
+            📅 Expected ready by <strong>{{ order.estimated_pickup_date|date:"M d, Y" }}</strong>
+          </p>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- ============ ORDER SUMMARY ============ -->
+  <section class="track-card">
+    <h2 class="track-section-title">Items in this order</h2>
+    <ul class="track-items">
+      {% for item in order.items.all %}
+        <li class="track-item">
+          <div class="track-item-thumb">
+            {% if item.product_image_url %}
+              <img src="{{ item.product_image_url }}" alt="{{ item.product_name }}">
+            {% else %}
+              <span>🛍️</span>
+            {% endif %}
+          </div>
+          <div class="track-item-info">
+            <strong>{{ item.product_name }}</strong>
+            <small>KES {{ item.unit_price|floatformat:0 }} × {{ item.qty }}</small>
+          </div>
+          <span class="track-item-line">KES {{ item.line_total|floatformat:0 }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if order.ship_address %}
+      <div class="track-ship">
+        <small>Shipping to</small>
+        <p>
+          <strong>{{ order.ship_name }}</strong><br>
+          {{ order.ship_address }}<br>
+          {{ order.ship_town }}, {{ order.ship_county }}<br>
+          📞 {{ order.ship_phone }}
+        </p>
+      </div>
+    {% endif %}
+  </section>
+
+  <!-- ============ ACTIONS ============ -->
+  <div class="track-actions">
+    <a class="btn" href="{% url 'shop' %}">Continue shopping →</a>
+    <a class="btn ghost" href="{% url 'order_detail' order.order_number %}">View full order</a>
+    {% if user.is_authenticated %}
+      <a class="btn ghost" href="{% url 'order_history' %}">All my orders</a>
+    {% endif %}
+  </div>
+
+  <!-- ============ LOOKUP ANOTHER ORDER ============ -->
+  <section class="track-lookup">
+    <h3>Tracking another order?</h3>
+    <form method="get" action="" class="track-lookup-form"
+          onsubmit="event.preventDefault(); window.location.href='/track/' + this.order_number.value.trim() + '/';">
+      <input type="text" name="order_number" placeholder="Enter order number (e.g. ESH-2026-123456)" required>
+      <button class="btn" type="submit">Track</button>
+    </form>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+</body>
+</html>

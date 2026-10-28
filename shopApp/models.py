@@ -119,6 +119,30 @@ class Order(models.Model):
     shipped_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
 
+    # Pickup station details
+    pickup_station_name = models.CharField(max_length=120, blank=True)
+    pickup_station_code = models.CharField(max_length=40, blank=True)
+    pickup_station_address = models.TextField(blank=True)
+
+    # Tracking status (expand your existing STATUS_CHOICES)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending payment'),
+            ('paid', 'Paid'),
+            ('processing', 'Processing'),
+            ('shipped', 'Shipped to Pickup Station'),
+            ('ready_for_pickup', 'Ready for Pickup'),
+            ('picked_up', 'Picked Up'),
+            ('failed', 'Payment Failed'),
+            ('cancelled', 'Cancelled'),
+        ],
+        default='pending'
+    )
+
+    # Optional: estimated delivery/pickup date
+    estimated_pickup_date = models.DateField(null=True, blank=True)
+
     class Meta:
         ordering = ["-created_at"]
         indexes = [
@@ -172,3 +196,15 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.unit_price * self.qty
+
+class TrackingHistory(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tracking_history')
+    status = models.CharField(max_length=20)  # matches Order.status
+    note = models.TextField(blank=True)      # e.g., "Arrived at Nairobi CBD pickup point"
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.order.order_number} - {self.status} at {self.created_at}"
