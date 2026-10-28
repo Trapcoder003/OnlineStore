@@ -316,7 +316,6 @@ def order_detail(request, number):
     return render(request, "pages/order_detail.html", {"order": order})
 
 
-# ✅ NEW: printable / downloadable receipt view
 def order_receipt(request, number):
     """Printable receipt page — customer can Ctrl+P → Save as PDF."""
     order = get_object_or_404(Order, order_number=number)
@@ -376,10 +375,8 @@ def track_order(request, order_number):
 
 # ---------------- OWNER DASHBOARD ----------------
 
-# Statuses from which advancing is allowed
 ADVANCEABLE_STATUSES = {"paid", "processing", "shipped", "ready_for_pickup"}
 
-# Next status in the pipeline
 NEXT_STATUS = {
     "paid":             "processing",
     "processing":       "shipped",
@@ -455,7 +452,6 @@ def staff_advance_order(request, order_number):
     order = get_object_or_404(Order, order_number=order_number)
     referer = request.META.get("HTTP_REFERER", "staff_orders_dashboard")
 
-    # 🚨 Guard: payment not confirmed — cannot advance
     if order.status == "pending":
         messages.error(
             request,
@@ -474,7 +470,6 @@ def staff_advance_order(request, order_number):
         messages.info(request, f"{order.order_number} is already complete.")
         return redirect(referer)
 
-    # Belt-and-braces: even if status is 'paid', verify the payment record exists
     if not order.paid_at:
         messages.error(
             request,
@@ -482,7 +477,6 @@ def staff_advance_order(request, order_number):
         )
         return redirect(referer)
 
-    # Only advanceable statuses reach here
     next_status = NEXT_STATUS.get(order.status)
     if not next_status:
         messages.info(request, f"{order.order_number} is already at the final stage.")
@@ -607,7 +601,6 @@ def mpesa_callback(request):
     return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
 
 
-# ✅ UPDATED: now builds working URLs from SITE_URL
 def send_order_confirmation_email(order):
     """Send receipt + order summary with working links."""
     base_url = getattr(settings, "SITE_URL", "http://localhost:8000").rstrip("/")
@@ -647,6 +640,13 @@ class CustomPasswordResetFromKeyView(AllauthPasswordResetFromKeyView):
             return self.render_to_response(self.get_context_data())
         self.reset_user = None
         return self.render_to_response(self.get_context_data(token_fail=True))
+
+    # ✅ NEW: expose reset_user so the template shows "Resetting password for <username>"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if "reset_user" not in context:
+            context["reset_user"] = getattr(self, "reset_user", None)
+        return context
 
 
 # ---------------- WISHLIST ----------------
