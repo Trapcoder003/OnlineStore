@@ -290,13 +290,13 @@
     </div>
   </section>
 
-  <!-- RELATED PRODUCTS -->
+  <!-- ============ RELATED PRODUCTS — redesigned ============ -->
   {% if related %}
   <section class="related">
     <div class="sec-head">
       <div>
         <h2>You might also like</h2>
-        <p>More from {{ product.category.name }}.</p>
+        <p>More from {{ product.category.name }}</p>
       </div>
       <a class="link" href="{% url 'category' product.category.slug %}">View category →</a>
     </div>
@@ -304,20 +304,21 @@
     <div class="related-grid">
       {% for p in related %}
       <article class="related-card">
-        <div class="thumb" style="--c1:#7b61ff;--c2:#ff77b1">
+        <a class="related-thumb" href="{% url 'product' p.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
           {% if p.image %}
             <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
           {% else %}
             <span>🛍️</span>
           {% endif %}
-        </div>
-        <div class="info">
-          <small>{{ p.category.name }}</small>
-          <h3>{{ p.name }}</h3>
-          <div class="price">
+        </a>
+
+        <div class="related-info">
+          <small class="related-cat">{{ p.category.name }}</small>
+          <h3 class="related-name"><a href="{% url 'product' p.slug %}">{{ p.name }}</a></h3>
+          <div class="related-price">
             <strong>KES {{ p.price|floatformat:0 }}</strong>
           </div>
-          <a class="btn ghost" href="{% url 'product' p.slug %}">View</a>
+          <a class="related-btn" href="{% url 'product' p.slug %}">View product</a>
         </div>
       </article>
       {% endfor %}
@@ -334,7 +335,7 @@
       <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a></div>
       <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'contact' %}">Contact us</a></div>
     </div>
-    <div class="copy">© E-Shop. All rights reserved.</div>
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
 
@@ -449,7 +450,6 @@
       const label = document.querySelector(`label[for="${input.id}"]`);
       if (!label) return;
 
-      // Remove any previous preview line
       const prev = label.parentElement.querySelector('.file-preview');
       if (prev) prev.remove();
 
