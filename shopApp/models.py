@@ -4,6 +4,25 @@ from django.utils import timezone
 import secrets
 
 
+# ============================================================
+# Shared status choices — used by Order AND TrackingHistory
+# ============================================================
+ORDER_STATUS_CHOICES = [
+    ("pending",          "Pending payment"),
+    ("paid",             "Paid"),
+    ("processing",       "Processing"),
+    ("shipped",          "Shipped to Pickup Station"),
+    ("ready_for_pickup", "Ready for Pickup"),
+    ("picked_up",        "Picked Up"),
+    ("failed",           "Payment Failed"),
+    ("cancelled",        "Cancelled"),
+    ("refunded",         "Refunded"),
+]
+
+
+# ============================================================
+# Category / Product / Wishlist / Review
+# ============================================================
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -28,10 +47,10 @@ class Product(models.Model):
     image = models.ImageField(upload_to="products/", blank=True)
     brand = models.CharField(max_length=100, blank=True)
 
-    # Featured products (used by homepage "Featured" strip)
+    # Featured products (homepage "Featured" strip)
     is_featured = models.BooleanField(default=False)
 
-    # Sales tracking (used by homepage "Best Sellers" strip)
+    # Sales tracking (homepage "Best Sellers" strip)
     sold_count = models.PositiveIntegerField(default=0)
 
     def __str__(self):
@@ -65,16 +84,14 @@ class Review(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.product.name} ({self.rating}/5)"
 
+
+# ============================================================
+# ORDER
+# ============================================================
+
 class Order(models.Model):
-    STATUS_CHOICES = [
-        ("pending",   "Pending payment"),
-        ("paid",      "Paid"),
-        ("failed",    "Payment failed"),
-        ("shipped",   "Shipped"),
-        ("delivered", "Delivered"),
-        ("cancelled", "Cancelled"),
-        ("refunded",  "Refunded"),
-    ]
+    # Kept as class attribute for backward compat (signals.py references Order.STATUS_CHOICES)
+    STATUS_CHOICES = ORDER_STATUS_CHOICES
 
     DELIVERY_CHOICES = [
         ("pickup",   "Pickup at store (Free)"),
@@ -83,7 +100,9 @@ class Order(models.Model):
     ]
 
     order_number = models.CharField(max_length=20, unique=True, editable=False)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders")
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="orders"
+    )
 
     # Contact
     email = models.EmailField()
@@ -95,7 +114,9 @@ class Order(models.Model):
     ship_county = models.CharField(max_length=80)
     ship_town = models.CharField(max_length=80)
     ship_address = models.TextField(help_text="Building, street, landmark")
-    delivery_method = models.CharField(max_length=20, choices=DELIVERY_CHOICES, default="standard")
+    delivery_method = models.CharField(
+        max_length=20, choices=DELIVERY_CHOICES, default="standard"
+    )
 
     # Money (all snapshotted at purchase time)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
@@ -103,8 +124,12 @@ class Order(models.Model):
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2)
 
-    # Status
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    # ✅ SINGLE status field — do NOT duplicate this
+    status = models.CharField(
+        max_length=20,
+        choices=ORDER_STATUS_CHOICES,
+        default="pending",
+    )
     notes = models.TextField(blank=True, help_text="Internal notes")
 
     # M-Pesa
@@ -123,24 +148,6 @@ class Order(models.Model):
     pickup_station_name = models.CharField(max_length=120, blank=True)
     pickup_station_code = models.CharField(max_length=40, blank=True)
     pickup_station_address = models.TextField(blank=True)
-
-    # Tracking status (expand your existing STATUS_CHOICES)
-    status = models.CharField(
-        max_length=20,
-        choices=[
-            ('pending', 'Pending payment'),
-            ('paid', 'Paid'),
-            ('processing', 'Processing'),
-            ('shipped', 'Shipped to Pickup Station'),
-            ('ready_for_pickup', 'Ready for Pickup'),
-            ('picked_up', 'Picked Up'),
-            ('failed', 'Payment Failed'),
-            ('cancelled', 'Cancelled'),
-        ],
-        default='pending'
-    )
-
-    # Optional: estimated delivery/pickup date
     estimated_pickup_date = models.DateField(null=True, blank=True)
 
     class Meta:
@@ -156,7 +163,7 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_number:
             year = timezone.now().year
-            for _ in range(20):  # safety loop
+            for _ in range(20):
                 candidate = f"ESH-{year}-{secrets.randbelow(900000) + 100000}"
                 if not Order.objects.filter(order_number=candidate).exists():
                     self.order_number = candidate
@@ -178,6 +185,10 @@ class Order(models.Model):
         return sum(i.qty for i in self.items.all())
 
 
+# ============================================================
+# ORDER ITEM
+# ============================================================
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
@@ -197,14 +208,26 @@ class OrderItem(models.Model):
     def line_total(self):
         return self.unit_price * self.qty
 
+
+# ============================================================
+# TRACKING HISTORY
+# ============================================================
+
 class TrackingHistory(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tracking_history')
-    status = models.CharField(max_length=20)  # matches Order.status
-    note = models.TextField(blank=True)      # e.g., "Arrived at Nairobi CBD pickup point"
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="tracking_history"
+    )
+
+    # ✅ NOW has choices → get_status_display() works
+    status = models.CharField(
+        max_length=20,
+        choices=ORDER_STATUS_CHOICES,
+    )
+    note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.order.order_number} - {self.status} at {self.created_at}"
+        return f"{self.order.order_number} - {self.get_status_display()} at {self.created_at}"

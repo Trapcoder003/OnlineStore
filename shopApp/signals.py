@@ -3,7 +3,11 @@ from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.conf import settings
 
-from .models import TrackingHistory
+from .models import TrackingHistory, Order
+
+
+# Status display mapping — mirrors Order.STATUS_CHOICES
+STATUS_LABELS = dict(Order.STATUS_CHOICES)
 
 
 @receiver(post_save, sender=TrackingHistory)
@@ -18,18 +22,21 @@ def notify_customer_of_status_change(sender, instance, created, **kwargs):
     order = instance.order
 
     # Skip notification for statuses you don't want to email about
-    # (e.g., don't email when the internal tracking row is created manually for testing)
     if instance.status in ("pending", "failed"):
         return
 
-    subject = f"Order {order.order_number} · {instance.get_status_display()}"
+    # Manual label lookup — TrackingHistory has no choices, so no get_status_display()
+    label = STATUS_LABELS.get(instance.status, instance.status.replace("_", " ").title())
+
+    subject = f"Order {order.order_number} · {label}"
+    site_url = getattr(settings, "SITE_URL", "https://trapcoder.pythonanywhere.com")
     message = (
         f"Hi {order.ship_name},\n\n"
-        f"Your order {order.order_number} status is now: {instance.get_status_display()}.\n\n"
+        f"Your order {order.order_number} is now: {label}.\n\n"
         f"{instance.note}\n\n"
         f"Total: KES {order.total}\n\n"
         f"Track your order anytime:\n"
-        f"{settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://trapcoder.pythonanywhere.com'}/track/{order.order_number}/\n\n"
+        f"{site_url}/track/{order.order_number}/\n\n"
         f"— E-Shop"
     )
 
@@ -43,5 +50,4 @@ def notify_customer_of_status_change(sender, instance, created, **kwargs):
         )
         print(f"📧 Tracking email sent to {order.email} · status={instance.status}")
     except Exception as e:
-        # Log, don't crash — the status update already succeeded
         print(f"❌ Tracking email failed for {order.order_number}: {e}")

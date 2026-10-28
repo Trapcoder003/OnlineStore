@@ -41,7 +41,7 @@
     </p>
 
     <div class="waiting-actions" id="actions" style="display: none; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 12px;">
-      <a class="btn" href="{% url 'order_detail' order.order_number %}">View order</a>
+      <a class="btn" href="{% url 'track_order' order.order_number %}">Track order</a>
       <a class="btn ghost" href="{% url 'shop' %}">Try again</a>
     </div>
 
@@ -54,10 +54,10 @@
   'use strict';
 
   const statusUrl = "{% url 'order_status' order.order_number %}";
-  const detailUrl = "{% url 'order_detail' order.order_number %}";
+  const trackUrl  = "{% url 'track_order' order.order_number %}";   // ← changed
 
   let attempts = 0;
-  const MAX_ATTEMPTS = 40;              // 40 × 3s = 2 minutes
+  const MAX_ATTEMPTS = 40;
   const ATTEMPT_DELAY = 3000;
   let stopped = false;
 
@@ -71,17 +71,18 @@
   const backCart   = document.getElementById('back-cart');
 
   function setStatus(kind, text) {
-    // kind: waiting | paid | failed | timeout
     const dot = pill.querySelector('.waiting-dot');
     if (dot) {
-      dot.className = 'waiting-dot ' + (kind === 'waiting' ? '' : kind === 'paid' ? 'paid' : kind === 'failed' ? 'failed' : 'warn');
+      dot.className = 'waiting-dot ' + (
+        kind === 'waiting' ? '' :
+        kind === 'paid' ? 'paid' :
+        kind === 'failed' ? 'failed' : 'warn'
+      );
     }
     statusText.textContent = text;
   }
 
-  function stopPolling() {
-    stopped = true;
-  }
+  function stopPolling() { stopped = true; }
 
   function showFailure(reason) {
     stopPolling();
@@ -105,7 +106,6 @@
 
   function check() {
     if (stopped) return;
-
     attempts++;
 
     fetch(statusUrl, { headers: { "X-Requested-With": "XMLHttpRequest" } })
@@ -115,14 +115,18 @@
           stopPolling();
           if (spinner) spinner.style.display = 'none';
           titleEl.textContent = "Payment received!";
-          instrEl.textContent = "Thanks! Redirecting to your order…";
+          instrEl.textContent = "Redirecting to your tracking page…";
           setStatus('paid', '✅ Payment confirmed');
-          setTimeout(() => { window.location.href = detailUrl; }, 800);
+
+          // 🚀 THE KEY CHANGE — redirect to the tracking page
+          setTimeout(() => {
+            window.location.href = trackUrl;
+          }, 900);
           return;
         }
 
         if (data.status === "failed") {
-          showFailure(data.receipt ? "The M-Pesa payment was declined." : "Your payment failed.");
+          showFailure("The M-Pesa payment was declined.");
           return;
         }
 
@@ -139,7 +143,6 @@
         setTimeout(check, ATTEMPT_DELAY);
       })
       .catch(() => {
-        // Network hiccup — retry, but don't count it as a lost attempt forever
         if (!stopped && attempts < MAX_ATTEMPTS + 10) {
           setTimeout(check, 5000);
         } else {

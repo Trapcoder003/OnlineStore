@@ -8,6 +8,7 @@
 <title>Order {{ order.order_number }} · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 <link rel="stylesheet" href="{% static 'styles/orders.css' %}">
+<link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
 
@@ -21,22 +22,68 @@
       <a href="{% url 'shop' %}">Shop</a>
       <a href="{% url 'cart' %}">Cart</a>
     </nav>
+    <div class="icons">
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count }}</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b>{{ cart_count }}</b></a>
+
+      <div class="profile-menu" id="profile-menu">
+        <button type="button" class="profile-trigger" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">👤</button>
+        <div class="profile-dropdown" role="menu">
+          {% if user.is_staff %}
+            <a href="{% url 'staff_orders_dashboard' %}" role="menuitem">
+              <span class="menu-emoji">🛠️</span>
+              <span>Manage Orders</span>
+            </a>
+            <div class="menu-divider"></div>
+          {% endif %}
+          <a href="{% url 'order_history' %}" role="menuitem">
+            <span class="menu-emoji">📦</span>
+            <span>My Orders</span>
+          </a>
+          <a href="{% url 'cart' %}" role="menuitem">
+            <span class="menu-emoji">🛒</span>
+            <span>My Cart</span>
+          </a>
+          <a href="{% url 'wishlist' %}" role="menuitem">
+            <span class="menu-emoji">♡</span>
+            <span>Wishlist</span>
+          </a>
+          <div class="menu-divider"></div>
+          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
+            <span class="menu-emoji">🚪</span>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </header>
 
 <main class="wrap page">
+
+  {% if messages %}
+    <div class="flash">
+      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
+    </div>
+  {% endif %}
 
   {% if order.status == 'paid' %}
     <section class="order-hero paid">
       <div class="order-hero-icon">🎉</div>
       <h1>Payment received!</h1>
       <p>Thank you, {{ order.ship_name }}. Your order is confirmed.</p>
+      <a class="btn hero-track-btn" href="{% url 'track_order' order.order_number %}">
+        📍 Track this order
+      </a>
     </section>
   {% elif order.status == 'pending' %}
     <section class="order-hero pending">
       <div class="order-hero-icon">⏳</div>
       <h1>Order placed</h1>
       <p>We're waiting for your M-Pesa payment to complete.</p>
+      <a class="btn ghost hero-track-btn" href="{% url 'track_order' order.order_number %}">
+        📍 View tracking
+      </a>
     </section>
   {% elif order.status == 'failed' %}
     <section class="order-hero failed">
@@ -48,6 +95,9 @@
     <section class="order-hero {{ order.status }}">
       <div class="order-hero-icon">📦</div>
       <h1>Order {{ order.get_status_display }}</h1>
+      <a class="btn hero-track-btn" href="{% url 'track_order' order.order_number %}">
+        📍 Track this order
+      </a>
     </section>
   {% endif %}
 
@@ -133,7 +183,8 @@
   </div>
 
   <div class="order-actions">
-    <a class="btn" href="{% url 'shop' %}">Continue shopping →</a>
+    <a class="btn" href="{% url 'track_order' order.order_number %}">📍 Track this order</a>
+    <a class="btn ghost" href="{% url 'shop' %}">Continue shopping →</a>
     {% if user.is_authenticated %}
       <a class="btn ghost" href="{% url 'order_history' %}">My orders</a>
     {% endif %}
@@ -146,6 +197,8 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
+
+<script src="{% static 'js/profile-menu.js' %}"></script>
 
 </body>
 </html>

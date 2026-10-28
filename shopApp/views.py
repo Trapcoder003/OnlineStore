@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models, transaction
-from django.db.models import Q, Avg
+from django.db.models import Q, Avg, Sum
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.conf import settings
@@ -14,7 +16,10 @@ import json
 from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
 from allauth.account.forms import UserTokenForm
 
-from .models import Wishlist, Product, Category, Review, Order, OrderItem
+from .models import (
+    Wishlist, Product, Category, Review,
+    Order, OrderItem, TrackingHistory,
+)
 from .cart import Cart
 from .forms import ContactForm, CheckoutForm
 from .mpesa_service import initiate_stk_push
@@ -212,7 +217,6 @@ def checkout(request):
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
 
-        # 1. Re-validate stock (Cart yields dicts → use ["key"])
         for item in cart:
             product = item["product"]
             qty = item["qty"]
@@ -223,7 +227,6 @@ def checkout(request):
                 )
                 return redirect("cart")
 
-        # 2. Compute totals
         subtotal = cart.subtotal
         discount = cart.discount
         delivery_fee = DELIVERY_FEES[d["delivery_method"]]
@@ -231,7 +234,6 @@ def checkout(request):
             delivery_fee = 0
         total = subtotal - discount + delivery_fee
 
-        # 3. Create order atomically
         with transaction.atomic():
             order = Order.objects.create(
                 user=request.user if request.user.is_authenticated else None,
@@ -254,7 +256,6 @@ def checkout(request):
                 product = item["product"]
                 qty = item["qty"]
                 unit_price = item["price"]
-
                 OrderItem.objects.create(
                     order=order,
                     product=product,
@@ -265,7 +266,6 @@ def checkout(request):
                     qty=qty,
                 )
 
-        # 4. Fire STK Push
         try:
             response = initiate_stk_push(
                 d["phone"],
@@ -295,22 +295,42 @@ def order_waiting(request, number):
 
 def order_status_json(request, number):
     order = get_object_or_404(Order, order_number=number)
+    track_url = f"/track/{order.order_number}/" if order.status == "paid" else ""
     return JsonResponse({
         "status": order.status,
         "receipt": order.mpesa_receipt,
-        "url": f"/orders/{order.order_number}/" if order.status == "paid" else "",
+        "url": track_url,
     })
 
 
 def order_detail(request, number):
     order = get_object_or_404(Order, order_number=number)
-
-    # Guest can access by order number; logged-in user can only see their own
-    if order.user and request.user.is_authenticated and order.user != request.user:
+    if (
+        order.user
+        and request.user.is_authenticated
+        and order.user != request.user
+        and not request.user.is_staff
+    ):
         messages.error(request, "You don't have access to this order.")
         return redirect("home")
-
     return render(request, "pages/order_detail.html", {"order": order})
+
+
+# ✅ NEW: printable / downloadable receipt view
+def order_receipt(request, number):
+    """Printable receipt page — customer can Ctrl+P → Save as PDF."""
+    order = get_object_or_404(Order, order_number=number)
+
+    if (
+        order.user
+        and request.user.is_authenticated
+        and order.user != request.user
+        and not request.user.is_staff
+    ):
+        messages.error(request, "You don't have access to this receipt.")
+        return redirect("home")
+
+    return render(request, "pages/order_receipt.html", {"order": order})
 
 
 def order_history(request):
@@ -320,11 +340,188 @@ def order_history(request):
     return render(request, "pages/order_history.html", {"orders": orders})
 
 
+# ---------------- ORDER TRACKING ----------------
+
+def track_order(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number)
+    history = order.tracking_history.all()
+    history_by_status = {h.status: h for h in history}
+
+    pipeline = [
+        ("paid",             "Payment confirmed",          "💳"),
+        ("processing",       "Processing your order",      "⚙️"),
+        ("shipped",          "Shipped to pickup station",  "🚚"),
+        ("ready_for_pickup", "Ready for pickup",           "📦"),
+        ("picked_up",        "Picked up",                  "✅"),
+    ]
+
+    steps = []
+    for key, label, icon in pipeline:
+        entry = history_by_status.get(key)
+        steps.append({
+            "key": key,
+            "label": label,
+            "icon": icon,
+            "done": entry is not None,
+            "at": entry.created_at if entry else None,
+            "note": entry.note if entry else "",
+        })
+
+    return render(request, "pages/track_order.html", {
+        "order": order,
+        "history": history,
+        "steps": steps,
+    })
+
+
+# ---------------- OWNER DASHBOARD ----------------
+
+# Statuses from which advancing is allowed
+ADVANCEABLE_STATUSES = {"paid", "processing", "shipped", "ready_for_pickup"}
+
+# Next status in the pipeline
+NEXT_STATUS = {
+    "paid":             "processing",
+    "processing":       "shipped",
+    "shipped":          "ready_for_pickup",
+    "ready_for_pickup": "picked_up",
+}
+
+
+@staff_member_required
+def staff_orders_dashboard(request):
+    status_filter = request.GET.get("status", "active")
+    q = request.GET.get("q", "").strip()
+
+    orders = Order.objects.all()
+
+    if status_filter == "active":
+        orders = orders.exclude(status__in=["picked_up", "cancelled", "failed"])
+    elif status_filter == "all":
+        pass
+    else:
+        orders = orders.filter(status=status_filter)
+
+    if q:
+        orders = orders.filter(
+            Q(order_number__icontains=q) |
+            Q(phone__icontains=q) |
+            Q(email__icontains=q) |
+            Q(ship_name__icontains=q)
+        )
+
+    orders = orders.prefetch_related("items").order_by("-created_at")
+
+    paginator = Paginator(orders, 30)
+    page = request.GET.get("page", 1)
+    orders_page = paginator.get_page(page)
+
+    today = timezone.now().date()
+    stats = {
+        "pending":          Order.objects.filter(status="pending").count(),
+        "paid":             Order.objects.filter(status="paid").count(),
+        "processing":       Order.objects.filter(status="processing").count(),
+        "shipped":          Order.objects.filter(status="shipped").count(),
+        "ready_for_pickup": Order.objects.filter(status="ready_for_pickup").count(),
+        "picked_up_today":  Order.objects.filter(
+                                status="picked_up",
+                                delivered_at__date=today,
+                            ).count(),
+        "today_revenue":    Order.objects.filter(
+                                status__in=[
+                                    "paid", "processing", "shipped",
+                                    "ready_for_pickup", "picked_up",
+                                ],
+                                paid_at__date=today,
+                            ).aggregate(total=Sum("total"))["total"] or 0,
+    }
+
+    return render(request, "staff/orders_dashboard.html", {
+        "orders": orders_page,
+        "status_filter": status_filter,
+        "q": q,
+        "stats": stats,
+        "paginator": paginator,
+    })
+
+
+@staff_member_required
+@require_POST
+def staff_advance_order(request, order_number):
+    """
+    One-click advance to the next status.
+    BLOCKS advancement if payment hasn't been confirmed.
+    """
+    order = get_object_or_404(Order, order_number=order_number)
+    referer = request.META.get("HTTP_REFERER", "staff_orders_dashboard")
+
+    # 🚨 Guard: payment not confirmed — cannot advance
+    if order.status == "pending":
+        messages.error(
+            request,
+            f"⚠️ {order.order_number} cannot advance — payment has not been confirmed yet.",
+        )
+        return redirect(referer)
+
+    if order.status == "failed":
+        messages.error(
+            request,
+            f"❌ {order.order_number} payment failed. Cannot advance a failed order.",
+        )
+        return redirect(referer)
+
+    if order.status in ("picked_up", "cancelled"):
+        messages.info(request, f"{order.order_number} is already complete.")
+        return redirect(referer)
+
+    # Belt-and-braces: even if status is 'paid', verify the payment record exists
+    if not order.paid_at:
+        messages.error(
+            request,
+            f"⚠️ {order.order_number} has no confirmed payment record. Cannot advance.",
+        )
+        return redirect(referer)
+
+    # Only advanceable statuses reach here
+    next_status = NEXT_STATUS.get(order.status)
+    if not next_status:
+        messages.info(request, f"{order.order_number} is already at the final stage.")
+        return redirect(referer)
+
+    old_status = order.status
+    order.status = next_status
+
+    if next_status == "shipped" and not order.shipped_at:
+        order.shipped_at = timezone.now()
+    elif next_status == "picked_up" and not order.delivered_at:
+        order.delivered_at = timezone.now()
+
+    order.save(update_fields=["status", "shipped_at", "delivered_at"])
+
+    note_map = {
+        "processing":       "Your order is confirmed and being prepared.",
+        "shipped":          f"Dispatched to {order.pickup_station_name or 'your pickup station'}.",
+        "ready_for_pickup": f"Ready for pickup! Bring your ID and order number {order.order_number}.",
+        "picked_up":        "Collected. Thank you for shopping with us!",
+    }
+
+    TrackingHistory.objects.update_or_create(
+        order=order,
+        status=next_status,
+        defaults={"note": note_map.get(next_status, f"Status updated to {next_status}.")},
+    )
+
+    messages.success(
+        request,
+        f"✅ {order.order_number}: {old_status} → {next_status}. Customer notified.",
+    )
+    return redirect(referer)
+
+
 # ---------------- M-PESA INTEGRATION ----------------
 
 @require_POST
 def mpesa_pay(request):
-    """Legacy endpoint — kept for backwards compat. New flow uses checkout view."""
     try:
         data = json.loads(request.body)
         response = initiate_stk_push(data.get("phone"), data.get("amount"), "LEGACY", "E-Shop Payment")
@@ -335,10 +532,6 @@ def mpesa_pay(request):
 
 @csrf_exempt
 def mpesa_callback(request):
-    """
-    Safaricom sends the payment result to this URL.
-    Idempotent: safe to receive duplicate callbacks.
-    """
     if request.method != "POST":
         return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
 
@@ -349,16 +542,13 @@ def mpesa_callback(request):
         result_desc = stk.get("ResultDesc", "")
         checkout_id = stk.get("CheckoutRequestID", "")
 
-        # Find the order (atomically, to prevent race conditions)
         with transaction.atomic():
             try:
                 order = Order.objects.select_for_update().get(mpesa_checkout_id=checkout_id)
             except Order.DoesNotExist:
-                # No matching order — silently accept so Safaricom stops retrying
                 print(f"⚠️  Callback for unknown CheckoutRequestID: {checkout_id}")
                 return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
 
-            # Idempotency: if already paid, do nothing
             if order.status == "paid":
                 print(f"ℹ️  Duplicate callback ignored: {order.order_number}")
                 return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
@@ -368,7 +558,6 @@ def mpesa_callback(request):
                 receipt = next((i["Value"] for i in metadata if i["Name"] == "MpesaReceiptNumber"), "")
                 phone = next((i["Value"] for i in metadata if i["Name"] == "PhoneNumber"), "")
 
-                # Decrement stock atomically (OrderItem objects → use .attr)
                 for item in order.items.all():
                     if item.product_id:
                         product = Product.objects.select_for_update().get(pk=item.product_id)
@@ -376,8 +565,6 @@ def mpesa_callback(request):
                             product.stock -= item.qty
                             product.sold_count += item.qty
                             product.save()
-                        # If stock dropped between checkout and payment, we still honor the paid order
-                        # (log it for manual review)
                         else:
                             order.notes += f"\n⚠️ Oversold: {product.name} (had {product.stock}, needed {item.qty})"
                             product.stock = 0
@@ -386,14 +573,21 @@ def mpesa_callback(request):
 
                 order.mark_paid(receipt=str(receipt), phone=str(phone), description=result_desc)
 
-                # Clear the cart
+                try:
+                    TrackingHistory.objects.create(
+                        order=order,
+                        status="paid",
+                        note=f"Payment confirmed. M-Pesa receipt: {receipt}",
+                    )
+                except Exception as e:
+                    print(f"Tracking entry error for {order.order_number}: {e}")
+
                 try:
                     cart = Cart(request)
                     cart.clear()
                 except Exception as e:
                     print(f"Cart clear error: {e}")
 
-                # Send confirmation email
                 try:
                     send_order_confirmation_email(order)
                 except Exception as e:
@@ -413,11 +607,23 @@ def mpesa_callback(request):
     return JsonResponse({"ResultCode": 0, "ResultDesc": "OK"})
 
 
+# ✅ UPDATED: now builds working URLs from SITE_URL
 def send_order_confirmation_email(order):
-    """Send receipt + order summary to the customer."""
+    """Send receipt + order summary with working links."""
+    base_url = getattr(settings, "SITE_URL", "http://localhost:8000").rstrip("/")
+
     subject = f"Order confirmed · {order.order_number} · E-Shop"
-    text_body = render_to_string("emails/order_confirmation.txt", {"order": order})
-    html_body = render_to_string("emails/order_confirmation.html", {"order": order})
+    context = {
+        "order": order,
+        "base_url": base_url,
+        "track_url": f"{base_url}/track/{order.order_number}/",
+        "detail_url": f"{base_url}/orders/{order.order_number}/",
+        "receipt_url": f"{base_url}/orders/{order.order_number}/receipt/",
+    }
+
+    text_body = render_to_string("emails/order_confirmation.txt", context)
+    html_body = render_to_string("emails/order_confirmation.html", context)
+
     from django.core.mail import EmailMultiAlternatives
     msg = EmailMultiAlternatives(
         subject,
@@ -503,37 +709,3 @@ def delete_review(request, review_id):
     review.delete()
     messages.success(request, "Your review has been deleted.")
     return redirect("product", slug=slug)
-
-def track_order(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number)
-    history = order.tracking_history.all()
-
-    # Quick lookup: status → history entry
-    history_by_status = {h.status: h for h in history}
-
-    # The pipeline (in order)
-    pipeline = [
-        ("paid",            "Payment confirmed",          "💳"),
-        ("processing",      "Processing your order",      "⚙️"),
-        ("shipped",         "Shipped to pickup station",  "🚚"),
-        ("ready_for_pickup","Ready for pickup",           "📦"),
-        ("picked_up",       "Picked up",                  "✅"),
-    ]
-
-    steps = []
-    for key, label, icon in pipeline:
-        entry = history_by_status.get(key)
-        steps.append({
-            "key": key,
-            "label": label,
-            "icon": icon,
-            "done": entry is not None,
-            "at": entry.created_at if entry else None,
-            "note": entry.note if entry else "",
-        })
-
-    return render(request, "pages/track_order.html", {
-        "order": order,
-        "history": history,
-        "steps": steps,
-    })
