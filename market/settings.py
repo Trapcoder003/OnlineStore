@@ -6,6 +6,7 @@ from pathlib import Path
 import os
 import dj_database_url
 from decouple import config, Csv
+import resend
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -213,3 +214,11 @@ MPESA_SHORTCODE = config("MPESA_SHORTCODE")
 MPESA_PASSKEY = config("MPESA_PASSKEY")
 MPESA_ENV = config("MPESA_ENV", default="sandbox")
 MPESA_CALLBACK_URL = config("MPESA_CALLBACK_URL")
+
+RESEND_API_KEY = config("RESEND_API_KEY", default="")
+resend.api_key = RESEND_API_KEY
+
+# Custom email backend
+EMAIL_BACKEND = "shopApp.email_backends.ResendBackend"
+DEFAULT_FROM_EMAIL = "onboarding@resend.dev"  # use their test domain
+# Or after verifying your domain: "noreply@yourdomain.com"
