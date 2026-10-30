@@ -1,10 +1,12 @@
 from django import forms
+from .models import UserProfile
 
 
-class ContactForm(forms.Form):
-    name = forms.CharField(max_length=100)
-    email = forms.EmailField()
-    message = forms.CharField(widget=forms.Textarea)
+# ============================================================
+# CONSTANTS — must be defined BEFORE any class that uses them
+# ============================================================
+ALLOWED_IMAGE_EXT = ["jpg", "jpeg", "png", "webp", "gif"]
+MAX_AVATAR_SIZE = 2 * 1024 * 1024  # 2 MB
 
 
 KENYA_COUNTIES = [
@@ -30,6 +32,18 @@ DELIVERY_CHOICES = [
 ]
 
 
+# ============================================================
+# CONTACT
+# ============================================================
+class ContactForm(forms.Form):
+    name = forms.CharField(max_length=100)
+    email = forms.EmailField()
+    message = forms.CharField(widget=forms.Textarea)
+
+
+# ============================================================
+# CHECKOUT
+# ============================================================
 class CheckoutForm(forms.Form):
     # Contact
     email = forms.EmailField(
@@ -72,3 +86,40 @@ class CheckoutForm(forms.Form):
             "placeholder": "Optional instructions (delivery notes, gate code, etc.)",
         }),
     )
+
+
+# ============================================================
+# PROFILE / AVATAR UPLOAD
+# ============================================================
+class AvatarUploadForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ["avatar", "bio", "phone"]
+        widgets = {
+            "avatar": forms.FileInput(attrs={"accept": "image/*"}),
+            "bio": forms.TextInput(attrs={
+                "placeholder": "One line about you (optional)",
+                "maxlength": 200,
+            }),
+            "phone": forms.TextInput(attrs={
+                "placeholder": "07XX XXX XXX",
+            }),
+        }
+
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get("avatar")
+        if not avatar:
+            return avatar
+
+        # Only validate if it's a new upload (not an existing file)
+        if hasattr(avatar, "size"):
+            if avatar.size > MAX_AVATAR_SIZE:
+                raise forms.ValidationError("Image must be under 2 MB.")
+
+            ext = avatar.name.rsplit(".", 1)[-1].lower() if "." in avatar.name else ""
+            if ext not in ALLOWED_IMAGE_EXT:
+                raise forms.ValidationError(
+                    f"Only {', '.join(e.upper() for e in ALLOWED_IMAGE_EXT)} files are allowed."
+                )
+
+        return avatar

@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14103a">
+<title>Account settings · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
+<link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
+<style>
+  .profile-page { max-width: 640px; margin: 40px auto; padding: 0 20px; }
+  .profile-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+    padding: 40px 32px;
+  }
+  .profile-head {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+  }
+  .profile-big-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, #7b61ff, #ff77b1);
+    display: grid;
+    place-items: center;
+    font-size: 48px;
+    font-weight: 800;
+    color: #fff;
+    overflow: hidden;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 12px 40px rgba(123, 97, 255, 0.35);
+    position: relative;
+    cursor: pointer;
+  }
+  .profile-big-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .profile-big-avatar::after {
+    content: "📷";
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--mint, #5fe3b5);
+    display: grid;
+    place-items: center;
+    font-size: 16px;
+    border: 3px solid #14103a;
+  }
+  .profile-head h1 {
+    font-size: 24px;
+    margin: 0 0 6px;
+    color: #fff;
+  }
+  .profile-head p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    margin: 0;
+  }
+  .profile-field {
+    margin-bottom: 20px;
+  }
+  .profile-field label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.72);
+    margin-bottom: 8px;
+  }
+  .profile-field input[type="text"],
+  .profile-field input[type="tel"] {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    border-radius: 12px;
+    color: #fff;
+    font: inherit;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .profile-field input[type="text"]:focus,
+  .profile-field input[type="tel"]:focus {
+    border-color: var(--violet, #7b61ff);
+    box-shadow: 0 0 0 4px rgba(123, 97, 255, 0.2);
+  }
+  .profile-field small {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  .profile-field input[type="file"] {
+    display: none;
+  }
+  .errorlist {
+    list-style: none;
+    padding: 10px 14px;
+    margin: 8px 0 0;
+    background: rgba(255, 107, 155, 0.1);
+    border: 1px solid rgba(255, 107, 155, 0.4);
+    border-radius: 10px;
+    color: #ff6b9b;
+    font-size: 13px;
+  }
+  .profile-submit {
+    width: 100%;
+    padding: 16px;
+    border: 0;
+    border-radius: 99px;
+    background: linear-gradient(120deg, var(--violet, #7b61ff), var(--pink, #ff77b1));
+    color: #fff;
+    font: 700 15px/1 inherit;
+    cursor: pointer;
+    box-shadow: 0 10px 26px rgba(123, 97, 255, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
+  }
+  .profile-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgba(255, 119, 177, 0.5);
+  }
+  .profile-back {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .profile-back:hover { color: var(--mint, #5fe3b5); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
+    <nav class="links">
+      <a href="{% url 'home' %}">Home</a>
+      <a href="{% url 'shop' %}">Shop</a>
+      <a href="{% url 'cart' %}">Cart</a>
+    </nav>
+  </div>
+</header>
+
+<main class="profile-page">
+
+  {% if messages %}
+    <div class="flash" style="margin-bottom:20px;">
+      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="profile-card">
+
+    <div class="profile-head">
+      <label for="id_avatar" class="profile-big-avatar" style="cursor:pointer;">
+        {% if profile.avatar %}
+          <img src="{{ profile.avatar.url }}" alt="{{ user.username }}">
+        {% else %}
+          {{ user.username|first|upper }}
+        {% endif %}
+      </label>
+      <h1>{{ user.username }}</h1>
+      <p>{{ user.email }}</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="profile-field">
+        <label for="id_avatar">Profile picture</label>
+        <input type="file" name="avatar" id="id_avatar" accept="image/*">
+        {% if form.avatar.errors %}
+          <ul class="errorlist">
+            {% for e in form.avatar.errors %}<li>{{ e }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+        <small>Click the avatar above or choose a file. Square image, max 2 MB.</small>
+      </div>
+
+      <div class="profile-field">
+        <label for="id_bio">Short bio</label>
+        <input type="text" name="bio" id="id_bio" maxlength="200"
+               value="{{ profile.bio }}"
+               placeholder="One line about you (optional)">
+        {% if form.bio.errors %}
+          <ul class="errorlist">
+            {% for e in form.bio.errors %}<li>{{ e }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <div class="profile-field">
+        <label for="id_phone">Phone number</label>
+        <input type="tel" name="phone" id="id_phone"
+               value="{{ profile.phone }}"
+               placeholder="07XX XXX XXX">
+        {% if form.phone.errors %}
+          <ul class="errorlist">
+            {% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="profile-submit">Save changes</button>
+    </form>
+
+    <a href="{% url 'home' %}" class="profile-back">← Back to home</a>
+
+  </div>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,511 @@
+/* ============================================================
+   RECEIPT · printable order receipt
+   Standalone stylesheet — no dependency on styleHome.css
+   ============================================================ */
+
+/* ---------- Reset & base ---------- */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f4f5f7;
+  color: #222;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  padding: 24px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Layout ---------- */
+.receipt-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ---------- Top actions (hidden in print) ---------- */
+.receipt-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.receipt-actions a,
+.receipt-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  border: 2px solid #ddd;
+  background: #fff;
+  color: #14103a;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.receipt-actions a:hover,
+.receipt-actions button:hover {
+  border-color: #7b61ff;
+  color: #7b61ff;
+}
+
+.receipt-actions .btn-primary {
+  background: linear-gradient(120deg, #7b61ff, #ff77b1);
+  color: #fff;
+  border-color: transparent;
+}
+
+.receipt-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(123, 97, 255, 0.4);
+  color: #fff;
+}
+
+.receipt-tip {
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.tip-text {
+  font-size: 13px;
+  color: #888;
+}
+
+/* ---------- Receipt card ---------- */
+.receipt-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ---------- Header ---------- */
+.receipt-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 28px;
+  border-bottom: 2px solid #14103a;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.brand {
+  font-size: 28px;
+  font-weight: 900;
+  color: #14103a;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: #5fe3b5;
+  border-radius: 50%;
+}
+
+.brand-tag {
+  font-size: 13px;
+  color: #888;
+  margin: 0;
+}
+
+.receipt-label {
+  text-align: right;
+}
+
+.receipt-label h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #14103a;
+  margin: 0 0 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.receipt-label small {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ---------- Meta grid ---------- */
+.receipt-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px dashed #ddd;
+  margin-bottom: 24px;
+}
+
+.receipt-meta small {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.receipt-meta strong {
+  font-size: 14px;
+  color: #222;
+  word-break: break-word;
+}
+
+.status-paid {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: rgba(95, 227, 181, 0.2);
+  color: #0e8a63;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-pending {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: rgba(255, 201, 60, 0.2);
+  color: #a67c00;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Billing section ---------- */
+.receipt-billing {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.receipt-billing h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #888;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.receipt-billing p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #444;
+}
+
+.receipt-billing p strong {
+  color: #14103a;
+  font-weight: 700;
+}
+
+/* ---------- Items table ---------- */
+.receipt-items {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+}
+
+.receipt-items thead th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+  font-weight: 700;
+  text-align: left;
+  padding: 12px 8px;
+  border-bottom: 2px solid #14103a;
+}
+
+.receipt-items thead th:last-child,
+.receipt-items tbody td:last-child {
+  text-align: right;
+}
+
+.receipt-items tbody td {
+  padding: 14px 8px;
+  font-size: 14px;
+  border-bottom: 1px solid #eee;
+  color: #444;
+}
+
+.receipt-items tbody td strong {
+  color: #14103a;
+  font-weight: 700;
+}
+
+.receipt-items tbody td small {
+  display: block;
+  color: #888;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.receipt-items tbody td.line-total {
+  font-weight: 700;
+  color: #14103a;
+  white-space: nowrap;
+}
+
+/* ---------- Totals ---------- */
+.receipt-totals {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  margin-left: auto;
+  max-width: 320px;
+}
+
+.receipt-totals li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.receipt-totals li strong {
+  color: #14103a;
+}
+
+.receipt-totals li.discount strong {
+  color: #0e8a63;
+}
+
+.receipt-totals li.total {
+  border-top: 2px solid #14103a;
+  margin-top: 8px;
+  padding-top: 12px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #14103a;
+}
+
+.receipt-totals li.total strong {
+  font-size: 20px;
+}
+
+/* ---------- Payment box ---------- */
+.payment-box {
+  padding: 18px 22px;
+  background: linear-gradient(135deg, rgba(95, 227, 181, 0.08), rgba(123, 97, 255, 0.06));
+  border: 1px solid rgba(95, 227, 181, 0.35);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.payment-box h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #0e8a63;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.payment-box p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #444;
+}
+
+.payment-box p strong {
+  color: #14103a;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* ---------- Pending notice ---------- */
+.receipt-pending {
+  padding: 18px 22px;
+  background: rgba(255, 201, 60, 0.1);
+  border: 1px solid rgba(255, 201, 60, 0.4);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  color: #8a6300;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.pending-link {
+  color: inherit;
+  text-decoration: underline;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* ---------- Footer ---------- */
+.receipt-foot {
+  padding-top: 24px;
+  border-top: 1px dashed #ddd;
+  text-align: center;
+  font-size: 13px;
+  color: #888;
+  line-height: 1.7;
+}
+
+.receipt-foot strong {
+  color: #14103a;
+}
+
+.receipt-thanks {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 560px) {
+  body { padding: 16px; }
+
+  .receipt-card {
+    padding: 24px 20px;
+    border-radius: 12px;
+  }
+
+  .receipt-head {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+  }
+
+  .brand { font-size: 22px; }
+  .brand::before { width: 11px; height: 11px; }
+  .brand-tag { font-size: 12px; }
+
+  .receipt-label h1 { font-size: 18px; }
+  .receipt-label small { font-size: 11px; }
+
+  .receipt-billing {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+
+  .receipt-items thead th { padding: 10px 4px; font-size: 10px; }
+  .receipt-items tbody td { padding: 12px 4px; font-size: 13px; }
+  .receipt-items tbody td small { font-size: 11px; }
+
+  .receipt-totals { max-width: 100%; }
+  .receipt-totals li { font-size: 13px; }
+  .receipt-totals li.total { font-size: 15px; }
+  .receipt-totals li.total strong { font-size: 18px; }
+
+  .receipt-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .receipt-actions a,
+  .receipt-actions button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .receipt-tip { margin-top: 16px; }
+  .tip-text { font-size: 12px; }
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  body {
+    background: #fff;
+    padding: 0;
+    font-size: 12pt;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .receipt-wrap {
+    max-width: 100%;
+  }
+
+  .receipt-card {
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  /* Avoid page breaks inside key blocks */
+  .receipt-head,
+  .receipt-meta,
+  .receipt-billing,
+  .receipt-items,
+  .payment-box,
+  .receipt-foot {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .receipt-items tbody td {
+    padding: 10px 8px;
+  }
+
+  .receipt-items tbody tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Links stay readable */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Ensure colors print on Chrome/Firefox when "background graphics" is enabled */
+  .status-paid,
+  .status-pending,
+  .payment-box,
+  .receipt-pending {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

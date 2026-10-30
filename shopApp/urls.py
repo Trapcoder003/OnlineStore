@@ -42,4 +42,5 @@ urlpatterns = [
     path("manage-orders/<str:order_number>/advance/", views.staff_advance_order, name="staff_advance_order"),
         path("manage-orders/", views.staff_orders_dashboard, name="staff_orders_dashboard"),
     path("orders/<str:number>/receipt/", views.order_receipt, name="order_receipt"),
+    path("account/profile/", views.profile_settings, name="profile_settings"),
 ]

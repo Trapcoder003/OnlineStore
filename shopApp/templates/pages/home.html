@@ -4,7 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard · E-Shop</title>
+<meta name="theme-color" content="#14103a">
+<title>E-Shop · Curated finds, delivered fast</title>
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
@@ -27,9 +28,14 @@
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
 
       <div class="profile-menu" id="profile-menu">
-        <button type="button" class="profile-trigger" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">👤</button>
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+          {% if user.is_authenticated and user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img">
+          {% else %}
+            👤
+          {% endif %}
+        </button>
         <div class="profile-dropdown" role="menu">
-
           {% if user.is_staff %}
             <a href="{% url 'staff_orders_dashboard' %}" role="menuitem">
               <span class="menu-emoji">🛠️</span>
@@ -37,7 +43,6 @@
             </a>
             <div class="menu-divider"></div>
           {% endif %}
-
           <a href="{% url 'order_history' %}" role="menuitem">
             <span class="menu-emoji">📦</span>
             <span>My Orders</span>
@@ -52,9 +57,11 @@
             <span>Wishlist</span>
             {% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}
           </a>
-
+          <a href="{% url 'profile_settings' %}" role="menuitem">
+            <span class="menu-emoji">⚙️</span>
+            <span>Account Settings</span>
+          </a>
           <div class="menu-divider"></div>
-
           <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
             <span class="menu-emoji">🚪</span>
             <span>Sign Out</span>
@@ -67,109 +74,144 @@
 
 <main class="wrap page">
 
-  <section class="dash-head" style="margin-top: 30px; margin-bottom: 50px; justify-content: center; text-align: center;">
-    <div>
-      <h1 style="font-size: clamp(36px, 5vw, 54px); margin-bottom: 16px;">
-        Welcome back{% if user.is_authenticated %}, <span style="color: var(--mint);">{{ user.username }}</span>{% endif %} 👋
-      </h1>
-      <p style="font-size: 18px; max-width: 600px; margin: 0 auto 30px; color: var(--soft);">
-        This is your central hub. Check your stats, explore categories, and discover the latest offers happening across the store.
-      </p>
-      <div class="cta" style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
-        <a class="btn" href="{% url 'shop' %}">Start Shopping →</a>
-        <a class="btn ghost" href="#categories">Browse Categories</a>
+  {% if banners %}
+  <section class="hero" id="hero">
+    <div class="hero-wrap" id="hero-wrap">
+      {% for banner in banners %}
+        <div class="hero-slide {% if forloop.first %}active{% endif %}"
+             style="--bg:{{ banner.background_color }};--accent:{{ banner.accent_color }}">
+          {% if banner.emoji %}<div class="hero-emoji">{{ banner.emoji }}</div>{% endif %}
+          <h1 class="hero-title">{{ banner.title }}</h1>
+          {% if banner.subtitle %}<p class="hero-sub">{{ banner.subtitle }}</p>{% endif %}
+          <a class="btn hero-cta" href="{{ banner.cta_url }}">{{ banner.cta_text }} →</a>
+        </div>
+      {% endfor %}
+
+      {% if banners|length > 1 %}
+        <button class="hero-arrow hero-prev" type="button" aria-label="Previous banner">‹</button>
+        <button class="hero-arrow hero-next" type="button" aria-label="Next banner">›</button>
+        <div class="hero-progress">
+          <div class="hero-progress-bar" id="hero-progress-bar"></div>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if banners|length > 1 %}
+      <div class="hero-dots">
+        {% for banner in banners %}
+          <span class="hero-dot {% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}"></span>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <section class="welcome-editorial">
+    <span class="welcome-pill">Welcome to E-Shop</span>
+    <h1>Curated finds, <em>delivered fast</em>.</h1>
+    <p>
+      Kenya's friendliest online shop. Browse handpicked products, pay securely with M-Pesa,
+      and track every order from checkout to pickup.
+    </p>
+    <div class="welcome-ctas">
+      <a class="btn" href="{% url 'shop' %}">Start shopping →</a>
+      <a class="btn ghost" href="#categories">Browse categories</a>
+    </div>
+    <div class="welcome-stats">
+      <div class="ws-item">
+        <span>🛒</span>
+        <strong>{{ cart_count|default:"0" }}</strong>
+        <small>In cart</small>
+      </div>
+      <div class="ws-item">
+        <span>♡</span>
+        <strong>{{ wishlist_count|default:"0" }}</strong>
+        <small>Wishlist</small>
+      </div>
+      <div class="ws-item">
+        <span>🚚</span>
+        <strong>Fast</strong>
+        <small>Delivery</small>
       </div>
     </div>
   </section>
 
-  <section class="stats-grid">
-    <div class="stat-card stat-cart" style="position: relative;">
-      <div class="stat-icon">🛒</div>
-      <div class="stat-info">
-        <span class="stat-label">Items in Cart</span>
-        <span class="stat-value">{{ cart_count|default:"0" }}</span>
+  <section id="categories" class="section">
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Explore</span>
+        <h2>Shop by category</h2>
       </div>
-      <a href="{% url 'cart' %}" style="position:absolute; inset:0; z-index:10;" aria-label="Go to cart"></a>
+      <a href="{% url 'shop' %}" class="section-link">View all →</a>
     </div>
-
-    <div class="stat-card stat-wish" style="position: relative;">
-      <div class="stat-icon">♡</div>
-      <div class="stat-info">
-        <span class="stat-label">Wishlist</span>
-        <span class="stat-value">{{ wishlist_count|default:"0" }}</span>
-      </div>
-      <a href="{% url 'wishlist' %}" style="position:absolute; inset:0; z-index:10;" aria-label="Go to wishlist"></a>
-    </div>
-
-    <div class="stat-card stat-orders">
-      <div class="stat-icon">📦</div>
-      <div class="stat-info">
-        <span class="stat-label">Total Orders</span>
-        <span class="stat-value">0</span>
-      </div>
-    </div>
-  </section>
-
-  <section id="search" class="search-section">
-    <form class="searchbox" action="{% url 'search' %}" method="get">
-      <input type="search" name="q" placeholder="Search for products, brands, or categories…" aria-label="Search" required>
-      <button class="btn" type="submit">Search</button>
-    </form>
-  </section>
-
-  <section id="categories" class="dash-section">
-    <div class="sec-head">
-      <div><h2>Shop by Category</h2><p>Pick a department to start browsing.</p></div>
-      <a class="link" href="{% url 'shop' %}">View all →</a>
-    </div>
-    <div class="cats">
+    <div class="category-grid">
       {% for c in categories %}
-        <a class="cat" href="{% url 'category' c.slug %}">
-          <span class="e">{{ c.emoji|default:"🛍️" }}</span>
+        <a href="{% url 'category' c.slug %}" class="category-card">
+          <span class="category-emoji">{{ c.emoji|default:"🛍️" }}</span>
           <h3>{{ c.name }}</h3>
+          <span class="category-arrow">→</span>
         </a>
       {% empty %}
-        <p style="color:var(--soft); grid-column: 1/-1; text-align: center;">No categories added yet.</p>
+        <p class="empty-note">No categories yet. Check back soon!</p>
       {% endfor %}
     </div>
   </section>
 
-  <section class="dash-section">
-    <div class="sec-head">
-      <div><h2>Offers & Announcements</h2><p>Check out the latest deals happening on the store.</p></div>
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Find what you need</span>
+        <h2>Search the shop</h2>
+      </div>
     </div>
-    <div class="promos">
-      <article class="promo p1">
-        <span class="big">🔥</span>
-        <h3>Flash sale: up to 30% off</h3>
-        <p>Electronics and fashion favorites, this week only.</p>
-        <a class="btn" href="{% url 'shop' %}">Shop the sale</a>
-      </article>
-      <article class="promo p2">
-        <span class="big">🎁</span>
-        <h3>New here?</h3>
-        <p>Get 10% off your first order.</p>
-        <span class="code">WELCOME10</span>
-      </article>
-      <article class="promo p3">
-        <span class="big">🚚</span>
-        <h3>Free delivery</h3>
-        <p>On all orders over KES 5,000.</p>
-        <a class="btn" href="{% url 'shipping' %}" style="background:transparent; border:2px solid currentColor; box-shadow:none;">Delivery info</a>
-      </article>
+    <div class="search-card">
+      <span class="search-icon">🔍</span>
+      <form action="{% url 'search' %}" method="get" class="search-form">
+        <input type="search" name="q" placeholder="Search products, brands, or categories…" required aria-label="Search">
+        <button type="submit">Search</button>
+      </form>
     </div>
   </section>
 
-  <section class="dash-section">
-    <div class="sec-head">
-      <div><h2>Why shop with us</h2></div>
-      <a class="link" href="{% url 'about' %}">About us →</a>
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <span class="section-eyebrow">Why us</span>
+        <h2>Why shop with E-Shop</h2>
+      </div>
     </div>
-    <div class="trust">
-      <div class="t"><span>🔒</span><h3>Secure payments</h3><p>Tokenized checkout. We never store your card details.</p></div>
-      <div class="t"><span>🚚</span><h3>Fast delivery</h3><p>Track every order from checkout to your door.</p></div>
-      <div class="t"><span>↩️</span><h3>Easy returns</h3><p>Not right? Send it back, no stress.</p></div>
-      <div class="t"><span>💬</span><h3>Real support</h3><p>Friendly help whenever you need it.</p></div>
+    <div class="trust-grid">
+      <div class="trust-card">
+        <span class="trust-icon">🔒</span>
+        <h3>Secure payments</h3>
+        <p>Pay via M-Pesa in seconds. Your details are never stored.</p>
+      </div>
+      <div class="trust-card">
+        <span class="trust-icon">🚚</span>
+        <h3>Fast delivery</h3>
+        <p>Track every order from checkout to your door or pickup station.</p>
+      </div>
+      <div class="trust-card">
+        <span class="trust-icon">↩️</span>
+        <h3>Easy returns</h3>
+        <p>Changed your mind? Send it back within 14 days.</p>
+      </div>
+      <div class="trust-card">
+        <span class="trust-icon">💬</span>
+        <h3>Real support</h3>
+        <p>Questions? Reach us on WhatsApp or email — we reply fast.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="cta-card">
+      <h2>Ready when you are</h2>
+      <p>Browse the full shop and pay with M-Pesa at checkout.</p>
+      <div class="cta-buttons">
+        <a class="btn" href="{% url 'shop' %}">Shop now →</a>
+        <a class="btn ghost" href="{% url 'contact' %}">Contact us</a>
+      </div>
     </div>
   </section>
 
@@ -188,6 +230,91 @@
 </footer>
 
 <div class="toast" id="toast" role="status"></div>
+
 <script src="{% static 'js/profile-menu.js' %}"></script>
+<script>
+(function () {
+  const heroWrap = document.getElementById('hero-wrap');
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots = document.querySelectorAll('.hero-dot');
+  const prevBtn = document.querySelector('.hero-prev');
+  const nextBtn = document.querySelector('.hero-next');
+  const progressBar = document.getElementById('hero-progress-bar');
+
+  if (!slides.length) return;
+  slides[0].classList.add('active');
+  if (slides.length === 1) {
+    if (dots[0]) dots[0].classList.add('active');
+    return;
+  }
+
+  const AUTOPLAY_MS = 5000;
+  let current = 0;
+  let timer = null;
+  let isPaused = false;
+  let touchStartX = 0;
+
+  function restartProgress() {
+    if (!progressBar) return;
+    progressBar.style.animation = 'none';
+    void progressBar.offsetWidth;
+    progressBar.style.animation = '';
+    progressBar.style.animationPlayState = 'running';
+  }
+
+  function scheduleNext() {
+    clearTimeout(timer);
+    if (isPaused) return;
+    timer = setTimeout(() => go(current + 1), AUTOPLAY_MS);
+  }
+
+  function go(idx) {
+    slides[current].classList.remove('active');
+    if (dots[current]) dots[current].classList.remove('active');
+    current = (idx + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    if (dots[current]) dots[current].classList.add('active');
+    restartProgress();
+    scheduleNext();
+  }
+
+  if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); go(current - 1); });
+  if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); go(current + 1); });
+  dots.forEach((dot, i) => dot.addEventListener('click', () => go(i)));
+
+  if (heroWrap) {
+    heroWrap.addEventListener('click', (e) => {
+      if (e.target.closest('a, button')) return;
+      go(current + 1);
+    });
+    heroWrap.addEventListener('mouseenter', () => {
+      isPaused = true;
+      clearTimeout(timer);
+      if (progressBar) progressBar.style.animationPlayState = 'paused';
+    });
+    heroWrap.addEventListener('mouseleave', () => {
+      isPaused = false;
+      restartProgress();
+      scheduleNext();
+    });
+    heroWrap.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    heroWrap.addEventListener('touchend', (e) => {
+      const delta = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(delta) > 50) go(delta > 0 ? current - 1 : current + 1);
+    }, { passive: true });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); go(current - 1); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); }
+  });
+
+  restartProgress();
+  scheduleNext();
+})();
+</script>
+
 </body>
 </html>

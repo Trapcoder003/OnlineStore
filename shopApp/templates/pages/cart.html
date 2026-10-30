@@ -28,9 +28,14 @@
       <a class="icon active" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
 
       <div class="profile-menu" id="profile-menu">
-        <button type="button" class="profile-trigger" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">👤</button>
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+          {% if user.is_authenticated and user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img">
+          {% else %}
+            👤
+          {% endif %}
+        </button>
         <div class="profile-dropdown" role="menu">
-
           {% if user.is_staff %}
             <a href="{% url 'staff_orders_dashboard' %}" role="menuitem">
               <span class="menu-emoji">🛠️</span>
@@ -38,7 +43,6 @@
             </a>
             <div class="menu-divider"></div>
           {% endif %}
-
           <a href="{% url 'order_history' %}" role="menuitem">
             <span class="menu-emoji">📦</span>
             <span>My Orders</span>
@@ -53,9 +57,11 @@
             <span>Wishlist</span>
             {% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}
           </a>
-
+          <a href="{% url 'profile_settings' %}" role="menuitem">
+            <span class="menu-emoji">⚙️</span>
+            <span>Account Settings</span>
+          </a>
           <div class="menu-divider"></div>
-
           <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
             <span class="menu-emoji">🚪</span>
             <span>Sign Out</span>
@@ -81,13 +87,9 @@
 
   {% if cart|length %}
   <div class="layout">
-
-    <!-- ============ ITEMS ============ -->
     <section class="items">
       {% for item in cart %}
       <article class="item" data-id="{{ item.product.id }}" data-price="{{ item.price }}">
-
-        <!-- Left: thumb -->
         <a class="item-thumb" href="{% url 'product' item.product.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
           {% if item.product.image %}
             <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
@@ -96,7 +98,6 @@
           {% endif %}
         </a>
 
-        <!-- Middle: meta + qty -->
         <div class="item-body">
           <div class="item-meta">
             <small class="item-cat">{{ item.product.category.name }}</small>
@@ -123,7 +124,6 @@
           </div>
         </div>
 
-        <!-- Right: remove -->
         <div class="item-remove">
           <input type="checkbox" id="rm{{ item.product.id }}" class="rm-toggle" aria-label="Remove {{ item.product.name }}">
           <label for="rm{{ item.product.id }}" class="rm-btn" title="Remove">✕</label>
@@ -139,7 +139,6 @@
             </div>
           </div>
         </div>
-
       </article>
       {% endfor %}
 
@@ -148,7 +147,6 @@
       </div>
     </section>
 
-    <!-- ============ SUMMARY ============ -->
     <aside class="summary">
       <h2>Order summary</h2>
 
@@ -168,7 +166,6 @@
         <li class="total"><span>Total</span><strong data-total>KES {{ cart.total|money }}</strong></li>
       </ul>
 
-      <!-- Free-shipping progress -->
       <div class="ship-bar" data-ship-bar>
         {% if cart.free_shipping_gap > 0 %}
           <div class="ship-bar-top">
@@ -185,7 +182,6 @@
         {% endif %}
       </div>
 
-      <!-- Coupon -->
       <div class="coupon">
         {% if cart.coupon %}
           <div class="coupon-applied">
@@ -206,7 +202,6 @@
         {% endif %}
       </div>
 
-      <!-- Checkout CTA -->
       <div class="checkout-section">
         <a class="btn checkout" href="{% url 'checkout' %}">
           <span>Proceed to checkout</span>
@@ -345,14 +340,12 @@
     });
   });
 
-  // close remove popovers when clicking elsewhere
   document.addEventListener('click', (e) => {
     document.querySelectorAll('.rm-toggle').forEach(cb => {
       if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false;
     });
   });
 
-  // init shipping bar on load
   setShipBar(
     document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0,
     document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0

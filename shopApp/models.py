@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 import secrets
+import uuid
+from django.db import migrations
 
 
 # ============================================================
@@ -231,3 +233,53 @@ class TrackingHistory(models.Model):
 
     def __str__(self):
         return f"{self.order.order_number} - {self.get_status_display()} at {self.created_at}"
+
+def user_avatar_path(instance, filename):
+    """Store as media/avatars/user_<id>/<uuid>.<ext> — no collisions, safe filenames."""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    return f"avatars/user_{instance.user_id}/{uuid.uuid4().hex}.{ext}"
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name="profile"
+    )
+    avatar = models.ImageField(
+        upload_to=user_avatar_path, blank=True, null=True,
+        help_text="Square image recommended. Max 2 MB.",
+    )
+    bio = models.CharField(
+        max_length=200, blank=True,
+        help_text="Short intro shown nowhere yet — reserved for future.",
+    )
+    phone = models.CharField(max_length=20, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} profile"
+
+    @property
+    def initial(self):
+        return (self.user.username[:1].upper() if self.user.username else "?")
+def create_profiles(apps, schema_editor):
+    User = apps.get_model("auth", "User")
+    UserProfile = apps.get_model("shopApp", "UserProfile")
+    for user in User.objects.all():
+        UserProfile.objects.get_or_create(user=user)
+
+
+def reverse_profiles(apps, schema_editor):
+    # Optional: on rollback, do nothing (profiles deleted with users anyway)
+    pass
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ("shopApp", "00XX_userprofile"),  # ← replace XX with actual number
+    ]
+
+    operations = [
+        migrations.RunPython(create_profiles, reverse_profiles),
+    ]

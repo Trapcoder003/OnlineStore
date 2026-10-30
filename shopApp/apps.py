@@ -8,3 +8,4 @@ class ShopappConfig(AppConfig):
     def ready(self):
         # 🔑 This line loads signals.py when Django starts
         import shopApp.signals  # noqa: F401
+    

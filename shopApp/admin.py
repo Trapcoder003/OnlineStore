@@ -5,6 +5,7 @@ from .models import (
     Category, Product, Wishlist, Review,
     Order, OrderItem, TrackingHistory,
 )
+from .models import UserProfile
 
 
 # ============================================================
@@ -271,3 +272,19 @@ class TrackingHistoryAdmin(admin.ModelAdmin):
             return "—"
         return obj.note[:60] + ("…" if len(obj.note) > 60 else "")
     note_preview.short_description = "Note"
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "avatar_preview", "phone", "updated_at")
+    search_fields = ("user__username", "user__email", "phone")
+    readonly_fields = ("avatar_preview", "created_at", "updated_at")
+
+    def avatar_preview(self, obj):
+        if obj.avatar:
+            from django.utils.html import format_html
+            return format_html(
+                '<img src="{}" style="width:40px;height:40px;'
+                'border-radius:50%;object-fit:cover;" />',
+                obj.avatar.url,
+            )
+        return "—"
+    avatar_preview.short_description = "Avatar"

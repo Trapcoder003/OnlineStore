@@ -7,6 +7,7 @@
 <title>Track {{ order.order_number }} · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 <link rel="stylesheet" href="{% static 'styles/tracking.css' %}">
+<link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
 
@@ -24,8 +25,50 @@
       {% endif %}
     </nav>
     <div class="icons">
-      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count }}</b></a>
-      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b>{{ cart_count }}</b></a>
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
+
+      <div class="profile-menu" id="profile-menu">
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+          {% if user.is_authenticated and user.profile.avatar %}
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img">
+          {% else %}
+            👤
+          {% endif %}
+        </button>
+        <div class="profile-dropdown" role="menu">
+          {% if user.is_staff %}
+            <a href="{% url 'staff_orders_dashboard' %}" role="menuitem">
+              <span class="menu-emoji">🛠️</span>
+              <span>Manage Orders</span>
+            </a>
+            <div class="menu-divider"></div>
+          {% endif %}
+          <a href="{% url 'order_history' %}" role="menuitem">
+            <span class="menu-emoji">📦</span>
+            <span>My Orders</span>
+          </a>
+          <a href="{% url 'cart' %}" role="menuitem">
+            <span class="menu-emoji">🛒</span>
+            <span>My Cart</span>
+            {% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}
+          </a>
+          <a href="{% url 'wishlist' %}" role="menuitem">
+            <span class="menu-emoji">♡</span>
+            <span>Wishlist</span>
+            {% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}
+          </a>
+          <a href="{% url 'profile_settings' %}" role="menuitem">
+            <span class="menu-emoji">⚙️</span>
+            <span>Account Settings</span>
+          </a>
+          <div class="menu-divider"></div>
+          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
+            <span class="menu-emoji">🚪</span>
+            <span>Sign Out</span>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -46,7 +89,6 @@
     </div>
   {% endif %}
 
-  <!-- ============ HERO ============ -->
   <section class="track-hero">
     <div class="track-hero-top">
       <div>
@@ -80,7 +122,6 @@
     </div>
   </section>
 
-  <!-- ============ PIPELINE ============ -->
   {% if order.status == "pending" %}
     <section class="track-notice pending">
       ⏳ Waiting for your payment. <a href="{% url 'order_waiting' order.order_number %}">Resume checkout →</a>
@@ -122,7 +163,6 @@
     </section>
   {% endif %}
 
-  <!-- ============ PICKUP STATION ============ -->
   {% if order.pickup_station_name %}
     <section class="track-pickup">
       <div class="track-pickup-icon">📍</div>
@@ -145,7 +185,6 @@
     </section>
   {% endif %}
 
-  <!-- ============ ORDER SUMMARY ============ -->
   <section class="track-card">
     <h2 class="track-section-title">Items in this order</h2>
     <ul class="track-items">
@@ -180,7 +219,6 @@
     {% endif %}
   </section>
 
-  <!-- ============ ACTIONS ============ -->
   <div class="track-actions">
     <a class="btn" href="{% url 'shop' %}">Continue shopping →</a>
     <a class="btn ghost" href="{% url 'order_detail' order.order_number %}">View full order</a>
@@ -189,7 +227,6 @@
     {% endif %}
   </div>
 
-  <!-- ============ LOOKUP ANOTHER ORDER ============ -->
   <section class="track-lookup">
     <h3>Tracking another order?</h3>
     <form method="get" action="" class="track-lookup-form"
@@ -206,6 +243,8 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
+
+<script src="{% static 'js/profile-menu.js' %}"></script>
 
 </body>
 </html>

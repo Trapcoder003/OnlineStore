@@ -2,6 +2,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth.models import User
+from .models import UserProfile
+
 
 from .models import TrackingHistory, Order
 
@@ -51,3 +54,8 @@ def notify_customer_of_status_change(sender, instance, created, **kwargs):
         print(f"📧 Tracking email sent to {order.email} · status={instance.status}")
     except Exception as e:
         print(f"❌ Tracking email failed for {order.order_number}: {e}")
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Auto-create UserProfile on signup. Never blocks save."""
+    if created:
+        UserProfile.objects.get_or_create(user=instance)

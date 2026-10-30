@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
@@ -13,17 +14,16 @@ from django.utils import timezone
 from django.conf import settings
 import json
 
+
 from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
 from allauth.account.forms import UserTokenForm
 
 from .models import (
     Wishlist, Product, Category, Review,
-    Order, OrderItem, TrackingHistory,
+    Order, OrderItem, TrackingHistory, UserProfile,
 )
 from .cart import Cart
-from .forms import ContactForm, CheckoutForm
-from .mpesa_service import initiate_stk_push
-
+from .forms import ContactForm, CheckoutForm, AvatarUploadForm
 
 # ---------------- MAIN PAGES ----------------
 
@@ -115,7 +115,11 @@ def product_detail(request, slug):
                .filter(category=product.category)
                .exclude(pk=product.pk)
                .order_by("-is_featured", "name")[:4])
-    reviews = product.reviews.all().order_by("-created_at")
+    reviews = (
+    product.reviews
+    .select_related("user", "user__profile")
+    .order_by("-created_at")
+)
     avg_rating = reviews.aggregate(Avg("rating"))["rating__avg"] or 0
     user_review = None
     if request.user.is_authenticated:
@@ -124,6 +128,28 @@ def product_detail(request, slug):
         "product": product, "related": related, "reviews": reviews,
         "rating_avg": round(avg_rating, 1), "rating_count": reviews.count(),
         "user_review": user_review,
+    })
+
+# ---------------- USER PROFILE ----------------
+
+@login_required
+def profile_settings(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = AvatarUploadForm(
+            request.POST, request.FILES, instance=profile
+        )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully.")
+            return redirect("profile_settings")
+    else:
+        form = AvatarUploadForm(instance=profile)
+
+    return render(request, "account/profile_settings.html", {
+        "form": form,
+        "profile": profile,
     })
 
 
@@ -335,7 +361,12 @@ def order_receipt(request, number):
 def order_history(request):
     if not request.user.is_authenticated:
         return redirect("account_login")
-    orders = Order.objects.filter(user=request.user).prefetch_related("items")
+    orders = (
+    Order.objects
+    .filter(user=request.user)
+    .select_related("user", "user__profile")
+    .prefetch_related("items")
+)
     return render(request, "pages/order_history.html", {"orders": orders})
 
 
@@ -407,7 +438,12 @@ def staff_orders_dashboard(request):
             Q(ship_name__icontains=q)
         )
 
-    orders = orders.prefetch_related("items").order_by("-created_at")
+    orders = (
+    orders
+    .select_related("user", "user__profile")
+    .prefetch_related("items")
+    .order_by("-created_at")
+)
 
     paginator = Paginator(orders, 30)
     page = request.GET.get("page", 1)
@@ -709,3 +745,4 @@ def delete_review(request, review_id):
     review.delete()
     messages.success(request, "Your review has been deleted.")
     return redirect("product", slug=slug)
+

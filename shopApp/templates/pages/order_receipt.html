@@ -1,0 +1,169 @@
+{% load static %}
+{% load cart_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt · {{ order.order_number }} · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/receipt.css' %}">
+</head>
+<body>
+
+<div class="receipt-wrap">
+
+  <!-- Actions (hidden when printing) -->
+  <div class="receipt-actions no-print">
+    <a href="{% url 'order_detail' order.order_number %}">← Back to order</a>
+    <button type="button" class="btn-primary" onclick="window.print()">🖨️ Print / Save as PDF</button>
+  </div>
+
+  <!-- The receipt -->
+  <div class="receipt-card">
+
+    <!-- Header -->
+    <div class="receipt-head">
+      <div>
+        <h1 class="brand">E-Shop</h1>
+        <p class="brand-tag">Nairobi, Kenya · support@e-shop.co.ke</p>
+      </div>
+      <div class="receipt-label">
+        <h1>Receipt</h1>
+        <small>{{ order.order_number }}</small>
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div class="receipt-meta">
+      <div>
+        <small>Receipt no.</small>
+        <strong>RCPT-{{ order.order_number }}</strong>
+      </div>
+      <div>
+        <small>Issued</small>
+        <strong>{{ order.created_at|date:"M d, Y" }}</strong>
+      </div>
+      <div>
+        <small>Status</small>
+        {% if order.paid_at %}
+          <span class="status-paid">Paid</span>
+        {% else %}
+          <span class="status-pending">Not yet paid</span>
+        {% endif %}
+      </div>
+      {% if order.mpesa_receipt %}
+      <div>
+        <small>M-Pesa receipt</small>
+        <strong>{{ order.mpesa_receipt }}</strong>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Pending notice -->
+    {% if not order.paid_at %}
+      <div class="receipt-pending">
+        ⏳ This order has not been paid yet. No payment receipt is available.
+        {% if order.status == 'pending' %}
+          <a href="{% url 'order_waiting' order.order_number %}" class="pending-link">Resume payment →</a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Billing info -->
+    <div class="receipt-billing">
+      <div>
+        <h3>Billed to</h3>
+        <p>
+          <strong>{{ order.ship_name }}</strong><br>
+          {{ order.email }}<br>
+          {{ order.phone }}
+        </p>
+      </div>
+      <div>
+        <h3>Deliver to</h3>
+        <p>
+          <strong>{{ order.ship_name }}</strong><br>
+          {{ order.ship_address }}<br>
+          {{ order.ship_town }}, {{ order.ship_county }}<br>
+          📞 {{ order.ship_phone }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <table class="receipt-items">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Unit price</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items.all %}
+          <tr>
+            <td>
+              <strong>{{ item.product_name }}</strong>
+              {% if item.product_slug %}
+                <small>{{ item.product_slug }}</small>
+              {% endif %}
+            </td>
+            <td>{{ item.qty }}</td>
+            <td>KES {{ item.unit_price|floatformat:0 }}</td>
+            <td class="line-total">KES {{ item.line_total|floatformat:0 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <ul class="receipt-totals">
+      <li><span>Subtotal</span><strong>KES {{ order.subtotal|floatformat:0 }}</strong></li>
+      {% if order.discount > 0 %}
+        <li class="discount"><span>Discount</span><strong>− KES {{ order.discount|floatformat:0 }}</strong></li>
+      {% endif %}
+      <li>
+        <span>Delivery ({{ order.get_delivery_method_display }})</span>
+        <strong>{% if order.shipping_fee == 0 %}Free{% else %}KES {{ order.shipping_fee|floatformat:0 }}{% endif %}</strong>
+      </li>
+      <li class="total"><span>Total</span><strong>KES {{ order.total|floatformat:0 }}</strong></li>
+    </ul>
+
+    <!-- Payment -->
+    {% if order.paid_at %}
+      <div class="payment-box">
+        <h3>✅ Payment confirmed</h3>
+        <p>
+          Paid via <strong>M-Pesa</strong>
+          {% if order.mpesa_receipt %}· Receipt <strong>{{ order.mpesa_receipt }}</strong>{% endif %}<br>
+          {% if order.mpesa_phone %}Phone: {{ order.mpesa_phone }}<br>{% endif %}
+          {% if order.paid_at %}Paid at: {{ order.paid_at|date:"M d, Y · H:i" }}{% endif %}
+        </p>
+      </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="receipt-foot">
+      <p class="receipt-thanks">
+        <strong>Thank you for shopping with E-Shop!</strong>
+      </p>
+      <p>
+        This is a computer-generated receipt. No signature required.<br>
+        Questions? Contact <strong>support@e-shop.co.ke</strong> with your order number.
+      </p>
+    </div>
+
+  </div>
+
+  <!-- Print instructions -->
+  <div class="receipt-actions no-print receipt-tip">
+    <span class="tip-text">
+      💡 Tip: Use <strong>Print → Save as PDF</strong> to download a copy.
+    </span>
+  </div>
+
+</div>
+
+</body>
+</html>
