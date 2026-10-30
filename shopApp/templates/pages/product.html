@@ -25,46 +25,22 @@
     <div class="icons">
       <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
-
       <div class="profile-menu" id="profile-menu">
-        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" style="padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
           {% if user.is_authenticated and user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img">
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img" style="width: 36px; height: 36px; min-width: 36px; min-height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); display: block;">
           {% else %}
-            👤
+            <span style="font-size: 20px;">👤</span>
           {% endif %}
         </button>
         <div class="profile-dropdown" role="menu">
-          {% if user.is_staff %}
-            <a href="{% url 'staff_orders_dashboard' %}" role="menuitem">
-              <span class="menu-emoji">🛠️</span>
-              <span>Manage Orders</span>
-            </a>
-            <div class="menu-divider"></div>
-          {% endif %}
-          <a href="{% url 'order_history' %}" role="menuitem">
-            <span class="menu-emoji">📦</span>
-            <span>My Orders</span>
-          </a>
-          <a href="{% url 'cart' %}" role="menuitem">
-            <span class="menu-emoji">🛒</span>
-            <span>My Cart</span>
-            {% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}
-          </a>
-          <a href="{% url 'wishlist' %}" role="menuitem">
-            <span class="menu-emoji">♡</span>
-            <span>Wishlist</span>
-            {% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}
-          </a>
-          <a href="{% url 'profile_settings' %}" role="menuitem">
-            <span class="menu-emoji">⚙️</span>
-            <span>Account Settings</span>
-          </a>
+          {% if user.is_staff %}<a href="{% url 'staff_orders_dashboard' %}" role="menuitem"><span class="menu-emoji">🛠️</span><span>Manage Orders</span></a><div class="menu-divider"></div>{% endif %}
+          <a href="{% url 'order_history' %}" role="menuitem"><span class="menu-emoji">📦</span><span>My Orders</span></a>
+          <a href="{% url 'cart' %}" role="menuitem"><span class="menu-emoji">🛒</span><span>My Cart</span>{% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}</a>
+          <a href="{% url 'wishlist' %}" role="menuitem"><span class="menu-emoji">♡</span><span>Wishlist</span>{% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}</a>
+          <a href="{% url 'profile_settings' %}" role="menuitem"><span class="menu-emoji">⚙️</span><span>Account Settings</span></a>
           <div class="menu-divider"></div>
-          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
-            <span class="menu-emoji">🚪</span>
-            <span>Sign Out</span>
-          </a>
+          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem"><span class="menu-emoji">🚪</span><span>Sign Out</span></a>
         </div>
       </div>
     </div>
@@ -72,81 +48,48 @@
 </header>
 
 <main class="wrap page">
-
   <nav class="crumbs" aria-label="Breadcrumb">
-    <a href="{% url 'home' %}">Home</a>
-    <span aria-hidden="true">›</span>
-    <a href="{% url 'shop' %}">Shop</a>
-    <span aria-hidden="true">›</span>
-    <a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a>
-    <span aria-hidden="true">›</span>
+    <a href="{% url 'home' %}">Home</a><span aria-hidden="true">›</span>
+    <a href="{% url 'shop' %}">Shop</a><span aria-hidden="true">›</span>
+    <a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a><span aria-hidden="true">›</span>
     <span aria-current="page">{{ product.name }}</span>
   </nav>
 
-  {% if messages %}
-    <div class="flash">
-      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
-    </div>
-  {% endif %}
+  {% if messages %}<div class="flash">{% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
 
   <div class="product-layout">
     <section class="gallery">
       <div class="main-img">
         <div class="g-img" style="--c1:#7b61ff;--c2:#ff77b1">
-          {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.name }}" fetchpriority="high" decoding="async">
-          {% else %}
-            <span>🛍️</span>
-          {% endif %}
+          {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" fetchpriority="high" decoding="async">{% else %}<span>🛍️</span>{% endif %}
         </div>
-
-        {% if product.stock == 0 %}
-          <em class="badge low">Out of stock</em>
-        {% elif product.stock < 5 %}
-          <em class="badge low">Only {{ product.stock }} left</em>
-        {% elif product.old_price and product.old_price > product.price %}
-          <em class="badge">Sale</em>
-        {% endif %}
+        {% if product.stock == 0 %}<em class="badge low">Out of stock</em>
+        {% elif product.stock < 5 %}<em class="badge low">Only {{ product.stock }} left</em>
+        {% elif product.old_price and product.old_price > product.price %}<em class="badge">Sale</em>{% endif %}
       </div>
     </section>
 
     <section class="info">
-      <p class="cat-line">
-        <a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a>
-        {% if product.brand %}<span>· {{ product.brand }}</span>{% endif %}
-      </p>
-
+      <p class="cat-line"><a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a>{% if product.brand %}<span>· {{ product.brand }}</span>{% endif %}</p>
       <h1>{{ product.name }}</h1>
-
       <div class="rating">
         <span class="stars" aria-label="Rating {{ rating_avg }} out of 5">
-          {% if rating_avg >= 1 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 2 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 3 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 4 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 5 %}★{% else %}☆{% endif %}
+          {% if rating_avg >= 1 %}★{% else %}☆{% endif %}{% if rating_avg >= 2 %}★{% else %}☆{% endif %}{% if rating_avg >= 3 %}★{% else %}☆{% endif %}{% if rating_avg >= 4 %}★{% else %}☆{% endif %}{% if rating_avg >= 5 %}★{% else %}☆{% endif %}
         </span>
-        <span class="rating-num">{{ rating_avg }}</span>
-        <a href="#reviews" class="rating-count">({{ rating_count }} reviews)</a>
+        <span class="rating-num">{{ rating_avg }}</span><a href="#reviews" class="rating-count">({{ rating_count }} reviews)</a>
       </div>
 
       <div class="price-block">
         <strong class="price">KES {{ product.price|floatformat:0 }}</strong>
-        {% if product.old_price and product.old_price > product.price %}
-          <s class="old">KES {{ product.old_price|floatformat:0 }}</s>
-          <em class="save">Save KES {{ product.old_price|subtract:product.price|floatformat:0 }}</em>
-        {% endif %}
+        {% if product.old_price and product.old_price > product.price %}<s class="old">KES {{ product.old_price|floatformat:0 }}</s><em class="save">Save KES {{ product.old_price|subtract:product.price|floatformat:0 }}</em>{% endif %}
       </div>
 
-      <p class="short-desc">
-        {{ product.description|default:"No description available for this product yet."|truncatewords:30 }}
-      </p>
+      <p class="short-desc">{{ product.description|default:"No description available for this product yet."|truncatewords:30 }}</p>
 
       <div class="buy-container">
         {% if product.stock > 0 %}
           <form class="add-form" method="post" action="{% url 'cart_add' product.id %}" data-name="{{ product.name }}">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.path }}">
+            {% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}">
             <div class="cart-action-pill">
               <div class="qty-picker" data-max="{{ product.stock }}">
                 <button type="button" class="step" data-action="dec" aria-label="Decrease quantity">−</button>
@@ -156,123 +99,59 @@
               <button class="btn add-btn" type="submit">Add to cart</button>
             </div>
           </form>
-        {% else %}
-          <button class="btn add-btn disabled" type="button" disabled>Out of stock</button>
-        {% endif %}
-
-        <button type="button"
-                class="btn ghost wishlist-btn {% if product.id in wishlist_product_ids %}active{% endif %}"
-                data-id="{{ product.id }}"
-                aria-pressed="{% if product.id in wishlist_product_ids %}true{% else %}false{% endif %}"
-                aria-label="Toggle wishlist">
-          {% if product.id in wishlist_product_ids %}♥{% else %}♡{% endif %}
-        </button>
+        {% else %}<button class="btn add-btn disabled" type="button" disabled>Out of stock</button>{% endif %}
+        <button type="button" class="btn ghost wishlist-btn {% if product.id in wishlist_product_ids %}active{% endif %}" data-id="{{ product.id }}" aria-pressed="{% if product.id in wishlist_product_ids %}true{% else %}false{% endif %}" aria-label="Toggle wishlist">{% if product.id in wishlist_product_ids %}♥{% else %}♡{% endif %}</button>
       </div>
-
-      <ul class="trust-mini">
-        <li><span>🔒</span> Secure checkout</li>
-        <li><span>🚚</span> Fast delivery</li>
-        <li><span>↩️</span> 14-day returns</li>
-      </ul>
+      <ul class="trust-mini"><li><span>🔒</span> Secure checkout</li><li><span>🚚</span> Fast delivery</li><li><span>↩️</span> 14-day returns</li></ul>
     </section>
   </div>
 
-  <!-- DESCRIPTION SECTION -->
   <section class="product-description">
     <h2>Product Description</h2>
     <div class="desc-card">
-      <p>
-        {{ product.description|default:"No detailed description available for this product yet."|linebreaksbr }}
-      </p>
+      <p>{{ product.description|default:"No detailed description available for this product yet."|linebreaksbr }}</p>
       <div class="desc-details">
-        <div>
-          <small>Brand</small>
-          <strong>{{ product.brand|default:"Generic" }}</strong>
-        </div>
-        <div>
-          <small>SKU</small>
-          <strong>ESHOP-{{ product.id }}</strong>
-        </div>
-        <div>
-          <small>Availability</small>
-          <strong class="{% if product.stock > 0 %}text-mint{% else %}text-danger{% endif %}">
-            {% if product.stock > 0 %}In Stock ({{ product.stock }}){% else %}Out of Stock{% endif %}
-          </strong>
-        </div>
+        <div><small>Brand</small><strong>{{ product.brand|default:"Generic" }}</strong></div>
+        <div><small>SKU</small><strong>ESHOP-{{ product.id }}</strong></div>
+        <div><small>Availability</small><strong class="{% if product.stock > 0 %}text-mint{% else %}text-danger{% endif %}">{% if product.stock > 0 %}In Stock ({{ product.stock }}){% else %}Out of Stock{% endif %}</strong></div>
       </div>
     </div>
   </section>
 
-  <!-- ============ REVIEWS SECTION ============ -->
   <section class="product-reviews" id="reviews">
     <h2>Customer Reviews</h2>
-
     <div class="rev-summary">
-      <div class="rev-score">
-        <span class="rev-big">{{ rating_avg }}</span>
-        <span class="rev-max">out of 5</span>
-      </div>
+      <div class="rev-score"><span class="rev-big">{{ rating_avg }}</span><span class="rev-max">out of 5</span></div>
       <div class="rev-details">
-        <div class="stars big">
-          {% if rating_avg >= 1 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 2 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 3 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 4 %}★{% else %}☆{% endif %}
-          {% if rating_avg >= 5 %}★{% else %}☆{% endif %}
-        </div>
+        <div class="stars big">{% if rating_avg >= 1 %}★{% else %}☆{% endif %}{% if rating_avg >= 2 %}★{% else %}☆{% endif %}{% if rating_avg >= 3 %}★{% else %}☆{% endif %}{% if rating_avg >= 4 %}★{% else %}☆{% endif %}{% if rating_avg >= 5 %}★{% else %}☆{% endif %}</div>
         <p>Based on {{ rating_count }} verified review{{ rating_count|pluralize }}</p>
       </div>
     </div>
 
     <div class="review-form-box">
       <h4>{% if user_review %}Update your review{% else %}Share your experience{% endif %}</h4>
-
       {% if user.is_authenticated %}
         <form method="post" action="{% url 'add_review' product.slug %}" enctype="multipart/form-data">
           {% csrf_token %}
-
           <div class="form-group">
             <label>Your Rating</label>
             <div class="star-rating">
-              <input type="radio" id="star5" name="rating" value="5" {% if user_review.rating == 5 %}checked{% endif %} required />
-              <label for="star5" title="Excellent">★</label>
-
-              <input type="radio" id="star4" name="rating" value="4" {% if user_review.rating == 4 %}checked{% endif %} />
-              <label for="star4" title="Good">★</label>
-
-              <input type="radio" id="star3" name="rating" value="3" {% if user_review.rating == 3 %}checked{% endif %} />
-              <label for="star3" title="Average">★</label>
-
-              <input type="radio" id="star2" name="rating" value="2" {% if user_review.rating == 2 %}checked{% endif %} />
-              <label for="star2" title="Poor">★</label>
-
-              <input type="radio" id="star1" name="rating" value="1" {% if user_review.rating == 1 %}checked{% endif %} />
-              <label for="star1" title="Terrible">★</label>
+              <input type="radio" id="star5" name="rating" value="5" {% if user_review.rating == 5 %}checked{% endif %} required /><label for="star5">★</label>
+              <input type="radio" id="star4" name="rating" value="4" {% if user_review.rating == 4 %}checked{% endif %} /><label for="star4">★</label>
+              <input type="radio" id="star3" name="rating" value="3" {% if user_review.rating == 3 %}checked{% endif %} /><label for="star3">★</label>
+              <input type="radio" id="star2" name="rating" value="2" {% if user_review.rating == 2 %}checked{% endif %} /><label for="star2">★</label>
+              <input type="radio" id="star1" name="rating" value="1" {% if user_review.rating == 1 %}checked{% endif %} /><label for="star1">★</label>
             </div>
           </div>
-
-          <div class="form-group">
-            <label for="comment-area">Your Review</label>
-            <textarea name="comment" id="comment-area" rows="5" placeholder="What did you like or dislike? How was the quality?" required>{{ user_review.comment|default:'' }}</textarea>
-          </div>
-
+          <div class="form-group"><label for="comment-area">Your Review</label><textarea name="comment" id="comment-area" rows="5" placeholder="What did you like or dislike? How was the quality?" required>{{ user_review.comment|default:'' }}</textarea></div>
           <div class="upload-row">
-            <div class="upload-box">
-              <label for="image-upload" class="upload-label" data-kind="image">📷 Add Image</label>
-              <input type="file" name="image" id="image-upload" accept="image/*" class="file-input">
-            </div>
-            <div class="upload-box">
-              <label for="video-upload" class="upload-label" data-kind="video">🎥 Add Video</label>
-              <input type="file" name="video" id="video-upload" accept="video/*" class="file-input">
-            </div>
+            <div class="upload-box"><label for="image-upload" class="upload-label" data-kind="image">📷 Add Image</label><input type="file" name="image" id="image-upload" accept="image/*" class="file-input"></div>
+            <div class="upload-box"><label for="video-upload" class="upload-label" data-kind="video">🎥 Add Video</label><input type="file" name="video" id="video-upload" accept="video/*" class="file-input"></div>
           </div>
-
           <button class="btn" type="submit">Submit Review</button>
         </form>
       {% else %}
-        <div class="login-prompt">
-          <p>Please <a href="{% url 'account_login' %}">log in</a> to share your thoughts on this product.</p>
-        </div>
+        <div class="login-prompt"><p>Please <a href="{% url 'account_login' %}">log in</a> to share your thoughts on this product.</p></div>
       {% endif %}
     </div>
 
@@ -282,87 +161,42 @@
         <header>
           <div class="reviewer-info">
             <div class="avatar-sm">
-              {% if review.user.profile.avatar %}
-                <img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.username }}" class="avatar-sm-img">
-              {% else %}
-                {{ review.user.username|first|upper }}
-              {% endif %}
+              {% if review.user.profile.avatar %}<img src="{{ review.user.profile.avatar.url }}" alt="{{ review.user.username }}" class="avatar-sm-img" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">{% else %}{{ review.user.username|first|upper }}{% endif %}
             </div>
-            <div>
-              <strong>{{ review.user.username }}</strong>
-              <time>{{ review.created_at|date:"M d, Y" }}</time>
-            </div>
+            <div><strong>{{ review.user.username }}</strong><time>{{ review.created_at|date:"M d, Y" }}</time></div>
           </div>
-
           <div class="review-actions">
-            <div class="stars">
-              {% if review.rating >= 1 %}★{% else %}☆{% endif %}
-              {% if review.rating >= 2 %}★{% else %}☆{% endif %}
-              {% if review.rating >= 3 %}★{% else %}☆{% endif %}
-              {% if review.rating >= 4 %}★{% else %}☆{% endif %}
-              {% if review.rating >= 5 %}★{% else %}☆{% endif %}
-            </div>
-
+            <div class="stars">{% if review.rating >= 1 %}★{% else %}☆{% endif %}{% if review.rating >= 2 %}★{% else %}☆{% endif %}{% if review.rating >= 3 %}★{% else %}☆{% endif %}{% if review.rating >= 4 %}★{% else %}☆{% endif %}{% if review.rating >= 5 %}★{% else %}☆{% endif %}</div>
             {% if review.user == request.user %}
-            <form method="post" action="{% url 'delete_review' review.id %}" style="display:inline;">
-              {% csrf_token %}
-              <button type="submit" class="delete-btn" title="Delete review" onclick="return confirm('Are you sure you want to delete your review?')">🗑️</button>
-            </form>
+            <form method="post" action="{% url 'delete_review' review.id %}" style="display:inline;">{% csrf_token %}<button type="submit" class="delete-btn" title="Delete review" onclick="return confirm('Are you sure you want to delete your review?')">🗑️</button></form>
             {% endif %}
           </div>
         </header>
-
         <p class="review-body">{{ review.comment }}</p>
-
         {% if review.image or review.video %}
         <div class="review-media">
-          {% if review.image %}
-            <img src="{{ review.image.url }}" alt="Review Image by {{ review.user.username }}" class="review-img" onclick="event.stopPropagation(); window.open(this.src, '_blank')">
-          {% endif %}
-          {% if review.video %}
-            <video src="{{ review.video.url }}" controls preload="metadata" class="review-vid"></video>
-          {% endif %}
+          {% if review.image %}<img src="{{ review.image.url }}" alt="Review Image" class="review-img" onclick="event.stopPropagation(); window.open(this.src, '_blank')">{% endif %}
+          {% if review.video %}<video src="{{ review.video.url }}" controls preload="metadata" class="review-vid"></video>{% endif %}
         </div>
         {% endif %}
-
       </article>
       {% empty %}
-        <div class="empty-reviews">
-          <span>💬</span>
-          <p>No reviews yet. Be the first to share your experience!</p>
-        </div>
+        <div class="empty-reviews"><span>💬</span><p>No reviews yet. Be the first to share your experience!</p></div>
       {% endfor %}
     </div>
   </section>
 
-  <!-- ============ RELATED PRODUCTS — redesigned ============ -->
   {% if related %}
   <section class="related">
-    <div class="sec-head">
-      <div>
-        <h2>You might also like</h2>
-        <p>More from {{ product.category.name }}</p>
-      </div>
-      <a class="link" href="{% url 'category' product.category.slug %}">View category →</a>
-    </div>
-
+    <div class="sec-head"><div><h2>You might also like</h2><p>More from {{ product.category.name }}</p></div><a class="link" href="{% url 'category' product.category.slug %}">View category →</a></div>
     <div class="related-grid">
       {% for p in related %}
       <article class="related-card">
-        <a class="related-thumb" href="{% url 'product' p.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
-          {% if p.image %}
-            <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
-          {% else %}
-            <span>🛍️</span>
-          {% endif %}
-        </a>
-
+        <a class="related-thumb" href="{% url 'product' p.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% else %}<span>🛍️</span>{% endif %}</a>
         <div class="related-info">
           <small class="related-cat">{{ p.category.name }}</small>
           <h3 class="related-name"><a href="{% url 'product' p.slug %}">{{ p.name }}</a></h3>
-          <div class="related-price">
-            <strong>KES {{ p.price|floatformat:0 }}</strong>
-          </div>
+          <div class="related-price"><strong>KES {{ p.price|floatformat:0 }}</strong></div>
           <a class="related-btn" href="{% url 'product' p.slug %}">View product</a>
         </div>
       </article>
@@ -370,7 +204,6 @@
     </div>
   </section>
   {% endif %}
-
 </main>
 
 <footer class="foot">
@@ -383,140 +216,53 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
   'use strict';
-
-  function getCookie(name) {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? decodeURIComponent(m.pop()) : '';
-  }
-
-  function csrfToken() {
-    const el = document.querySelector('input[name=csrfmiddlewaretoken]');
-    return (el && el.value) || getCookie('csrftoken') || '';
-  }
-
-  /* ---------- Add to cart (AJAX) ---------- */
+  function getCookie(name) { const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return m ? decodeURIComponent(m.pop()) : ''; }
+  function csrfToken() { const el = document.querySelector('input[name=csrfmiddlewaretoken]'); return (el && el.value) || getCookie('csrftoken') || ''; }
   document.addEventListener('submit', async (e) => {
-    const form = e.target;
-    if (!form.classList || !form.classList.contains('add-form')) return;
-    e.preventDefault();
-
-    const btn = form.querySelector('button[type=submit]');
-    if (!btn || btn.disabled) return;
-
-    const original = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Adding…';
-
+    const form = e.target; if (!form.classList || !form.classList.contains('add-form')) return; e.preventDefault();
+    const btn = form.querySelector('button[type=submit]'); if (!btn || btn.disabled) return;
+    const original = btn.textContent; btn.disabled = true; btn.textContent = 'Adding…';
     try {
-      const res = await fetch(form.action, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' },
-        body: new FormData(form)
-      });
+      const res = await fetch(form.action, { method: 'POST', headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' }, body: new FormData(form) });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-
       const json = await res.json();
-      document.querySelectorAll('[data-cart-count]').forEach(el => {
-        el.textContent = json.cart_count;
-        el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-      });
-
-      const t = document.getElementById('toast');
-      t.textContent = (form.dataset.name || 'Item') + ' added to cart';
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2200);
-
-      btn.textContent = '✓ Added';
-      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
-    } catch (err) {
-      console.error('Add to cart failed:', err);
-      form.submit();
-    }
+      document.querySelectorAll('[data-cart-count]').forEach(el => { el.textContent = json.cart_count; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
+      const t = document.getElementById('toast'); t.textContent = (form.dataset.name || 'Item') + ' added to cart'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200);
+      btn.textContent = '✓ Added'; setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
+    } catch (err) { console.error('Add to cart failed:', err); form.submit(); }
   });
-
-  /* ---------- Quantity picker ---------- */
   document.querySelectorAll('.qty-picker').forEach(picker => {
-    const input = picker.querySelector('input[name=qty]');
-    const max = parseInt(picker.dataset.max || input.max || 9999, 10);
-    picker.querySelectorAll('.step').forEach(btn => {
-      btn.addEventListener('click', () => {
-        let v = parseInt(input.value, 10) || 1;
-        if (btn.dataset.action === 'inc') v = Math.min(max, v + 1);
-        else v = Math.max(1, v - 1);
-        input.value = v;
-      });
-    });
-    input.addEventListener('change', () => {
-      let v = parseInt(input.value, 10) || 1;
-      v = Math.max(1, Math.min(max, v));
-      input.value = v;
-    });
+    const input = picker.querySelector('input[name=qty]'); const max = parseInt(picker.dataset.max || input.max || 9999, 10);
+    picker.querySelectorAll('.step').forEach(btn => { btn.addEventListener('click', () => { let v = parseInt(input.value, 10) || 1; if (btn.dataset.action === 'inc') v = Math.min(max, v + 1); else v = Math.max(1, v - 1); input.value = v; }); });
+    input.addEventListener('change', () => { let v = parseInt(input.value, 10) || 1; v = Math.max(1, Math.min(max, v)); input.value = v; });
   });
-
-  /* ---------- Wishlist toggle ---------- */
   const wishlistBtn = document.querySelector('.wishlist-btn');
   if (wishlistBtn) {
     wishlistBtn.addEventListener('click', async function() {
-      const productId = this.dataset.id;
       try {
-        const res = await fetch(`/wishlist/toggle/${productId}/`, {
-          method: 'POST',
-          headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        if (res.status === 401) {
-          window.location.href = "{% url 'account_login' %}?next=" + window.location.pathname;
-          return;
-        }
-        const json = await res.json();
-
-        this.innerHTML = json.in_wishlist ? '♥' : '♡';
-        this.classList.toggle('active', json.in_wishlist);
-        this.setAttribute('aria-pressed', json.in_wishlist ? 'true' : 'false');
-
-        document.querySelectorAll('[data-wishlist-count]').forEach(el => {
-          el.textContent = json.count;
-          el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-        });
-      } catch (err) {
-        console.error(err);
-      }
+        const res = await fetch(`/wishlist/toggle/${this.dataset.id}/`, { method: 'POST', headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' } });
+        if (res.status === 401) { window.location.href = "{% url 'account_login' %}?next=" + window.location.pathname; return; }
+        const json = await res.json(); this.innerHTML = json.in_wishlist ? '♥' : '♡'; this.classList.toggle('active', json.in_wishlist); this.setAttribute('aria-pressed', json.in_wishlist ? 'true' : 'false');
+        document.querySelectorAll('[data-wishlist-count]').forEach(el => { el.textContent = json.count; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
+      } catch (err) { console.error(err); }
     });
   }
-
-  /* ---------- Upload label feedback ---------- */
   document.querySelectorAll('.file-input').forEach(input => {
     input.addEventListener('change', () => {
-      const label = document.querySelector(`label[for="${input.id}"]`);
-      if (!label) return;
-
-      const prev = label.parentElement.querySelector('.file-preview');
-      if (prev) prev.remove();
-
+      const label = document.querySelector(`label[for="${input.id}"]`); if (!label) return;
+      const prev = label.parentElement.querySelector('.file-preview'); if (prev) prev.remove();
       if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const kb = (file.size / 1024).toFixed(0);
-        label.classList.add('has-file');
-        label.textContent = (input.name === 'image' ? '✅ ' : '✅ ') + file.name;
-
-        const preview = document.createElement('div');
-        preview.className = 'file-preview';
-        preview.textContent = `${kb} KB`;
-        label.parentElement.appendChild(preview);
-      } else {
-        label.classList.remove('has-file');
-        label.textContent = input.name === 'image' ? '📷 Add Image' : '🎥 Add Video';
-      }
+        const file = input.files[0]; const kb = (file.size / 1024).toFixed(0); label.classList.add('has-file'); label.textContent = (input.name === 'image' ? '✅ ' : '✅ ') + file.name;
+        const preview = document.createElement('div'); preview.className = 'file-preview'; preview.textContent = `${kb} KB`; label.parentElement.appendChild(preview);
+      } else { label.classList.remove('has-file'); label.textContent = input.name === 'image' ? '📷 Add Image' : '🎥 Add Video'; }
     });
   });
 })();
 </script>
-
 </body>
 </html>

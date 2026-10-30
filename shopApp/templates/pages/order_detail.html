@@ -18,51 +18,27 @@
     <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
     <label class="burger" for="nav-toggle"><span></span><span></span></label>
     <nav class="links">
-      <a href="{% url 'home' %}">Home</a>
-      <a href="{% url 'shop' %}">Shop</a>
-      <a href="{% url 'cart' %}">Cart</a>
+      <a href="{% url 'home' %}">Home</a><a href="{% url 'shop' %}">Shop</a><a href="{% url 'cart' %}">Cart</a>
     </nav>
     <div class="icons">
       <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count }}</b></a>
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b>{{ cart_count }}</b></a>
-
       <div class="profile-menu" id="profile-menu">
-        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" style="padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
           {% if user.is_authenticated and user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img">
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img" style="width: 36px; height: 36px; min-width: 36px; min-height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); display: block;">
           {% else %}
-            👤
+            <span style="font-size: 20px;">👤</span>
           {% endif %}
         </button>
         <div class="profile-dropdown" role="menu">
-          {% if user.is_staff %}
-            <a href="{% url 'staff_orders_dashboard' %}" role="menuitem">
-              <span class="menu-emoji">🛠️</span>
-              <span>Manage Orders</span>
-            </a>
-            <div class="menu-divider"></div>
-          {% endif %}
-          <a href="{% url 'order_history' %}" role="menuitem">
-            <span class="menu-emoji">📦</span>
-            <span>My Orders</span>
-          </a>
-          <a href="{% url 'cart' %}" role="menuitem">
-            <span class="menu-emoji">🛒</span>
-            <span>My Cart</span>
-          </a>
-          <a href="{% url 'wishlist' %}" role="menuitem">
-            <span class="menu-emoji">♡</span>
-            <span>Wishlist</span>
-          </a>
-          <a href="{% url 'profile_settings' %}" role="menuitem">
-            <span class="menu-emoji">⚙️</span>
-            <span>Account Settings</span>
-          </a>
+          {% if user.is_staff %}<a href="{% url 'staff_orders_dashboard' %}" role="menuitem"><span class="menu-emoji">🛠️</span><span>Manage Orders</span></a><div class="menu-divider"></div>{% endif %}
+          <a href="{% url 'order_history' %}" role="menuitem"><span class="menu-emoji">📦</span><span>My Orders</span></a>
+          <a href="{% url 'cart' %}" role="menuitem"><span class="menu-emoji">🛒</span><span>My Cart</span></a>
+          <a href="{% url 'wishlist' %}" role="menuitem"><span class="menu-emoji">♡</span><span>Wishlist</span></a>
+          <a href="{% url 'profile_settings' %}" role="menuitem"><span class="menu-emoji">⚙️</span><span>Account Settings</span></a>
           <div class="menu-divider"></div>
-          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
-            <span class="menu-emoji">🚪</span>
-            <span>Sign Out</span>
-          </a>
+          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem"><span class="menu-emoji">🚪</span><span>Sign Out</span></a>
         </div>
       </div>
     </div>
@@ -70,95 +46,36 @@
 </header>
 
 <main class="wrap page">
-
-  {% if messages %}
-    <div class="flash">
-      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
-    </div>
-  {% endif %}
+  {% if messages %}<div class="flash">{% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
 
   {% if order.status == 'paid' %}
     <section class="order-hero paid">
-      {% if user.is_authenticated and user.profile.avatar %}
-        <div class="order-user-avatar">
-          <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
-        </div>
-      {% else %}
-        <div class="order-hero-icon">🎉</div>
-      {% endif %}
-      <h1>Payment received!</h1>
-      <p>Thank you, {{ order.ship_name }}. Your order is confirmed.</p>
-      <a class="btn hero-track-btn" href="{% url 'track_order' order.order_number %}">
-        📍 Track this order
-      </a>
+      {% if user.is_authenticated and user.profile.avatar %}<div class="order-user-avatar"><img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" style="width:100%; height:100%; object-fit:cover;"></div>{% else %}<div class="order-hero-icon">🎉</div>{% endif %}
+      <h1>Payment received!</h1><p>Thank you, {{ order.ship_name }}. Your order is confirmed.</p>
+      <a class="btn hero-track-btn" href="{% url 'track_order' order.order_number %}">📍 Track this order</a>
     </section>
   {% elif order.status == 'pending' %}
-    <section class="order-hero pending">
-      <div class="order-hero-icon">⏳</div>
-      <h1>Order placed</h1>
-      <p>We're waiting for your M-Pesa payment to complete.</p>
-      <a class="btn ghost hero-track-btn" href="{% url 'track_order' order.order_number %}">
-        📍 View tracking
-      </a>
-    </section>
+    <section class="order-hero pending"><div class="order-hero-icon">⏳</div><h1>Order placed</h1><p>We're waiting for your M-Pesa payment to complete.</p><a class="btn ghost hero-track-btn" href="{% url 'track_order' order.order_number %}">📍 View tracking</a></section>
   {% elif order.status == 'failed' %}
-    <section class="order-hero failed">
-      <div class="order-hero-icon">❌</div>
-      <h1>Payment failed</h1>
-      <p>Your payment didn't go through. Please try again.</p>
-    </section>
+    <section class="order-hero failed"><div class="order-hero-icon">❌</div><h1>Payment failed</h1><p>Your payment didn't go through. Please try again.</p></section>
   {% else %}
-    <section class="order-hero {{ order.status }}">
-      <div class="order-hero-icon">📦</div>
-      <h1>Order {{ order.get_status_display }}</h1>
-      <a class="btn hero-track-btn" href="{% url 'track_order' order.order_number %}">
-        📍 Track this order
-      </a>
-    </section>
+    <section class="order-hero {{ order.status }}"><div class="order-hero-icon">📦</div><h1>Order {{ order.get_status_display }}</h1><a class="btn hero-track-btn" href="{% url 'track_order' order.order_number %}">📍 Track this order</a></section>
   {% endif %}
 
   <div class="order-detail-card">
-
     <div class="order-meta-head">
-      <div>
-        <small>Order number</small>
-        <strong>{{ order.order_number }}</strong>
-      </div>
-      <div>
-        <small>Date</small>
-        <strong>{{ order.created_at|date:"M d, Y · H:i" }}</strong>
-      </div>
-      <div>
-        <small>Status</small>
-        <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
-      </div>
-      {% if order.mpesa_receipt %}
-      <div>
-        <small>M-Pesa receipt</small>
-        <strong>{{ order.mpesa_receipt }}</strong>
-      </div>
-      {% endif %}
+      <div><small>Order number</small><strong>{{ order.order_number }}</strong></div>
+      <div><small>Date</small><strong>{{ order.created_at|date:"M d, Y · H:i" }}</strong></div>
+      <div><small>Status</small><span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span></div>
+      {% if order.mpesa_receipt %}<div><small>M-Pesa receipt</small><strong>{{ order.mpesa_receipt }}</strong></div>{% endif %}
     </div>
 
     <h2 class="order-section-title">Items ({{ order.item_count }})</h2>
     <ul class="order-items">
       {% for item in order.items.all %}
         <li class="order-item">
-          <div class="order-item-thumb">
-            {% if item.product_image_url %}
-              <img src="{{ item.product_image_url }}" alt="{{ item.product_name }}">
-            {% else %}
-              <span>🛍️</span>
-            {% endif %}
-          </div>
-          <div class="order-item-info">
-            {% if item.product_slug %}
-              <a href="{% url 'product' item.product_slug %}"><strong>{{ item.product_name }}</strong></a>
-            {% else %}
-              <strong>{{ item.product_name }}</strong>
-            {% endif %}
-            <small>KES {{ item.unit_price|floatformat:0 }} × {{ item.qty }}</small>
-          </div>
+          <div class="order-item-thumb">{% if item.product_image_url %}<img src="{{ item.product_image_url }}" alt="{{ item.product_name }}">{% else %}<span>🛍️</span>{% endif %}</div>
+          <div class="order-item-info">{% if item.product_slug %}<a href="{% url 'product' item.product_slug %}"><strong>{{ item.product_name }}</strong></a>{% else %}<strong>{{ item.product_name }}</strong>{% endif %}<small>KES {{ item.unit_price|floatformat:0 }} × {{ item.qty }}</small></div>
           <span class="order-item-line">KES {{ item.line_total|money }}</span>
         </li>
       {% endfor %}
@@ -166,51 +83,29 @@
 
     <ul class="order-totals">
       <li><span>Subtotal</span><strong>KES {{ order.subtotal|money }}</strong></li>
-      {% if order.discount > 0 %}
-        <li class="discount"><span>Discount</span><strong>− KES {{ order.discount|money }}</strong></li>
-      {% endif %}
-      <li><span>Delivery ({{ order.get_delivery_method_display }})</span>
-        <strong>{% if order.shipping_fee == 0 %}Free{% else %}KES {{ order.shipping_fee|money }}{% endif %}</strong>
-      </li>
+      {% if order.discount > 0 %}<li class="discount"><span>Discount</span><strong>− KES {{ order.discount|money }}</strong></li>{% endif %}
+      <li><span>Delivery ({{ order.get_delivery_method_display }})</span><strong>{% if order.shipping_fee == 0 %}Free{% else %}KES {{ order.shipping_fee|money }}{% endif %}</strong></li>
       <li class="total"><span>Total</span><strong>KES {{ order.total|money }}</strong></li>
     </ul>
 
     <div class="order-ship">
       <h2 class="order-section-title">Delivery address</h2>
-      <p>
-        <strong>{{ order.ship_name }}</strong><br>
-        {{ order.ship_address }}<br>
-        {{ order.ship_town }}, {{ order.ship_county }}<br>
-        📞 {{ order.ship_phone }}
-      </p>
+      <p><strong>{{ order.ship_name }}</strong><br>{{ order.ship_address }}<br>{{ order.ship_town }}, {{ order.ship_county }}<br>📞 {{ order.ship_phone }}</p>
     </div>
-
-    {% if order.notes %}
-      <div class="order-notes">
-        <h2 class="order-section-title">Notes</h2>
-        <p>{{ order.notes|linebreaksbr }}</p>
-      </div>
-    {% endif %}
-
+    {% if order.notes %}<div class="order-notes"><h2 class="order-section-title">Notes</h2><p>{{ order.notes|linebreaksbr }}</p></div>{% endif %}
   </div>
 
   <div class="order-actions">
     <a class="btn" href="{% url 'track_order' order.order_number %}">📍 Track this order</a>
+    <a class="btn ghost" href="{% url 'order_receipt' order.order_number %}">🧾 Receipt</a>
     <a class="btn ghost" href="{% url 'shop' %}">Continue shopping →</a>
-    {% if user.is_authenticated %}
-      <a class="btn ghost" href="{% url 'order_history' %}">My orders</a>
-    {% endif %}
+    {% if user.is_authenticated %}<a class="btn ghost" href="{% url 'order_history' %}">My orders</a>{% endif %}
   </div>
-
 </main>
 
 <footer>
-  <div class="wrap">
-    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
-  </div>
+  <div class="wrap"><div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div></div>
 </footer>
-
 <script src="{% static 'js/profile-menu.js' %}"></script>
-
 </body>
 </html>

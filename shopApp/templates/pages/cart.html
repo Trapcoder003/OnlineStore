@@ -28,44 +28,24 @@
       <a class="icon active" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
 
       <div class="profile-menu" id="profile-menu">
-        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false">
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" style="padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
           {% if user.is_authenticated and user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img">
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img" style="width: 36px; height: 36px; min-width: 36px; min-height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); display: block;">
           {% else %}
-            👤
+            <span style="font-size: 20px;">👤</span>
           {% endif %}
         </button>
         <div class="profile-dropdown" role="menu">
           {% if user.is_staff %}
-            <a href="{% url 'staff_orders_dashboard' %}" role="menuitem">
-              <span class="menu-emoji">🛠️</span>
-              <span>Manage Orders</span>
-            </a>
+            <a href="{% url 'staff_orders_dashboard' %}" role="menuitem"><span class="menu-emoji">🛠️</span><span>Manage Orders</span></a>
             <div class="menu-divider"></div>
           {% endif %}
-          <a href="{% url 'order_history' %}" role="menuitem">
-            <span class="menu-emoji">📦</span>
-            <span>My Orders</span>
-          </a>
-          <a href="{% url 'cart' %}" role="menuitem">
-            <span class="menu-emoji">🛒</span>
-            <span>My Cart</span>
-            {% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}
-          </a>
-          <a href="{% url 'wishlist' %}" role="menuitem">
-            <span class="menu-emoji">♡</span>
-            <span>Wishlist</span>
-            {% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}
-          </a>
-          <a href="{% url 'profile_settings' %}" role="menuitem">
-            <span class="menu-emoji">⚙️</span>
-            <span>Account Settings</span>
-          </a>
+          <a href="{% url 'order_history' %}" role="menuitem"><span class="menu-emoji">📦</span><span>My Orders</span></a>
+          <a href="{% url 'cart' %}" role="menuitem"><span class="menu-emoji">🛒</span><span>My Cart</span>{% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}</a>
+          <a href="{% url 'wishlist' %}" role="menuitem"><span class="menu-emoji">♡</span><span>Wishlist</span>{% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}</a>
+          <a href="{% url 'profile_settings' %}" role="menuitem"><span class="menu-emoji">⚙️</span><span>Account Settings</span></a>
           <div class="menu-divider"></div>
-          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem">
-            <span class="menu-emoji">🚪</span>
-            <span>Sign Out</span>
-          </a>
+          <a href="{% url 'account_logout' %}" class="menu-logout" role="menuitem"><span class="menu-emoji">🚪</span><span>Sign Out</span></a>
         </div>
       </div>
     </div>
@@ -73,17 +53,8 @@
 </header>
 
 <main class="wrap page">
-
-  {% if messages %}
-    <div class="flash">
-      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
-    </div>
-  {% endif %}
-
-  <section class="head">
-    <h1>Your cart</h1>
-    <p>{% if cart|length %}{{ cart|length }} item{{ cart|length|pluralize }} · ready when you are.{% else %}Nothing here yet.{% endif %}</p>
-  </section>
+  {% if messages %}<div class="flash">{% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+  <section class="head"><h1>Your cart</h1><p>{% if cart|length %}{{ cart|length }} item{{ cart|length|pluralize }} · ready when you are.{% else %}Nothing here yet.{% endif %}</p></section>
 
   {% if cart|length %}
   <div class="layout">
@@ -91,93 +62,59 @@
       {% for item in cart %}
       <article class="item" data-id="{{ item.product.id }}" data-price="{{ item.price }}">
         <a class="item-thumb" href="{% url 'product' item.product.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
-          {% if item.product.image %}
-            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
-          {% else %}
-            <span>🛍️</span>
-          {% endif %}
+          {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">{% else %}<span>🛍️</span>{% endif %}
         </a>
-
         <div class="item-body">
           <div class="item-meta">
             <small class="item-cat">{{ item.product.category.name }}</small>
             <h3 class="item-name"><a href="{% url 'product' item.product.slug %}">{{ item.product.name }}</a></h3>
             {% if item.product.brand %}<p class="item-brand">{{ item.product.brand }}</p>{% endif %}
-            <p class="item-stock">
-              {% if item.product.stock == 0 %}<em class="out">Out of stock</em>
-              {% elif item.product.stock < 5 %}<em class="low">Only {{ item.product.stock }} left</em>
-              {% else %}<em class="ok">In stock</em>{% endif %}
-            </p>
+            <p class="item-stock">{% if item.product.stock == 0 %}<em class="out">Out of stock</em>{% elif item.product.stock < 5 %}<em class="low">Only {{ item.product.stock }} left</em>{% else %}<em class="ok">In stock</em>{% endif %}</p>
           </div>
-
           <div class="item-controls">
             <div class="qty" role="group" aria-label="Quantity">
               <button type="button" class="step" data-action="dec" aria-label="Decrease">−</button>
               <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.product.stock }}" inputmode="numeric" aria-label="Quantity">
               <button type="button" class="step" data-action="inc" aria-label="Increase">+</button>
             </div>
-
-            <div class="item-price">
-              <strong data-line>KES {{ item.subtotal|money }}</strong>
-              <small>KES {{ item.price|floatformat:2 }} each</small>
-            </div>
+            <div class="item-price"><strong data-line>KES {{ item.subtotal|money }}</strong><small>KES {{ item.price|floatformat:2 }} each</small></div>
           </div>
         </div>
-
         <div class="item-remove">
           <input type="checkbox" id="rm{{ item.product.id }}" class="rm-toggle" aria-label="Remove {{ item.product.name }}">
           <label for="rm{{ item.product.id }}" class="rm-btn" title="Remove">✕</label>
-
           <div class="rm-popover" role="dialog" aria-label="Confirm removal">
             <p>Remove this item?</p>
             <div class="rm-actions">
-              <form method="post" action="{% url 'cart_remove' item.product.id %}">
-                {% csrf_token %}
-                <button class="btn tiny danger" type="submit">Remove</button>
-              </form>
+              <form method="post" action="{% url 'cart_remove' item.product.id %}">{% csrf_token %}<button class="btn tiny danger" type="submit">Remove</button></form>
               <label for="rm{{ item.product.id }}" class="btn tiny ghost">Cancel</label>
             </div>
           </div>
         </div>
       </article>
       {% endfor %}
-
-      <div class="items-actions">
-        <a class="btn ghost" href="{% url 'shop' %}">← Continue shopping</a>
-      </div>
+      <div class="items-actions"><a class="btn ghost" href="{% url 'shop' %}">← Continue shopping</a></div>
     </section>
 
     <aside class="summary">
       <h2>Order summary</h2>
-
       <ul class="lines">
         <li><span>Subtotal</span><strong data-subtotal>KES {{ cart.subtotal|money }}</strong></li>
-
         {% if cart.coupon %}
-          <li class="discount">
-            <span>Coupon <b>{{ cart.coupon.code }}</b></span>
-            <strong data-discount>− KES {{ cart.discount|money }}</strong>
-          </li>
+          <li class="discount"><span>Coupon <b>{{ cart.coupon.code }}</b></span><strong data-discount>− KES {{ cart.discount|money }}</strong></li>
         {% else %}
           <li class="hidden" data-discount-row><span>Discount</span><strong data-discount>− KES 0.00</strong></li>
         {% endif %}
-
         <li><span>Shipping</span><strong data-shipping>{% if cart.shipping == 0 %}Free{% else %}KES {{ cart.shipping|money }}{% endif %}</strong></li>
         <li class="total"><span>Total</span><strong data-total>KES {{ cart.total|money }}</strong></li>
       </ul>
 
       <div class="ship-bar" data-ship-bar>
         {% if cart.free_shipping_gap > 0 %}
-          <div class="ship-bar-top">
-            <span data-ship-msg>Add <b>KES {{ cart.free_shipping_gap|money }}</b> more for free shipping</span>
-            <span class="ship-pct" data-ship-pct>0%</span>
-          </div>
+          <div class="ship-bar-top"><span data-ship-msg>Add <b>KES {{ cart.free_shipping_gap|money }}</b> more for free shipping</span><span class="ship-pct" data-ship-pct>0%</span></div>
           <div class="ship-track"><i data-ship-fill style="width:0%"></i></div>
         {% else %}
-          <div class="ship-bar-top">
-            <span>🎉 Free shipping unlocked</span>
-            <span class="ship-pct">100%</span>
-          </div>
+          <div class="ship-bar-top"><span>🎉 Free shipping unlocked</span><span class="ship-pct">100%</span></div>
           <div class="ship-track"><i style="width:100%"></i></div>
         {% endif %}
       </div>
@@ -186,10 +123,7 @@
         {% if cart.coupon %}
           <div class="coupon-applied">
             <span>🏷️ <b>{{ cart.coupon.code }}</b> · {{ cart.coupon.percent }}% off</span>
-            <form method="post" action="{% url 'cart_remove_coupon' %}">
-              {% csrf_token %}
-              <button class="link-btn" type="submit">Remove</button>
-            </form>
+            <form method="post" action="{% url 'cart_remove_coupon' %}">{% csrf_token %}<button class="link-btn" type="submit">Remove</button></form>
           </div>
         {% else %}
           <input type="checkbox" id="cp-toggle" class="cp-toggle">
@@ -203,28 +137,19 @@
       </div>
 
       <div class="checkout-section">
-        <a class="btn checkout" href="{% url 'checkout' %}">
-          <span>Proceed to checkout</span>
-          <span class="checkout-arrow">→</span>
-        </a>
+        <a class="btn checkout" href="{% url 'checkout' %}"><span>Proceed to checkout</span><span class="checkout-arrow">→</span></a>
         <p class="secure">🔒 Secure payment via M-Pesa on the next step.</p>
       </div>
-
     </aside>
   </div>
-
   {% else %}
   <div class="empty">
     <span aria-hidden="true">🛒</span>
     <h2>Your cart is empty</h2>
     <p>Browse the shop and add something you like.</p>
-    <div class="empty-actions">
-      <a class="btn" href="{% url 'shop' %}">Browse the shop →</a>
-      <a class="btn ghost" href="{% url 'home' %}">Back to home</a>
-    </div>
+    <div class="empty-actions"><a class="btn" href="{% url 'shop' %}">Browse the shop →</a><a class="btn ghost" href="{% url 'home' %}">Back to home</a></div>
   </div>
   {% endif %}
-
 </main>
 
 <footer class="foot">
@@ -238,121 +163,42 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
-
 <div class="toast" id="toast" role="status"></div>
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
   'use strict';
-
-  function getCookie(name) {
-    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return m ? decodeURIComponent(m.pop()) : '';
-  }
-  const csrf = getCookie('csrftoken')
-            || (document.querySelector('input[name=csrfmiddlewaretoken]') || {}).value
-            || '';
-
-  const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', {
-    minimumFractionDigits: 2, maximumFractionDigits: 2
-  });
-
+  function getCookie(name) { const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return m ? decodeURIComponent(m.pop()) : ''; }
+  const csrf = getCookie('csrftoken') || (document.querySelector('input[name=csrfmiddlewaretoken]') || {}).value || '';
+  const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   function setShipBar(subtotal, discount) {
-    const bar = document.querySelector('[data-ship-bar]');
-    if (!bar) return;
-    const after = Number(subtotal) - Number(discount);
-    const pct = Math.max(0, Math.min(100, (after / 5000) * 100));
-    const fill = bar.querySelector('[data-ship-fill]');
-    const pctEl = bar.querySelector('[data-ship-pct]');
-    const msg = bar.querySelector('[data-ship-msg]');
-
-    if (fill) fill.style.width = pct + '%';
-    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
-    if (msg) {
-      if (after >= 5000) {
-        bar.classList.add('unlocked');
-        msg.innerHTML = '🎉 Free shipping unlocked';
-        if (pctEl) pctEl.textContent = '100%';
-        if (fill) fill.style.width = '100%';
-      } else {
-        msg.innerHTML = 'Add <b>' + fmt(5000 - after) + '</b> more for free shipping';
-      }
-    }
+    const bar = document.querySelector('[data-ship-bar]'); if (!bar) return;
+    const after = Number(subtotal) - Number(discount); const pct = Math.max(0, Math.min(100, (after / 5000) * 100));
+    const fill = bar.querySelector('[data-ship-fill]'), pctEl = bar.querySelector('[data-ship-pct]'), msg = bar.querySelector('[data-ship-msg]');
+    if (fill) fill.style.width = pct + '%'; if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+    if (msg) { if (after >= 5000) { bar.classList.add('unlocked'); msg.innerHTML = '🎉 Free shipping unlocked'; if (pctEl) pctEl.textContent = '100%'; if (fill) fill.style.width = '100%'; } else { msg.innerHTML = 'Add <b>' + fmt(5000 - after) + '</b> more for free shipping'; } }
   }
-
   function updateTotals(json) {
     document.querySelectorAll('[data-subtotal]').forEach(el => el.textContent = fmt(json.subtotal));
     document.querySelectorAll('[data-discount]').forEach(el => el.textContent = '− ' + fmt(json.discount));
-    document.querySelectorAll('[data-shipping]').forEach(el =>
-      el.textContent = Number(json.shipping) === 0 ? 'Free' : fmt(json.shipping));
+    document.querySelectorAll('[data-shipping]').forEach(el => el.textContent = Number(json.shipping) === 0 ? 'Free' : fmt(json.shipping));
     document.querySelectorAll('[data-total]').forEach(el => el.textContent = fmt(json.total));
-
-    document.querySelectorAll('[data-cart-count]').forEach(el => {
-      el.textContent = json.cart_count;
-      el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
-    });
-
+    document.querySelectorAll('[data-cart-count]').forEach(el => { el.textContent = json.cart_count; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
     setShipBar(json.subtotal, json.discount);
   }
-
   async function postUpdate(id, qty) {
-    const res = await fetch('/cart/update/' + id + '/', {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrf,
-        'X-Requested-With': 'XMLHttpRequest',
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: 'qty=' + encodeURIComponent(qty)
-    });
-    if (!res.ok) return;
-    const json = await res.json();
-    updateTotals(json);
-
-    const item = document.querySelector('.item[data-id="' + id + '"]');
-    if (item) {
-      const price = parseFloat(item.dataset.price);
-      const line = item.querySelector('[data-line]');
-      if (line) line.textContent = fmt(price * qty);
-    }
+    const res = await fetch('/cart/update/' + id + '/', { method: 'POST', headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'qty=' + encodeURIComponent(qty) });
+    if (!res.ok) return; const json = await res.json(); updateTotals(json);
+    const item = document.querySelector('.item[data-id="' + id + '"]'); if (item) { const price = parseFloat(item.dataset.price); const line = item.querySelector('[data-line]'); if (line) line.textContent = fmt(price * qty); }
   }
-
   document.querySelectorAll('.item').forEach(item => {
-    const id = item.dataset.id;
-    const input = item.querySelector('input[name=qty]');
-    const max = parseInt(input.max, 10) || 9999;
-
-    item.querySelectorAll('.step').forEach(btn => {
-      btn.addEventListener('click', () => {
-        let v = parseInt(input.value, 10) || 1;
-        if (btn.dataset.action === 'inc') v = Math.min(max, v + 1);
-        if (btn.dataset.action === 'dec') v = Math.max(1, v - 1);
-        input.value = v;
-        postUpdate(id, v);
-      });
-    });
-
-    input.addEventListener('change', () => {
-      let v = parseInt(input.value, 10) || 1;
-      v = Math.max(1, Math.min(max, v));
-      input.value = v;
-      postUpdate(id, v);
-    });
+    const id = item.dataset.id; const input = item.querySelector('input[name=qty]'); const max = parseInt(input.max, 10) || 9999;
+    item.querySelectorAll('.step').forEach(btn => { btn.addEventListener('click', () => { let v = parseInt(input.value, 10) || 1; if (btn.dataset.action === 'inc') v = Math.min(max, v + 1); if (btn.dataset.action === 'dec') v = Math.max(1, v - 1); input.value = v; postUpdate(id, v); }); });
+    input.addEventListener('change', () => { let v = parseInt(input.value, 10) || 1; v = Math.max(1, Math.min(max, v)); input.value = v; postUpdate(id, v); });
   });
-
-  document.addEventListener('click', (e) => {
-    document.querySelectorAll('.rm-toggle').forEach(cb => {
-      if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false;
-    });
-  });
-
-  setShipBar(
-    document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0,
-    document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0
-  );
-
+  document.addEventListener('click', (e) => { document.querySelectorAll('.rm-toggle').forEach(cb => { if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false; }); });
+  setShipBar(document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0, document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0);
 })();
 </script>
-
 </body>
 </html>
