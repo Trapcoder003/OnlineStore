@@ -28,11 +28,11 @@
       <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
 
       <div class="profile-menu" id="profile-menu">
-        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" style="padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" style="padding:0;border:none;background:transparent;display:flex;align-items:center;justify-content:center;width:44px;height:44px;">
           {% if user.is_authenticated and user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img" style="width: 36px; height: 36px; min-width: 36px; min-height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); display: block;">
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img" style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2);display:block;">
           {% else %}
-            <span style="font-size: 20px;">👤</span>
+            <span style="font-size:20px;">👤</span>
           {% endif %}
         </button>
         <div class="profile-dropdown" role="menu">
@@ -53,6 +53,7 @@
 </header>
 
 <main class="wrap page">
+
   {% if banners %}
   <section class="hero" id="hero">
     <div class="hero-wrap" id="hero-wrap">
@@ -137,6 +138,7 @@
       <div class="cta-buttons"><a class="btn" href="{% url 'shop' %}">Shop now →</a><a class="btn ghost" href="{% url 'contact' %}">Contact us</a></div>
     </div>
   </section>
+
 </main>
 
 <footer>
@@ -150,6 +152,7 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
+
 <div class="toast" id="toast" role="status"></div>
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
@@ -174,5 +177,6 @@
   restartProgress(); scheduleNext();
 })();
 </script>
+
 </body>
 </html>
