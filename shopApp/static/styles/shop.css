@@ -156,22 +156,28 @@ footer { margin-top: 60px; padding: 40px 0 24px; border-top: 1px solid var(--lin
 
 /* ============================================================
    2-BY-2 PRODUCT GRID ON MOBILE / SMALL TABLET
-   (placed at end of file so it overrides the base .grid/.thumb rules)
+   Placed at very end of file + highest specificity + !important
+   so absolutely nothing can override it
    ============================================================ */
 @media (max-width: 768px) {
+  .shop-layout .grid,
+  .products-area .grid,
   .grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px;
+    gap: 12px !important;
   }
+
+  .shop-layout .grid .card,
+  .products-area .grid .card { width: auto !important; min-width: 0 !important; }
 
   .thumb { height: 130px !important; }
   .thumb span { font-size: 44px; }
 
-  .info { padding: 10px; }
+  .info { padding: 10px !important; }
   .info small { font-size: 10px; }
   .info h3 { font-size: 13px; margin: 2px 0 6px; line-height: 1.3; }
 
-  .price { margin-bottom: 10px; }
+  .price { margin-bottom: 10px !important; }
   .price strong { font-size: 14px; }
   .price s { font-size: 11px; }
 
