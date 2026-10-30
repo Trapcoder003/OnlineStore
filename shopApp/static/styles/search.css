@@ -182,3 +182,49 @@ footer{margin-top:60px;padding:46px 0 24px;border-top:1px solid var(--line);back
   transition: none !important;
   scroll-behavior: auto !important;
 }
+/* ============================================================
+   MOBILE: FORCE 2 COLUMNS FOR SEARCH GRID
+   ============================================================ */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .card .thumb {
+    height: 150px !important;
+  }
+
+  .card .info {
+    padding: 12px !important;
+    gap: 6px !important;
+  }
+
+  .card .info h3 {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card .price strong {
+    font-size: 15px !important;
+  }
+
+  .card .price s {
+    font-size: 11px !important;
+  }
+
+  .card .actions {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .card .actions .btn {
+    width: 100% !important;
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+  }
+}

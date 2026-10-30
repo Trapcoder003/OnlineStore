@@ -504,3 +504,35 @@ footer, footer.foot { margin-top: 60px; padding: 40px 0 24px; border-top: 1px so
   .upload-row { flex-direction: column; }
   .fgrid { grid-template-columns: 1fr; text-align: center; }
 }
+/* ============================================================
+   MOBILE: FORCE 2 COLUMNS FOR RELATED PRODUCTS
+   ============================================================ */
+@media (max-width: 768px) {
+  .related-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .related-thumb {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  .related-info {
+    padding: 12px !important;
+    gap: 6px !important;
+  }
+
+  .related-name {
+    font-size: 13px !important;
+    min-height: 2.6em; /* Keeps cards aligned */
+  }
+
+  .related-price strong {
+    font-size: 15px !important;
+  }
+
+  .related-btn {
+    padding: 8px !important;
+    font-size: 12px !important;
+  }
+}

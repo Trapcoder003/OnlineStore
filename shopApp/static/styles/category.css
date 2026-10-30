@@ -272,3 +272,51 @@ footer { margin-top: 60px; padding: 46px 0 24px; border-top: 1px solid var(--lin
 .fgrid p { color: var(--soft); font-size: 14px; margin: 10px 0 0; max-width: 30ch; }
 .copy { margin-top: 30px; padding-top: 18px; border-top: 1px solid var(--line); text-align: center; color: var(--soft); font-size: 14px; }
 @media(max-width:760px) { .fgrid { grid-template-columns: 1fr 1fr; } }
+/* ============================================================
+   MOBILE: FORCE 2 COLUMNS FOR PRODUCT GRIDS
+   ============================================================ */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  .card .thumb {
+    height: 150px !important; /* Prevents tall images from stretching the card */
+  }
+
+  .card .info {
+    padding: 12px !important;
+    gap: 6px !important;
+  }
+
+  .card .info h3 {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    /* Limit to 2 lines so long names don't break the layout */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card .price strong {
+    font-size: 15px !important;
+  }
+
+  .card .price s {
+    font-size: 11px !important;
+  }
+
+  /* Stack the buttons vertically so they fit in the narrow card */
+  .card .actions {
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+
+  .card .actions .btn {
+    width: 100% !important;
+    padding: 10px 8px !important;
+    font-size: 12px !important;
+  }
+}
