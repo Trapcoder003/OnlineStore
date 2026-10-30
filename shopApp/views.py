@@ -24,6 +24,7 @@ from .models import (
 )
 from .cart import Cart
 from .forms import ContactForm, CheckoutForm, AvatarUploadForm
+from .mpesa_service import initiate_stk_push
 
 # ---------------- MAIN PAGES ----------------
 
