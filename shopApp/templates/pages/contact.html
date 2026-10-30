@@ -8,6 +8,12 @@
 <link rel="stylesheet" href="{% static 'styles/contactStyle.css' %}">
 </head>
 <body>
+
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
 <header class="top">
   <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
   <nav><a href="{% url 'home' %}">Home</a><a href="{% url 'faq' %}">FAQ</a><a class="on" href="{% url 'contact' %}">Contact</a></nav>
@@ -54,6 +60,7 @@
   f.querySelectorAll('.bad input, .bad textarea').forEach(el =>
     el.addEventListener('input', () => el.closest('.field').classList.remove('bad')));
 </script>
+<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>
  

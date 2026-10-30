@@ -10,6 +10,12 @@
 </head>
 <body>
 
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
+
 <div class="receipt-wrap">
 
   <!-- Actions (hidden when printing) -->
@@ -165,5 +171,6 @@
 
 </div>
 
+<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>

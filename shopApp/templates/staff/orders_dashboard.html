@@ -12,6 +12,12 @@
 </head>
 <body>
 
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
+
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
   <div class="wrap">
@@ -61,11 +67,7 @@
     </div>
   </section>
 
-  {% if messages %}
-    <div class="flash">
-      {% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}
-    </div>
-  {% endif %}
+  
 
   <section class="staff-stats">
     <a href="?status=pending" class="staff-stat {% if status_filter == 'pending' %}active{% endif %}">
@@ -261,5 +263,6 @@
 
 <script src="{% static 'js/profile-menu.js' %}"></script>
 
+<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>

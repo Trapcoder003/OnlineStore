@@ -10,6 +10,12 @@
 </head>
 <body>
 
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
+
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
@@ -155,5 +161,6 @@
 })();
 </script>
 
+<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>

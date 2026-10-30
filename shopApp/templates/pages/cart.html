@@ -11,6 +11,11 @@
 </head>
 <body>
 
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
   <div class="wrap">
@@ -53,8 +58,11 @@
 </header>
 
 <main class="wrap page">
-  {% if messages %}<div class="flash">{% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
-  <section class="head"><h1>Your cart</h1><p>{% if cart|length %}{{ cart|length }} item{{ cart|length|pluralize }} · ready when you are.{% else %}Nothing here yet.{% endif %}</p></section>
+
+  <section class="head">
+    <h1>Your cart</h1>
+    <p>{% if cart|length %}{{ cart|length }} item{{ cart|length|pluralize }} · ready when you are.{% else %}Nothing here yet.{% endif %}</p>
+  </section>
 
   {% if cart|length %}
   <div class="layout">
@@ -163,14 +171,19 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
-<div class="toast" id="toast" role="status"></div>
+
+<script src="{% static 'js/toast.js' %}"></script>
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
   'use strict';
-  function getCookie(name) { const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return m ? decodeURIComponent(m.pop()) : ''; }
+  function getCookie(name) {
+    const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return m ? decodeURIComponent(m.pop()) : '';
+  }
   const csrf = getCookie('csrftoken') || (document.querySelector('input[name=csrfmiddlewaretoken]') || {}).value || '';
   const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   function setShipBar(subtotal, discount) {
     const bar = document.querySelector('[data-ship-bar]'); if (!bar) return;
     const after = Number(subtotal) - Number(discount); const pct = Math.max(0, Math.min(100, (after / 5000) * 100));
@@ -178,6 +191,7 @@
     if (fill) fill.style.width = pct + '%'; if (pctEl) pctEl.textContent = Math.round(pct) + '%';
     if (msg) { if (after >= 5000) { bar.classList.add('unlocked'); msg.innerHTML = '🎉 Free shipping unlocked'; if (pctEl) pctEl.textContent = '100%'; if (fill) fill.style.width = '100%'; } else { msg.innerHTML = 'Add <b>' + fmt(5000 - after) + '</b> more for free shipping'; } }
   }
+
   function updateTotals(json) {
     document.querySelectorAll('[data-subtotal]').forEach(el => el.textContent = fmt(json.subtotal));
     document.querySelectorAll('[data-discount]').forEach(el => el.textContent = '− ' + fmt(json.discount));
@@ -186,16 +200,19 @@
     document.querySelectorAll('[data-cart-count]').forEach(el => { el.textContent = json.cart_count; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
     setShipBar(json.subtotal, json.discount);
   }
+
   async function postUpdate(id, qty) {
     const res = await fetch('/cart/update/' + id + '/', { method: 'POST', headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'qty=' + encodeURIComponent(qty) });
     if (!res.ok) return; const json = await res.json(); updateTotals(json);
     const item = document.querySelector('.item[data-id="' + id + '"]'); if (item) { const price = parseFloat(item.dataset.price); const line = item.querySelector('[data-line]'); if (line) line.textContent = fmt(price * qty); }
   }
+
   document.querySelectorAll('.item').forEach(item => {
     const id = item.dataset.id; const input = item.querySelector('input[name=qty]'); const max = parseInt(input.max, 10) || 9999;
     item.querySelectorAll('.step').forEach(btn => { btn.addEventListener('click', () => { let v = parseInt(input.value, 10) || 1; if (btn.dataset.action === 'inc') v = Math.min(max, v + 1); if (btn.dataset.action === 'dec') v = Math.max(1, v - 1); input.value = v; postUpdate(id, v); }); });
     input.addEventListener('change', () => { let v = parseInt(input.value, 10) || 1; v = Math.max(1, Math.min(max, v)); input.value = v; postUpdate(id, v); });
   });
+
   document.addEventListener('click', (e) => { document.querySelectorAll('.rm-toggle').forEach(cb => { if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false; }); });
   setShipBar(document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0, document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0);
 })();

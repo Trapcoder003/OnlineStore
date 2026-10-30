@@ -11,6 +11,12 @@
 </head>
 <body>
 
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
+
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
   <div class="wrap">
@@ -153,7 +159,7 @@
   </div>
 </footer>
 
-<div class="toast" id="toast" role="status"></div>
+
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
@@ -178,5 +184,6 @@
 })();
 </script>
 
+<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>

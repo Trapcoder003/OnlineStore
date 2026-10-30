@@ -1,7 +1,14 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f4f5f7;font-family:Arial,sans-serif;color:#222;">
+
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;padding:32px 16px;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:12px;overflow:hidden;">
@@ -87,5 +94,6 @@
       </table>
     </td></tr>
   </table>
+<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>

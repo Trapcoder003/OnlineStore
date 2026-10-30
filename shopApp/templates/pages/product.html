@@ -12,6 +12,12 @@
 </head>
 <body>
 
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
+
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
   <div class="wrap">
@@ -55,7 +61,7 @@
     <span aria-current="page">{{ product.name }}</span>
   </nav>
 
-  {% if messages %}<div class="flash">{% for m in messages %}<div class="flash-item {{ m.tags }}">{{ m }}</div>{% endfor %}</div>{% endif %}
+  
 
   <div class="product-layout">
     <section class="gallery">
@@ -216,7 +222,8 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="{% static 'js/toast.js' %}"></script>
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
@@ -232,8 +239,7 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
       document.querySelectorAll('[data-cart-count]').forEach(el => { el.textContent = json.cart_count; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
-      const t = document.getElementById('toast'); t.textContent = (form.dataset.name || 'Item') + ' added to cart'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200);
-      btn.textContent = '✓ Added'; setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
+      window.showToast((form.dataset.name || 'Item') + ' added to cart', 'success');      btn.textContent = '✓ Added'; setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
     } catch (err) { console.error('Add to cart failed:', err); form.submit(); }
   });
   document.querySelectorAll('.qty-picker').forEach(picker => {

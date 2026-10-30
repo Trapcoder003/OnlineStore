@@ -9,6 +9,12 @@
 </head>
 <body>
 
+<!-- HIDDEN DJANGO MESSAGES -->
+<div id="django-messages" style="display:none;">
+  {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+</div>
+
+
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
   <div class="wrap">
@@ -123,7 +129,7 @@
   </div>
 </footer>
 
-<div class="toast" id="toast" role="status"></div>
+
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
@@ -165,10 +171,8 @@
         el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
       });
 
-      let t = document.getElementById('toast');
-      t.textContent = (form.dataset.name || 'Item') + ' added to cart';
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), 2200);
+      // ✅ SHOW TOAST
+      window.showToast((form.dataset.name || 'Item') + ' added to cart', 'success');
 
       btn.textContent = '✓ Added';
       setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
@@ -193,6 +197,12 @@
         const json = await res.json();
         document.querySelectorAll('[data-wishlist-count]').forEach(el => el.textContent = json.count);
         if (!json.in_wishlist) this.checked = false;
+
+        // ✅ SHOW TOAST
+        window.showToast(
+          json.in_wishlist ? 'Added to wishlist' : 'Removed from wishlist',
+          json.in_wishlist ? 'success' : 'info'
+        );
       } catch (err) {
         console.error(err);
         this.checked = !this.checked;
@@ -202,5 +212,6 @@
 })();
 </script>
 
+<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>
