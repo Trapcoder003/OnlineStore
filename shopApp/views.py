@@ -746,3 +746,21 @@ def delete_review(request, review_id):
     messages.success(request, "Your review has been deleted.")
     return redirect("product", slug=slug)
 
+@require_POST
+def cancel_order(request, number):
+    """Deletes a pending order entirely from the database."""
+    order = get_object_or_404(Order, order_number=number)
+
+    # Security check: Ensure this is the customer's order
+    if order.user and order.user != request.user and not request.user.is_staff:
+        messages.error(request, "You don't have access to this order.")
+        return redirect("home")
+
+    # Business logic: Only allow deletion if status is pending
+    if order.status == "pending":
+        order.delete()
+        messages.success(request, "Your pending order has been removed.")
+        return redirect("order_history") # Redirect to history because detail no longer exists
+    else:
+        messages.error(request, "Only pending orders can be cancelled.")
+        return redirect("order_detail", number=order.order_number)

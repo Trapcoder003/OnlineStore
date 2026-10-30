@@ -81,13 +81,24 @@
   {% if orders %}
     <div class="history-list">
       {% for order in orders %}
-        <a class="history-card" href="{% url 'order_detail' order.order_number %}">
+        <div class="history-card" style="cursor: pointer;" onclick="window.location.href='{% url 'order_detail' order.order_number %}'">
+          
           <div class="history-head">
             <div>
               <small>Order</small>
               <strong>{{ order.order_number }}</strong>
             </div>
-            <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="status-pill status-{{ order.status }}">{{ order.get_status_display }}</span>
+              
+              <!-- CANCEL ORDER BUTTON -->
+              {% if order.status == 'pending' %}
+                <form method="post" action="{% url 'cancel_order' order.order_number %}" onclick="event.stopPropagation();" style="margin: 0;">
+                  {% csrf_token %}
+                  <button type="submit" style="background: none; border: none; color: #ff6b9b; font-size: 11px; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;" onclick="return confirm('Cancel this order?')">Cancel</button>
+                </form>
+              {% endif %}
+            </div>
           </div>
 
           <div class="history-body">
@@ -119,7 +130,8 @@
               <span class="history-more">+{{ order.item_count|add:"-4" }}</span>
             {% endif %}
           </div>
-        </a>
+          
+        </div>
       {% endfor %}
     </div>
   {% else %}

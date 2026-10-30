@@ -43,4 +43,5 @@ urlpatterns = [
         path("manage-orders/", views.staff_orders_dashboard, name="staff_orders_dashboard"),
     path("orders/<str:number>/receipt/", views.order_receipt, name="order_receipt"),
     path("account/profile/", views.profile_settings, name="profile_settings"),
+        path("orders/<str:number>/cancel/", views.cancel_order, name="cancel_order"),
 ]

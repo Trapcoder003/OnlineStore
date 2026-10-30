@@ -98,6 +98,17 @@
   <div class="order-actions">
     <a class="btn" href="{% url 'track_order' order.order_number %}">📍 Track this order</a>
     <a class="btn ghost" href="{% url 'order_receipt' order.order_number %}">🧾 Receipt</a>
+    
+    <!-- CANCEL ORDER BUTTON -->
+    {% if order.status == 'pending' %}
+      <form method="post" action="{% url 'cancel_order' order.order_number %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn ghost" style="border-color: rgba(255, 107, 155, 0.4); color: #ff6b9b;" onclick="return confirm('Are you sure you want to cancel this order?')">
+          ✕ Cancel Order
+        </button>
+      </form>
+    {% endif %}
+
     <a class="btn ghost" href="{% url 'shop' %}">Continue shopping →</a>
     {% if user.is_authenticated %}<a class="btn ghost" href="{% url 'order_history' %}">My orders</a>{% endif %}
   </div>
