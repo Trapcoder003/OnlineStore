@@ -145,6 +145,7 @@ class Order(models.Model):
     paid_at = models.DateTimeField(null=True, blank=True)
     shipped_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
 
     # Pickup station details
     pickup_station_name = models.CharField(max_length=120, blank=True)

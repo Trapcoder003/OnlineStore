@@ -60,7 +60,17 @@
             <td data-label="Customer">{{ o.ship_name|default:o.email }}</td>
             <td data-label="Total">KES {{ o.total|floatformat:0 }}</td>
             <td data-label="Status"><span class="status-badge {{ o.status }}">{{ o.status }}</span></td>
-            <td data-label="When" class="muted hide-mobile">{{ o.paid_at|default:o.created_at|date:"M d, H:i" }}</td>
+            <td data-label="When" class="muted">
+              {% if o.status == "cancelled" and o.cancelled_at %}
+                <span style="color: var(--staff-danger); font-weight: 600;">
+                  Cancelled {{ o.cancelled_at|date:"H:i" }}
+                </span>
+              {% elif o.paid_at %}
+                {{ o.paid_at|date:"M d, H:i" }}
+              {% else %}
+                {{ o.created_at|date:"M d, H:i" }}
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
