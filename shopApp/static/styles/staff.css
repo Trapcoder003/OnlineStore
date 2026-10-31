@@ -944,3 +944,115 @@ a:hover { text-decoration: underline; }
   .content { padding: 12px 10px 24px; }
   .product-thumb { width: 32px; height: 32px; }
 }
+/* ============================================================
+   PRODUCT CELL — clean layout, image never squeezed
+   ============================================================ */
+
+.product-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;           /* allows flex children to shrink */
+  max-width: 100%;
+}
+
+.product-thumb-wrap {
+  flex-shrink: 0;         /* image never shrinks */
+  width: 48px;
+  height: 48px;
+}
+
+.product-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--staff-code-bg);
+  display: block;
+  flex-shrink: 0;
+}
+
+.product-thumb.placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+
+.product-thumb.avatar-round {
+  border-radius: 50%;
+}
+
+.product-thumb.avatar-round.placeholder {
+  background: var(--staff-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 17px;
+  display: grid;
+  place-items: center;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 0;           /* KEY: allows text to shrink and wrap */
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.product-name {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--staff-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.badge-mini {
+  align-self: flex-start;
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  background: var(--staff-status-pending-bg);
+  color: var(--staff-status-pending-fg);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+/* Mobile: product/customer cells stack label above content */
+@media (max-width: 768px) {
+  .data-table tbody td .product-cell {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+  }
+  .data-table tbody td .product-info {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .data-table tbody td .product-name {
+    text-align: left;
+    -webkit-line-clamp: 2;
+  }
+  .data-table tbody td .badge-mini {
+    align-self: flex-start;
+  }
+  .product-thumb-wrap,
+  .product-thumb {
+    width: 40px;
+    height: 40px;
+  }
+  .product-thumb.avatar-round {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}

@@ -46,14 +46,18 @@
       <tr>
         <td data-label="Customer">
           <div class="product-cell">
-            {% if u.profile.avatar %}
-              <img src="{{ u.profile.avatar.url }}" class="product-thumb avatar-round" alt="">
-            {% else %}
-              <div class="product-thumb avatar-round placeholder">{{ u.username|first|upper }}</div>
-            {% endif %}
-            <div>
+            <div class="product-thumb-wrap">
+              {% if u.profile.avatar %}
+                <img src="{{ u.profile.avatar.url }}" class="product-thumb avatar-round" alt="{{ u.username }}">
+              {% else %}
+                <div class="product-thumb avatar-round placeholder">{{ u.username|first|upper }}</div>
+              {% endif %}
+            </div>
+            <div class="product-info">
               <div class="product-name">{{ u.get_full_name|default:u.username }}</div>
-              {% if u.get_full_name %}<div class="muted small">@{{ u.username }}</div>{% endif %}
+              {% if u.get_full_name %}
+                <span class="muted small">@{{ u.username }}</span>
+              {% endif %}
             </div>
           </div>
         </td>
