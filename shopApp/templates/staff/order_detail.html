@@ -15,9 +15,12 @@
   </div>
   <div style="display:flex; gap:8px;">
     {% if can_advance %}
-      <form method="post" action="{% url 'staff:order_advance' order.order_number %}">
+      <form method="post" action="{% url 'staff:order_advance' order.order_number %}"
+            onsubmit="return confirm('Move {{ order.order_number }} to {{ next_status_display|escapejs }}?');">
         {% csrf_token %}
-        <button class="btn-staff primary" type="submit">Advance to {{ next_status_display }} →</button>
+        <button class="btn-staff primary" type="submit" title="Quick advance to the next stage">
+          ⚡ Advance to {{ next_status_display }} →
+        </button>
       </form>
     {% endif %}
   </div>
@@ -25,8 +28,12 @@
 
 {% if available_statuses %}
 <section class="panel" style="margin-bottom:20px;">
-  <div class="panel-head"><h2>Change status</h2></div>
+  <div class="panel-head"><h2>Manually change status</h2></div>
   <div class="panel-body" style="padding:16px 20px;">
+    <p style="margin:0 0 14px; color:var(--staff-muted); font-size:13px;">
+      Use this to cancel, refund, or jump to any other valid status.
+      For the normal pipeline, the <strong>⚡ Advance</strong> button at the top is faster.
+    </p>
     <form method="post" action="{% url 'staff:order_change_status' order.order_number %}" class="status-change-form">
       {% csrf_token %}
 
@@ -45,7 +52,10 @@
         <input type="text" name="mpesa_receipt" placeholder="e.g. SJ41XX9ABC" value="{{ order.mpesa_receipt }}">
       </div>
 
-      <button type="submit" class="btn-staff primary">Update status</button>
+      <button type="submit" class="btn-staff primary"
+              onclick="return confirm('Change status of {{ order.order_number }}?');">
+        Update status
+      </button>
     </form>
     <div class="form-help" style="margin-top:8px;">
       Allowed transitions from <strong>{{ order.get_status_display }}</strong>:

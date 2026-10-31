@@ -760,3 +760,42 @@ a:hover { text-decoration: underline; }
   .product-thumb { width: 32px; height: 32px; }
   .data-table { min-width: 500px; }
 }
+
+/* ============================================================
+   Topbar — logout button
+   ============================================================ */
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--staff-border);
+  background: var(--staff-panel);
+  color: var(--staff-muted);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.logout-btn:hover {
+  background: #fee2e2;
+  color: var(--staff-danger);
+  border-color: var(--staff-danger);
+  text-decoration: none;
+}
+.logout-btn svg { flex-shrink: 0; }
+
+/* Mobile: compact logout — icon only, hide username */
+@media (max-width: 768px) {
+  .topbar .user-chip .user-name { display: none; }
+  .logout-btn { padding: 8px; }
+  .logout-btn .logout-text { display: none; }
+}
