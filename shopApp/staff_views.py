@@ -12,7 +12,6 @@ from .models import Order, Product, TrackingHistory, ORDER_STATUS_CHOICES
 from .staff_forms import ProductForm
 
 
-
 # ============================================================
 # DASHBOARD
 # ============================================================
@@ -43,7 +42,8 @@ def dashboard(request):
             )
         )
         .order_by("-id")[:10]
-    )    
+    )
+
     low_stock = Product.objects.filter(stock__lt=5, stock__gt=0).order_by("stock")[:8]
     out_of_stock = Product.objects.filter(stock=0).order_by("name")[:8]
 
@@ -354,18 +354,12 @@ def order_change_status(request, number):
         order.shipped_at = timezone.now()
     elif new_status == "picked_up" and not order.delivered_at:
         order.delivered_at = timezone.now()
-        # 4. Update timestamps as needed
-    if new_status == "paid" and not order.paid_at:
-        order.paid_at = timezone.now()
-    elif new_status == "shipped" and not order.shipped_at:
-        order.shipped_at = timezone.now()
-    elif new_status == "picked_up" and not order.delivered_at:
-        order.delivered_at = timezone.now()
     elif new_status == "cancelled" and not order.cancelled_at:
         order.cancelled_at = timezone.now()
 
     # 5. Optional receipt when manually marking as paid
-        update_fields = ["status", "paid_at", "shipped_at", "delivered_at", "cancelled_at"]    if new_status == "paid" and receipt:
+    update_fields = ["status", "paid_at", "shipped_at", "delivered_at", "cancelled_at"]
+    if new_status == "paid" and receipt:
         order.mpesa_receipt = receipt
         update_fields.append("mpesa_receipt")
 
