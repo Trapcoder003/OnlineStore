@@ -1,101 +1,153 @@
 {% extends "staff/base_staff.html" %}
 {% load static %}
 
-{% block title %}Products · Staff · E-Shop{% endblock %}
-{% block breadcrumbs %}Products{% endblock %}
+{% block title %}{% if is_edit %}Edit {{ product.name }}{% else %}Add Product{% endif %} · Staff · E-Shop{% endblock %}
+{% block breadcrumbs %}
+<a href="{% url 'staff:products' %}">Products</a>
+/ {% if is_edit %}Edit {{ product.name }}{% else %}Add product{% endif %}
+{% endblock %}
 
 {% block content %}
-<form style="display:none;">{% csrf_token %}</form>
-
 <div class="page-head-row">
   <div>
-    <h1 class="page-title">Products</h1>
-    <p class="page-sub">{{ total_count }} product{{ total_count|pluralize }} in the catalog</p>
+    <h1 class="page-title">{% if is_edit %}Edit product{% else %}Add a new product{% endif %}</h1>
+    <p class="page-sub">
+      {% if is_edit %}
+        Update the details below and save your changes.
+      {% else %}
+        Fill in the details to add a product to the catalog.
+      {% endif %}
+    </p>
   </div>
-  <a href="{% url 'staff:product_create' %}" class="btn-staff primary">+ Add product</a>
 </div>
 
-<div class="filter-bar">
-  <a href="?filter=all" class="filter-chip {% if filter_type == 'all' %}active{% endif %}">
-    All ({{ total_count }})
-  </a>
-  <a href="?filter=low" class="filter-chip {% if filter_type == 'low' %}active{% endif %}">
-    Low stock ({{ low_count }})
-  </a>
-  <a href="?filter=out" class="filter-chip {% if filter_type == 'out' %}active{% endif %}">
-    Out of stock ({{ out_count }})
-  </a>
-  <form method="get" class="search-form">
-    <input type="hidden" name="filter" value="{{ filter_type }}">
-    <input type="search" name="q" value="{{ q }}" placeholder="Search products...">
-  </form>
-</div>
+<form method="post" enctype="multipart/form-data" class="product-form">
+  {% csrf_token %}
 
-<div class="panel">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Product</th>
-        <th>Category</th>
-        <th>Price</th>
-        <th>Stock</th>
-        <th>Sold</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in products %}
-      <tr data-product-id="{{ p.id }}">
-        <td data-label="Product">
-          <div class="product-cell">
-            <div class="product-thumb-wrap">
-              {% if p.image %}
-                <img src="{{ p.image.url }}" class="product-thumb" alt="{{ p.name }}">
-              {% else %}
-                <div class="product-thumb placeholder">🛍️</div>
-              {% endif %}
-            </div>
-            <div class="product-info">
-              <div class="product-name">{{ p.name }}</div>
-              {% if p.is_featured %}
-                <span class="badge-mini">Featured</span>
-              {% endif %}
-            </div>
-          </div>
-        </td>
-        <td data-label="Category" class="muted hide-mobile">{{ p.category.name }}</td>
-        <td data-label="Price" class="mono">KES {{ p.price|floatformat:0 }}</td>
-        <td data-label="Stock">
-          <div class="stock-control">
-            <button class="stock-btn" data-action="dec" type="button" aria-label="Decrease">−</button>
-            <span class="stock-value {% if p.stock == 0 %}out{% elif p.stock < 5 %}low{% endif %}">{{ p.stock }}</span>
-            <button class="stock-btn" data-action="inc" type="button" aria-label="Increase">+</button>
-          </div>
-        </td>
-        <td data-label="Sold" class="muted hide-mobile">{{ p.sold_count }}</td>
-        <td><a href="{% url 'staff:product_edit' p.id %}" class="link">Edit →</a></td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="6" class="empty-row">
-          {% if q %}No products match "{{ q }}"{% else %}No products yet.{% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-{% if products.has_other_pages %}
-<div class="pagination">
-  {% if products.has_previous %}
-    <a href="?filter={{ filter_type }}&q={{ q }}&page={{ products.previous_page_number }}">← Prev</a>
+  {% if form.non_field_errors %}
+    <div class="form-errors">
+      {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+    </div>
   {% endif %}
-  <span>Page {{ products.number }} of {{ products.paginator.num_pages }}</span>
-  {% if products.has_next %}
-    <a href="?filter={{ filter_type }}&q={{ q }}&page={{ products.next_page_number }}">Next →</a>
-  {% endif %}
-</div>
+
+  <div class="form-grid">
+    <div class="form-main">
+
+      <div class="form-card">
+        <h2 class="form-card-title">Basic info</h2>
+
+        <div class="form-row">
+          <label for="{{ form.name.id_for_label }}" class="form-label">Product name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="form-error">{{ form.name.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+          <label for="{{ form.slug.id_for_label }}" class="form-label">Slug</label>
+          {{ form.slug }}
+          <div class="form-help">{{ form.slug.help_text }}</div>
+          {% if form.slug.errors %}<div class="form-error">{{ form.slug.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+          <label for="{{ form.category.id_for_label }}" class="form-label">Category *</label>
+          {{ form.category }}
+          {% if form.category.errors %}<div class="form-error">{{ form.category.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+          <label for="{{ form.brand.id_for_label }}" class="form-label">Brand</label>
+          {{ form.brand }}
+          {% if form.brand.errors %}<div class="form-error">{{ form.brand.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+          <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+          {{ form.description }}
+          {% if form.description.errors %}<div class="form-error">{{ form.description.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h2 class="form-card-title">Pricing & stock</h2>
+
+        <div class="form-grid-2">
+          <div class="form-row">
+            <label for="{{ form.price.id_for_label }}" class="form-label">Price (KES) *</label>
+            {{ form.price }}
+            {% if form.price.errors %}<div class="form-error">{{ form.price.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="form-row">
+            <label for="{{ form.old_price.id_for_label }}" class="form-label">Old price (KES)</label>
+            {{ form.old_price }}
+            <div class="form-help">{{ form.old_price.help_text }}</div>
+            {% if form.old_price.errors %}<div class="form-error">{{ form.old_price.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="{{ form.stock.id_for_label }}" class="form-label">Stock quantity *</label>
+          {{ form.stock }}
+          {% if form.stock.errors %}<div class="form-error">{{ form.stock.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div class="form-row">
+          <label class="form-checkbox">
+            {{ form.is_featured }}
+            <span>{{ form.is_featured.label }}</span>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="form-side">
+
+      <div class="form-card">
+        <h2 class="form-card-title">Image</h2>
+
+        <div class="image-preview-wrap">
+          {% if product.image %}
+            <img id="image-preview" src="{{ product.image.url }}" alt="">
+          {% else %}
+            <img id="image-preview" src="" alt="" style="display:none;">
+          {% endif %}
+          <div id="image-placeholder" class="image-placeholder" {% if product.image %}style="display:none;"{% endif %}>
+            <span>🛍️</span>
+            <small>No image</small>
+          </div>
+        </div>
+
+        <input type="file" name="{{ form.image.name }}" id="{{ form.image.id_for_label }}" accept="image/*" class="file-input">
+        <div class="form-help">{{ form.image.help_text }}</div>
+        {% if form.image.errors %}<div class="form-error">{{ form.image.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-card">
+        <button type="submit" class="btn-staff primary" style="width:100%;justify-content:center;">
+          {% if is_edit %}Save changes{% else %}Create product{% endif %}
+        </button>
+        <a href="{% url 'staff:products' %}" class="btn-staff" style="width:100%;justify-content:center;margin-top:8px;">
+          Cancel
+        </a>
+
+        {% if is_edit %}
+          <hr style="margin:20px 0;border:0;border-top:1px solid var(--staff-border);">
+          <button type="submit" form="delete-form" class="btn-staff" style="width:100%;justify-content:center;color:var(--staff-danger);border-color:var(--staff-danger);">
+            Delete product
+          </button>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</form>
+
+{% if is_edit %}
+<form id="delete-form" method="post" action="{% url 'staff:product_delete' product.pk %}" onsubmit="return confirm('Delete {{ product.name|escapejs }}? This cannot be undone.');" style="display:none;">
+  {% csrf_token %}
+</form>
 {% endif %}
 {% endblock %}
 
@@ -104,48 +156,40 @@
 (function() {
   'use strict';
 
-  function getCsrf() {
-    const m = document.cookie.match(/csrftoken=([^;]+)/);
-    return m ? m[1] : '';
+  var nameInput = document.getElementById('{{ form.name.id_for_label }}');
+  var slugInput = document.getElementById('{{ form.slug.id_for_label }}');
+  var fileInput = document.getElementById('{{ form.image.id_for_label }}');
+  var preview = document.getElementById('image-preview');
+  var placeholder = document.getElementById('image-placeholder');
+
+  var slugManuallyEdited = false;
+  if (slugInput) {
+    slugInput.addEventListener('input', function() { slugManuallyEdited = true; });
+  }
+  if (nameInput && slugInput && !slugInput.value.trim()) {
+    nameInput.addEventListener('input', function() {
+      if (slugManuallyEdited) return;
+      var slug = nameInput.value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+      slugInput.placeholder = slug || 'auto-generated from name if blank';
+    });
   }
 
-  document.querySelectorAll('.stock-btn').forEach(btn => {
-    btn.addEventListener('click', async function() {
-      const tr = this.closest('tr');
-      const pid = tr.dataset.productId;
-      const span = tr.querySelector('.stock-value');
-      const current = parseInt(span.textContent.trim(), 10) || 0;
-      const delta = this.dataset.action === 'inc' ? 1 : -1;
-      const next = Math.max(0, current + delta);
-      if (next === current) return;
-
-      btn.disabled = true;
-      try {
-        const res = await fetch(`/staff/products/${pid}/stock/`, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': getCsrf(),
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: 'stock=' + next,
-        });
-        const json = await res.json();
-        if (json.ok) {
-          span.textContent = json.new_stock;
-          span.classList.toggle('out', json.new_stock === 0);
-          span.classList.toggle('low', json.new_stock > 0 && json.new_stock < 5);
-          window.showToast(json.message, 'success');
-        } else {
-          window.showToast(json.error || 'Failed to update', 'error');
-        }
-      } catch (err) {
-        window.showToast('Network error', 'error');
-      } finally {
-        btn.disabled = false;
-      }
+  if (fileInput && preview) {
+    fileInput.addEventListener('change', function() {
+      var file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
     });
-  });
+  }
 })();
 </script>
 {% endblock %}
