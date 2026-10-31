@@ -38,7 +38,6 @@
           {% endif %}
         </button>
         <div class="profile-dropdown" role="menu">
-          {% if user.is_staff %}<a href="{% url 'staff_orders_dashboard' %}" role="menuitem"><span class="menu-emoji">🛠️</span><span>Manage Orders</span></a><div class="menu-divider"></div>{% endif %}
           <a href="{% url 'order_history' %}" role="menuitem"><span class="menu-emoji">📦</span><span>My Orders</span></a>
           <a href="{% url 'cart' %}" role="menuitem"><span class="menu-emoji">🛒</span><span>My Cart</span></a>
           <a href="{% url 'wishlist' %}" role="menuitem"><span class="menu-emoji">♡</span><span>Wishlist</span></a>

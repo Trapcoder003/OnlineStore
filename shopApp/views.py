@@ -12,11 +12,13 @@ from django.core.paginator import Paginator
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.conf import settings
+from django.urls import reverse
 import json
 
 
 from allauth.account.views import PasswordResetFromKeyView as AllauthPasswordResetFromKeyView
 from allauth.account.forms import UserTokenForm
+from allauth.account.views import LoginView as AllauthLoginView
 
 from .models import (
     Wishlist, Product, Category, Review,
@@ -765,3 +767,27 @@ def cancel_order(request, number):
     else:
         messages.error(request, "Only pending orders can be cancelled.")
         return redirect("order_detail", number=order.order_number)
+
+# ---------------- STAFF LOGIN REDIRECT ----------------
+
+class StaffAwareLoginView(AllauthLoginView):
+    """
+    After successful login:
+    - Staff users land directly on /staff/ dashboard (no detour through /).
+    - Customers follow normal allauth redirect (next param or LOGIN_REDIRECT_URL).
+    """
+
+    def form_valid(self, form):
+        # At this point the form has already authenticated the user,
+        # but allauth hasn't called login() yet, so self.request.user
+        # is still AnonymousUser. form.user holds the real user.
+        user = form.user
+
+        # Let allauth do its normal login + redirect
+        response = super().form_valid(form)
+
+        # Override the redirect destination for staff users
+        if user and user.is_staff:
+            return redirect("staff:dashboard")
+
+        return response

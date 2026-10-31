@@ -1,0 +1,92 @@
+{% extends "staff/base_staff.html" %}
+{% load static %}
+
+{% block title %}Orders · Staff · E-Shop{% endblock %}
+{% block breadcrumbs %}Orders{% endblock %}
+
+{% block content %}
+<div class="page-head-row">
+  <div>
+    <h1 class="page-title">Orders</h1>
+    <p class="page-sub">{{ total_orders }} order{{ total_orders|pluralize }} total</p>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <a href="?status=active" class="filter-chip {% if filter_type == 'active' %}active{% endif %}">
+    Active
+  </a>
+  <a href="?status=all" class="filter-chip {% if filter_type == 'all' %}active{% endif %}">
+    All
+  </a>
+  <a href="?status=pending" class="filter-chip {% if filter_type == 'pending' %}active{% endif %}">
+    Pending {% if status_counts.pending %}({{ status_counts.pending }}){% endif %}
+  </a>
+  <a href="?status=paid" class="filter-chip {% if filter_type == 'paid' %}active{% endif %}">
+    Paid {% if status_counts.paid %}({{ status_counts.paid }}){% endif %}
+  </a>
+  <a href="?status=processing" class="filter-chip {% if filter_type == 'processing' %}active{% endif %}">
+    Processing {% if status_counts.processing %}({{ status_counts.processing }}){% endif %}
+  </a>
+  <a href="?status=shipped" class="filter-chip {% if filter_type == 'shipped' %}active{% endif %}">
+    Shipped {% if status_counts.shipped %}({{ status_counts.shipped }}){% endif %}
+  </a>
+  <a href="?status=ready_for_pickup" class="filter-chip {% if filter_type == 'ready_for_pickup' %}active{% endif %}">
+    Ready {% if status_counts.ready_for_pickup %}({{ status_counts.ready_for_pickup }}){% endif %}
+  </a>
+  <form method="get" class="search-form">
+    <input type="hidden" name="status" value="{{ filter_type }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Order #, phone, email, name...">
+  </form>
+</div>
+
+<div class="panel">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Order</th>
+        <th>Customer</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for o in orders %}
+      <tr>
+        <td class="mono">{{ o.order_number }}</td>
+        <td>
+          <div>{{ o.ship_name|default:o.email }}</div>
+          <div class="muted small">{{ o.phone }}</div>
+        </td>
+        <td class="mono">KES {{ o.total|floatformat:0 }}</td>
+        <td>
+          <span class="status-badge {{ o.status }}">{{ o.get_status_display }}</span>
+        </td>
+        <td class="muted">{{ o.created_at|date:"M d, H:i" }}</td>
+        <td><a href="{% url 'staff:order_detail' o.order_number %}" class="link">View →</a></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="empty-row">
+          {% if q %}No orders match "{{ q }}"{% else %}No orders in this filter.{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if orders.has_other_pages %}
+<div class="pagination">
+  {% if orders.has_previous %}
+    <a href="?status={{ filter_type }}&q={{ q }}&page={{ orders.previous_page_number }}">← Prev</a>
+  {% endif %}
+  <span>Page {{ orders.number }} of {{ orders.paginator.num_pages }}</span>
+  {% if orders.has_next %}
+    <a href="?status={{ filter_type }}&q={{ q }}&page={{ orders.next_page_number }}">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

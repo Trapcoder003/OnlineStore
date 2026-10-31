@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Staff · E-Shop{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'styles/staff.css' %}">
+</head>
+<body class="staff-body">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="dot"></span>
+      <span>E-Shop</span>
+      <span class="badge">Staff</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{% url 'staff:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="9" rx="1"/>
+          <rect x="14" y="3" width="7" height="5" rx="1"/>
+          <rect x="14" y="12" width="7" height="9" rx="1"/>
+          <rect x="3" y="16" width="7" height="5" rx="1"/>
+        </svg>
+        Dashboard
+      </a>
+
+      <a href="{% url 'staff:products' %}" class="{% if request.resolver_match.url_name == 'products' %}active{% endif %}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 7L12 3 4 7v10l8 4 8-4V7z"/>
+          <path d="M4 7l8 4 8-4"/>
+          <path d="M12 11v10"/>
+        </svg>
+        Products
+      </a>
+
+      <a href="{% url 'staff:orders' %}" class="{% if 'order' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M9 11l3 3L22 4"/>
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+  </svg>
+  Orders
+</a>
+      </a>
+
+      <a href="{% url 'staff:customers' %}" class="{% if 'customer' in request.resolver_match.url_name|default:'' %}active{% endif %}">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="7" r="4"/>
+    <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/>
+  </svg>
+  Customers
+</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{% url 'account_logout' %}">Sign out</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="breadcrumbs">{% block breadcrumbs %}{% endblock %}</div>
+      <div class="user-chip">
+        <span class="avatar">{{ request.user.username|first|upper }}</span>
+        <span>{{ request.user.username }}</span>
+      </div>
+    </header>
+
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <div id="django-messages" style="display:none;">
+    {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
+  </div>
+
+  <script src="{% static 'js/toast.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

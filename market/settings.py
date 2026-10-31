@@ -86,6 +86,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "shopApp.middleware.LoginRequiredMiddleware",
+    "shopApp.middleware.StaffNoShoppingMiddleware",
 ]
 
 

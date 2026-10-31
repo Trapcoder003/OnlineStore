@@ -1,7 +1,7 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from django.contrib import messages
 from django.shortcuts import resolve_url
-
+from django.urls import reverse
 
 class NoAutoLoginAfterSignupAdapter(DefaultAccountAdapter):
     """
@@ -25,3 +25,12 @@ class NoAutoLoginAfterSignupAdapter(DefaultAccountAdapter):
     def get_signup_redirect_url(self, request):
         # After successful signup, send the user to the login page.
         return resolve_url("account_login")
+
+    def get_login_redirect_url(self, request):
+        """
+        Staff users land on /staff/ dashboard after login.
+        Everyone else lands on the normal LOGIN_REDIRECT_URL ("home").
+        """
+        if request.user.is_authenticated and request.user.is_staff:
+            return reverse("staff:dashboard")
+        return super().get_login_redirect_url(request)

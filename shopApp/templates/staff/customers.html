@@ -1,0 +1,99 @@
+{% extends "staff/base_staff.html" %}
+{% load static %}
+
+{% block title %}Customers · Staff · E-Shop{% endblock %}
+{% block breadcrumbs %}Customers{% endblock %}
+
+{% block content %}
+<div class="page-head-row">
+  <div>
+    <h1 class="page-title">Customers</h1>
+    <p class="page-sub">{{ total_count }} customer{{ total_count|pluralize }} registered</p>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <a href="?filter=all" class="filter-chip {% if filter_type == 'all' %}active{% endif %}">
+    All ({{ total_count }})
+  </a>
+  <a href="?filter=with_orders" class="filter-chip {% if filter_type == 'with_orders' %}active{% endif %}">
+    With orders ({{ with_orders_count }})
+  </a>
+  <a href="?filter=no_orders" class="filter-chip {% if filter_type == 'no_orders' %}active{% endif %}">
+    No orders ({{ no_orders_count }})
+  </a>
+  <form method="get" class="search-form">
+    <input type="hidden" name="filter" value="{{ filter_type }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search username, email, name...">
+  </form>
+</div>
+
+<div class="panel">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Customer</th>
+        <th>Email</th>
+        <th>Orders</th>
+        <th>Spent</th>
+        <th>Last order</th>
+        <th>Joined</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td>
+          <div class="product-cell">
+            {% if u.profile.avatar %}
+              <img src="{{ u.profile.avatar.url }}" class="product-thumb avatar-round" alt="">
+            {% else %}
+              <div class="product-thumb avatar-round placeholder">{{ u.username|first|upper }}</div>
+            {% endif %}
+            <div>
+              <div class="product-name">{{ u.get_full_name|default:u.username }}</div>
+              {% if u.get_full_name %}<div class="muted small">@{{ u.username }}</div>{% endif %}
+            </div>
+          </div>
+        </td>
+        <td class="muted">{{ u.email|default:"—" }}</td>
+        <td>
+          {% if u.order_count %}
+            <span class="mono">{{ u.order_count }}</span>
+          {% else %}
+            <span class="muted">0</span>
+          {% endif %}
+        </td>
+        <td class="mono">
+          {% if u.total_spent %}KES {{ u.total_spent|floatformat:0 }}{% else %}<span class="muted">—</span>{% endif %}
+        </td>
+        <td class="muted">
+          {% if u.last_order %}{{ u.last_order|date:"M d, Y" }}{% else %}—{% endif %}
+        </td>
+        <td class="muted">{{ u.date_joined|date:"M d, Y" }}</td>
+        <td><a href="{% url 'staff:customer_detail' u.id %}" class="link">View →</a></td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7" class="empty-row">
+          {% if q %}No customers match "{{ q }}"{% else %}No customers in this filter.{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if users.has_other_pages %}
+<div class="pagination">
+  {% if users.has_previous %}
+    <a href="?filter={{ filter_type }}&q={{ q }}&page={{ users.previous_page_number }}">← Prev</a>
+  {% endif %}
+  <span>Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+  {% if users.has_next %}
+    <a href="?filter={{ filter_type }}&q={{ q }}&page={{ users.next_page_number }}">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

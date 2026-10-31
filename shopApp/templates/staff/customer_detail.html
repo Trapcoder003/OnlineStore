@@ -1,0 +1,104 @@
+{% extends "staff/base_staff.html" %}
+{% load static %}
+
+{% block title %}{{ customer.username }} · Staff · E-Shop{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'staff:customers' %}">Customers</a> / {{ customer.username }}{% endblock %}
+
+{% block content %}
+<div class="page-head-row">
+  <div>
+    <h1 class="page-title">{{ customer.get_full_name|default:customer.username }}</h1>
+    <p class="page-sub">@{{ customer.username }} · Joined {{ customer.date_joined|date:"M d, Y" }}</p>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <h3>Total orders</h3>
+    <div class="value">{{ total_orders }}</div>
+    <div class="trend">{{ paid_count }} paid</div>
+  </div>
+  <div class="kpi-card">
+    <h3>Lifetime spend</h3>
+    <div class="value">KES {{ total_spent|floatformat:0 }}</div>
+    <div class="trend">Across paid orders</div>
+  </div>
+  <div class="kpi-card">
+    <h3>Last order</h3>
+    <div class="value">
+      {% if orders %}{{ orders.0.created_at|date:"M d" }}{% else %}—{% endif %}
+    </div>
+    <div class="trend">
+      {% if orders %}{{ orders.0.created_at|date:"Y" }}{% else %}No orders yet{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <section class="panel">
+    <div class="panel-head"><h2>Contact</h2></div>
+    <div class="panel-body detail-block">
+      <div class="detail-row"><span class="detail-label">Username</span><span class="mono">@{{ customer.username }}</span></div>
+      <div class="detail-row"><span class="detail-label">Full name</span><span>{{ customer.get_full_name|default:"—" }}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span>{{ customer.email|default:"—" }}</span></div>
+      {% if customer.profile.phone %}
+      <div class="detail-row"><span class="detail-label">Phone</span><span>{{ customer.profile.phone }}</span></div>
+      {% endif %}
+      <div class="detail-row"><span class="detail-label">Joined</span><span>{{ customer.date_joined|date:"M d, Y · H:i" }}</span></div>
+      {% if customer.last_login %}
+      <div class="detail-row"><span class="detail-label">Last login</span><span>{{ customer.last_login|date:"M d, Y · H:i" }}</span></div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Activity</h2></div>
+    <div class="panel-body detail-block">
+      <div class="detail-row"><span class="detail-label">Orders placed</span><span>{{ total_orders }}</span></div>
+      <div class="detail-row"><span class="detail-label">Paid orders</span><span>{{ paid_count }}</span></div>
+      <div class="detail-row"><span class="detail-label">Lifetime spend</span><span class="mono">KES {{ total_spent|floatformat:0 }}</span></div>
+      <div class="detail-row"><span class="detail-label">Avg order</span>
+        <span class="mono">
+          {% if paid_count %}KES {{ total_spent|floatformat:0|add:"0"|floatformat:"0" }}{% else %}—{% endif %}
+        </span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Recent orders</h2>
+  </div>
+  <div class="panel-body">
+    {% if orders %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+          <tr>
+            <td class="mono">{{ o.order_number }}</td>
+            <td class="muted">{{ o.created_at|date:"M d, Y" }}</td>
+            <td>{{ o.item_count }}</td>
+            <td class="mono">KES {{ o.total|floatformat:0 }}</td>
+            <td><span class="status-badge {{ o.status }}">{{ o.get_status_display }}</span></td>
+            <td><a href="{% url 'staff:order_detail' o.order_number %}" class="link">View →</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">This customer hasn't placed any orders yet.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

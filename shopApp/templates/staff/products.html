@@ -1,0 +1,145 @@
+{% extends "staff/base_staff.html" %}
+{% load static %}
+
+{% block title %}Products · Staff · E-Shop{% endblock %}
+{% block breadcrumbs %}Products{% endblock %}
+
+{% block content %}
+<form style="display:none;">{% csrf_token %}</form>
+
+<div class="page-head-row">
+  <div>
+    <h1 class="page-title">Products</h1>
+    <p class="page-sub">{{ total_count }} product{{ total_count|pluralize }} in the catalog</p>
+  </div>
+<a href="{% url 'staff:product_create' %}" class="btn-staff primary">+ Add product</a></div>
+
+<div class="filter-bar">
+  <a href="?filter=all" class="filter-chip {% if filter_type == 'all' %}active{% endif %}">
+    All ({{ total_count }})
+  </a>
+  <a href="?filter=low" class="filter-chip {% if filter_type == 'low' %}active{% endif %}">
+    Low stock ({{ low_count }})
+  </a>
+  <a href="?filter=out" class="filter-chip {% if filter_type == 'out' %}active{% endif %}">
+    Out of stock ({{ out_count }})
+  </a>
+  <form method="get" class="search-form">
+    <input type="hidden" name="filter" value="{{ filter_type }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search products...">
+  </form>
+</div>
+
+<div class="panel">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Category</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Sold</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in products %}
+      <tr data-product-id="{{ p.id }}">
+        <td>
+          <div class="product-cell">
+            {% if p.image %}
+              <img src="{{ p.image.url }}" class="product-thumb" alt="">
+            {% else %}
+              <div class="product-thumb placeholder">🛍️</div>
+            {% endif %}
+            <div>
+              <div class="product-name">{{ p.name }}</div>
+              {% if p.is_featured %}<span class="badge-mini">Featured</span>{% endif %}
+            </div>
+          </div>
+        </td>
+        <td class="muted">{{ p.category.name }}</td>
+        <td class="mono">KES {{ p.price|floatformat:0 }}</td>
+        <td>
+          <div class="stock-control">
+            <button class="stock-btn" data-action="dec" type="button" aria-label="Decrease">−</button>
+            <span class="stock-value {% if p.stock == 0 %}out{% elif p.stock < 5 %}low{% endif %}">{{ p.stock }}</span>
+            <button class="stock-btn" data-action="inc" type="button" aria-label="Increase">+</button>
+          </div>
+        </td>
+        <td class="muted">{{ p.sold_count }}</td>
+<td><a href="{% url 'staff:product_edit' p.id %}" class="link">Edit</a></td>      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" class="empty-row">
+          {% if q %}No products match "{{ q }}"{% else %}No products yet.{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if products.has_other_pages %}
+<div class="pagination">
+  {% if products.has_previous %}
+    <a href="?filter={{ filter_type }}&q={{ q }}&page={{ products.previous_page_number }}">← Prev</a>
+  {% endif %}
+  <span>Page {{ products.number }} of {{ products.paginator.num_pages }}</span>
+  {% if products.has_next %}
+    <a href="?filter={{ filter_type }}&q={{ q }}&page={{ products.next_page_number }}">Next →</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  'use strict';
+
+  function getCsrf() {
+    const m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  }
+
+  document.querySelectorAll('.stock-btn').forEach(btn => {
+    btn.addEventListener('click', async function() {
+      const tr = this.closest('tr');
+      const pid = tr.dataset.productId;
+      const span = tr.querySelector('.stock-value');
+      const current = parseInt(span.textContent.trim(), 10) || 0;
+      const delta = this.dataset.action === 'inc' ? 1 : -1;
+      const next = Math.max(0, current + delta);
+      if (next === current) return;
+
+      btn.disabled = true;
+      try {
+        const res = await fetch(`/staff/products/${pid}/stock/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCsrf(),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: 'stock=' + next,
+        });
+        const json = await res.json();
+        if (json.ok) {
+          span.textContent = json.new_stock;
+          span.classList.toggle('out', json.new_stock === 0);
+          span.classList.toggle('low', json.new_stock > 0 && json.new_stock < 5);
+          window.showToast(json.message, 'success');
+        } else {
+          window.showToast(json.error || 'Failed to update', 'error');
+        }
+      } catch (err) {
+        window.showToast('Network error', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

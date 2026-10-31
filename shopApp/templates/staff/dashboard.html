@@ -1,0 +1,105 @@
+{% extends "staff/base_staff.html" %}
+
+{% block title %}Dashboard · Staff · E-Shop{% endblock %}
+{% block breadcrumbs %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Overview</h1>
+<p class="page-sub">Today and this week at a glance.</p>
+
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <h3>Revenue today</h3>
+    <div class="value">KES {{ revenue_today|floatformat:0 }}</div>
+    <div class="trend">{{ orders_today }} paid order{{ orders_today|pluralize }} today</div>
+  </div>
+
+  <div class="kpi-card">
+    <h3>Revenue this week</h3>
+    <div class="value">KES {{ revenue_week|floatformat:0 }}</div>
+    <div class="trend">{{ orders_week }} paid order{{ orders_week|pluralize }} in 7 days</div>
+  </div>
+
+  <div class="kpi-card">
+    <h3>Pending orders</h3>
+    <div class="value">{{ pending_orders }}</div>
+    <div class="trend {% if pending_orders %}warn{% endif %}">
+      {% if pending_orders %}Awaiting payment{% else %}All clear{% endif %}
+    </div>
+  </div>
+
+  <div class="kpi-card">
+    <h3>Products low on stock</h3>
+    <div class="value">{{ low_stock|length }}</div>
+    <div class="trend {% if low_stock %}warn{% else %}ok{% endif %}">
+      {% if low_stock %}Restock soon{% else %}Healthy{% endif %}
+    </div>
+  </div>
+</div>
+
+<section class="panel">
+  <div class="panel-head">
+    <h2>Recent orders</h2>
+  </div>
+  <div class="panel-body">
+    {% if recent_orders %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>When</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in recent_orders %}
+          <tr>
+            <td class="mono">{{ o.order_number }}</td>
+            <td>{{ o.ship_name|default:o.email }}</td>
+            <td>KES {{ o.total|floatformat:0 }}</td>
+            <td><span class="status-badge {{ o.status }}">{{ o.status }}</span></td>
+            <td class="muted">{{ o.paid_at|default:o.created_at|date:"M d, H:i" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No orders yet.</p>
+    {% endif %}
+  </div>
+</section>
+
+<div class="two-col">
+  <section class="panel">
+    <div class="panel-head"><h2>Low stock</h2></div>
+    <div class="panel-body">
+      {% if low_stock %}
+        <ul class="list-plain">
+          {% for p in low_stock %}
+            <li><span>{{ p.name }}</span><span class="chip warn">{{ p.stock }} left</span></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">Everything stocked above 5.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2>Out of stock</h2></div>
+    <div class="panel-body">
+      {% if out_of_stock %}
+        <ul class="list-plain">
+          {% for p in out_of_stock %}
+            <li><span>{{ p.name }}</span><span class="chip danger">0</span></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">No products out of stock.</p>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}
