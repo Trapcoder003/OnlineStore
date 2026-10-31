@@ -87,6 +87,34 @@
   </div>
 
   <script src="{% static 'js/toast.js' %}"></script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // Only run on staff pages
+    if (!window.location.pathname.startsWith('/staff/')) return;
+
+    // Add a guard state so the FIRST back press stays on the same page
+    // (absorbs one back press without leaving /staff/)
+    history.pushState({ staffGuard: true }, '', window.location.href);
+
+    // Trap every back/forward navigation
+    window.addEventListener('popstate', function() {
+      const path = window.location.pathname;
+
+      // Still inside /staff/ → let it through
+      if (path.startsWith('/staff/')) {
+        return;
+      }
+
+      // Outside /staff/ → immediately redirect back to dashboard.
+      // replace() so the abandoned page doesn't get added to history again.
+      window.location.replace('/staff/');
+    });
+  })();
+  </script>
+
   {% block extra_js %}{% endblock %}
 </body>
 </html>
