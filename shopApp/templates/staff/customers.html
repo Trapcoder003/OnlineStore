@@ -44,7 +44,7 @@
     <tbody>
       {% for u in users %}
       <tr>
-        <td>
+        <td data-label="Customer">
           <div class="product-cell">
             {% if u.profile.avatar %}
               <img src="{{ u.profile.avatar.url }}" class="product-thumb avatar-round" alt="">
@@ -57,21 +57,21 @@
             </div>
           </div>
         </td>
-        <td class="muted">{{ u.email|default:"—" }}</td>
-        <td>
+        <td data-label="Email" class="muted hide-mobile">{{ u.email|default:"—" }}</td>
+        <td data-label="Orders">
           {% if u.order_count %}
             <span class="mono">{{ u.order_count }}</span>
           {% else %}
             <span class="muted">0</span>
           {% endif %}
         </td>
-        <td class="mono">
+        <td data-label="Spent" class="mono">
           {% if u.total_spent %}KES {{ u.total_spent|floatformat:0 }}{% else %}<span class="muted">—</span>{% endif %}
         </td>
-        <td class="muted">
+        <td data-label="Last order" class="muted hide-mobile">
           {% if u.last_order %}{{ u.last_order|date:"M d, Y" }}{% else %}—{% endif %}
         </td>
-        <td class="muted">{{ u.date_joined|date:"M d, Y" }}</td>
+        <td data-label="Joined" class="muted hide-mobile">{{ u.date_joined|date:"M d, Y" }}</td>
         <td><a href="{% url 'staff:customer_detail' u.id %}" class="link">View →</a></td>
       </tr>
       {% empty %}

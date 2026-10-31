@@ -13,12 +13,8 @@
 </div>
 
 <div class="filter-bar">
-  <a href="?status=active" class="filter-chip {% if filter_type == 'active' %}active{% endif %}">
-    Active
-  </a>
-  <a href="?status=all" class="filter-chip {% if filter_type == 'all' %}active{% endif %}">
-    All
-  </a>
+  <a href="?status=active" class="filter-chip {% if filter_type == 'active' %}active{% endif %}">Active</a>
+  <a href="?status=all" class="filter-chip {% if filter_type == 'all' %}active{% endif %}">All</a>
   <a href="?status=pending" class="filter-chip {% if filter_type == 'pending' %}active{% endif %}">
     Pending {% if status_counts.pending %}({{ status_counts.pending }}){% endif %}
   </a>
@@ -55,16 +51,16 @@
     <tbody>
       {% for o in orders %}
       <tr>
-        <td class="mono">{{ o.order_number }}</td>
-        <td>
+        <td data-label="Order" class="mono">{{ o.order_number }}</td>
+        <td data-label="Customer">
           <div>{{ o.ship_name|default:o.email }}</div>
           <div class="muted small">{{ o.phone }}</div>
         </td>
-        <td class="mono">KES {{ o.total|floatformat:0 }}</td>
-        <td>
+        <td data-label="Total" class="mono">KES {{ o.total|floatformat:0 }}</td>
+        <td data-label="Status">
           <span class="status-badge {{ o.status }}">{{ o.get_status_display }}</span>
         </td>
-        <td class="muted">{{ o.created_at|date:"M d, H:i" }}</td>
+        <td data-label="Date" class="muted hide-mobile">{{ o.created_at|date:"M d, H:i" }}</td>
         <td><a href="{% url 'staff:order_detail' o.order_number %}" class="link">View →</a></td>
       </tr>
       {% empty %}

@@ -1,104 +1,190 @@
 {% extends "staff/base_staff.html" %}
 {% load static %}
 
-{% block title %}{{ customer.username }} · Staff · E-Shop{% endblock %}
-{% block breadcrumbs %}<a href="{% url 'staff:customers' %}">Customers</a> / {{ customer.username }}{% endblock %}
+{% block title %}{{ order.order_number }} · Staff · E-Shop{% endblock %}
+{% block breadcrumbs %}<a href="{% url 'staff:orders' %}">Orders</a> / {{ order.order_number }}{% endblock %}
 
 {% block content %}
 <div class="page-head-row">
   <div>
-    <h1 class="page-title">{{ customer.get_full_name|default:customer.username }}</h1>
-    <p class="page-sub">@{{ customer.username }} · Joined {{ customer.date_joined|date:"M d, Y" }}</p>
+    <h1 class="page-title">{{ order.order_number }}</h1>
+    <p class="page-sub">
+      Placed {{ order.created_at|date:"M d, Y · H:i" }}
+      · <span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span>
+    </p>
+  </div>
+  <div style="display:flex; gap:8px;">
+    {% if can_advance %}
+      <form method="post" action="{% url 'staff:order_advance' order.order_number %}"
+            onsubmit="return confirm('Move {{ order.order_number }} to {{ next_status_display|escapejs }}?');">
+        {% csrf_token %}
+        <button class="btn-staff primary" type="submit" title="Quick advance to the next stage">
+          ⚡ Advance to {{ next_status_display }} →
+        </button>
+      </form>
+    {% endif %}
   </div>
 </div>
 
-<div class="kpi-grid">
-  <div class="kpi-card">
-    <h3>Total orders</h3>
-    <div class="value">{{ total_orders }}</div>
-    <div class="trend">{{ paid_count }} paid</div>
-  </div>
-  <div class="kpi-card">
-    <h3>Lifetime spend</h3>
-    <div class="value">KES {{ total_spent|floatformat:0 }}</div>
-    <div class="trend">Across paid orders</div>
-  </div>
-  <div class="kpi-card">
-    <h3>Last order</h3>
-    <div class="value">
-      {% if orders %}{{ orders.0.created_at|date:"M d" }}{% else %}—{% endif %}
+{% if available_statuses %}
+<section class="panel" style="margin-bottom:20px;">
+  <div class="panel-head"><h2>Manually change status</h2></div>
+  <div class="panel-body" style="padding:16px 20px;">
+    <p style="margin:0 0 14px; color:var(--staff-muted); font-size:13px;">
+      Use this to cancel, refund, or jump to any other valid status.
+      For the normal pipeline, the <strong>⚡ Advance</strong> button at the top is faster.
+    </p>
+    <form method="post" action="{% url 'staff:order_change_status' order.order_number %}" class="status-change-form">
+      {% csrf_token %}
+
+      <div class="form-row" style="margin:0; flex:1; min-width:200px;">
+        <label class="form-label">New status</label>
+        <select name="status" required>
+          <option value="">-- Choose new status --</option>
+          {% for value, label in available_statuses %}
+            <option value="{{ value }}">{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-row" style="margin:0; flex:1; min-width:200px;">
+        <label class="form-label">M-Pesa receipt (only if setting to Paid)</label>
+        <input type="text" name="mpesa_receipt" placeholder="e.g. SJ41XX9ABC" value="{{ order.mpesa_receipt }}">
+      </div>
+
+      <button type="submit" class="btn-staff primary"
+              onclick="return confirm('Change status of {{ order.order_number }}?');">
+        Update status
+      </button>
+    </form>
+    <div class="form-help" style="margin-top:8px;">
+      Allowed transitions from <strong>{{ order.get_status_display }}</strong>:
+      {% for value, label in available_statuses %}{{ label }}{% if not forloop.last %}, {% endif %}{% endfor %}
     </div>
-    <div class="trend">
-      {% if orders %}{{ orders.0.created_at|date:"Y" }}{% else %}No orders yet{% endif %}
-    </div>
   </div>
-</div>
+</section>
+{% endif %}
 
 <div class="detail-grid">
+
   <section class="panel">
-    <div class="panel-head"><h2>Contact</h2></div>
+    <div class="panel-head"><h2>Customer</h2></div>
     <div class="panel-body detail-block">
-      <div class="detail-row"><span class="detail-label">Username</span><span class="mono">@{{ customer.username }}</span></div>
-      <div class="detail-row"><span class="detail-label">Full name</span><span>{{ customer.get_full_name|default:"—" }}</span></div>
-      <div class="detail-row"><span class="detail-label">Email</span><span>{{ customer.email|default:"—" }}</span></div>
-      {% if customer.profile.phone %}
-      <div class="detail-row"><span class="detail-label">Phone</span><span>{{ customer.profile.phone }}</span></div>
-      {% endif %}
-      <div class="detail-row"><span class="detail-label">Joined</span><span>{{ customer.date_joined|date:"M d, Y · H:i" }}</span></div>
-      {% if customer.last_login %}
-      <div class="detail-row"><span class="detail-label">Last login</span><span>{{ customer.last_login|date:"M d, Y · H:i" }}</span></div>
-      {% endif %}
+      <div class="detail-row"><span class="detail-label">Name</span><span>{{ order.ship_name }}</span></div>
+      <div class="detail-row"><span class="detail-label">Email</span><span>{{ order.email }}</span></div>
+      <div class="detail-row"><span class="detail-label">Phone</span><span>{{ order.phone }}</span></div>
+      <div class="detail-row"><span class="detail-label">Ship to</span>
+        <span>
+          {{ order.ship_phone }}<br>
+          {{ order.ship_address }}<br>
+          {{ order.ship_town }}, {{ order.ship_county }}
+        </span>
+      </div>
+      <div class="detail-row"><span class="detail-label">Method</span><span>{{ order.get_delivery_method_display }}</span></div>
     </div>
   </section>
 
   <section class="panel">
-    <div class="panel-head"><h2>Activity</h2></div>
+    <div class="panel-head"><h2>Payment</h2></div>
     <div class="panel-body detail-block">
-      <div class="detail-row"><span class="detail-label">Orders placed</span><span>{{ total_orders }}</span></div>
-      <div class="detail-row"><span class="detail-label">Paid orders</span><span>{{ paid_count }}</span></div>
-      <div class="detail-row"><span class="detail-label">Lifetime spend</span><span class="mono">KES {{ total_spent|floatformat:0 }}</span></div>
-      <div class="detail-row"><span class="detail-label">Avg order</span>
-        <span class="mono">
-          {% if paid_count %}KES {{ total_spent|floatformat:0|add:"0"|floatformat:"0" }}{% else %}—{% endif %}
-        </span>
+      <div class="detail-row"><span class="detail-label">Status</span>
+        <span><span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span></span>
       </div>
+      {% if order.mpesa_receipt %}
+        <div class="detail-row"><span class="detail-label">M-Pesa Receipt</span><span class="mono">{{ order.mpesa_receipt }}</span></div>
+        <div class="detail-row"><span class="detail-label">Phone</span><span>{{ order.mpesa_phone }}</span></div>
+      {% endif %}
+      {% if order.paid_at %}
+        <div class="detail-row"><span class="detail-label">Paid at</span><span>{{ order.paid_at|date:"M d, Y · H:i" }}</span></div>
+      {% endif %}
+      {% if order.mpesa_checkout_id %}
+        <div class="detail-row"><span class="detail-label">Checkout ID</span><span class="mono small">{{ order.mpesa_checkout_id }}</span></div>
+      {% endif %}
     </div>
   </section>
 </div>
 
 <section class="panel">
-  <div class="panel-head">
-    <h2>Recent orders</h2>
-  </div>
+  <div class="panel-head"><h2>Items</h2></div>
   <div class="panel-body">
-    {% if orders %}
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Date</th>
-            <th>Items</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for o in orders %}
-          <tr>
-            <td class="mono">{{ o.order_number }}</td>
-            <td class="muted">{{ o.created_at|date:"M d, Y" }}</td>
-            <td>{{ o.item_count }}</td>
-            <td class="mono">KES {{ o.total|floatformat:0 }}</td>
-            <td><span class="status-badge {{ o.status }}">{{ o.get_status_display }}</span></td>
-            <td><a href="{% url 'staff:order_detail' o.order_number %}" class="link">View →</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="empty">This customer hasn't placed any orders yet.</p>
-    {% endif %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Unit Price</th>
+          <th>Qty</th>
+          <th>Line Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order.items.all %}
+        <tr>
+          <td data-label="Product">
+            <div class="product-cell">
+              {% if item.product_image_url %}
+                <img src="{{ item.product_image_url }}" class="product-thumb" alt="">
+              {% else %}
+                <div class="product-thumb placeholder">🛍️</div>
+              {% endif %}
+              <div class="product-name">{{ item.product_name }}</div>
+            </div>
+          </td>
+          <td data-label="Unit Price" class="mono">KES {{ item.unit_price|floatformat:0 }}</td>
+          <td data-label="Qty">{{ item.qty }}</td>
+          <td data-label="Line Total" class="mono">KES {{ item.line_total|floatformat:0 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" class="totals-label">Subtotal</td>
+          <td class="mono">KES {{ order.subtotal|floatformat:0 }}</td>
+        </tr>
+        {% if order.discount %}
+        <tr>
+          <td colspan="3" class="totals-label">Discount</td>
+          <td class="mono">− KES {{ order.discount|floatformat:0 }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td colspan="3" class="totals-label">Shipping</td>
+          <td class="mono">KES {{ order.shipping_fee|floatformat:0 }}</td>
+        </tr>
+        <tr class="totals-row">
+          <td colspan="3" class="totals-label">Total</td>
+          <td class="mono">KES {{ order.total|floatformat:0 }}</td>
+        </tr>
+      </tfoot>
+    </table>
   </div>
 </section>
+
+{% if history %}
+<section class="panel">
+  <div class="panel-head"><h2>Tracking history</h2></div>
+  <div class="panel-body">
+    <ul class="timeline">
+      {% for h in history %}
+      <li>
+        <div class="timeline-dot"></div>
+        <div>
+          <div class="timeline-title">{{ h.get_status_display }}</div>
+          <div class="timeline-note">{{ h.note }}</div>
+          <div class="timeline-time">{{ h.created_at|date:"M d, Y · H:i" }}</div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+
+{% if order.notes %}
+<section class="panel">
+  <div class="panel-head"><h2>Internal notes</h2></div>
+  <div class="panel-body detail-block">
+    <pre class="notes-pre">{{ order.notes }}</pre>
+  </div>
+</section>
+{% endif %}
 {% endblock %}

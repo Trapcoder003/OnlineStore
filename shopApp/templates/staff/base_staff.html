@@ -6,6 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{% block title %}Staff · E-Shop{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'styles/staff.css' %}">
+
+  <!-- Theme bootstrap: run before paint to avoid flash -->
+  <script>
+  (function() {
+    try {
+      var stored = localStorage.getItem('staff-theme');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', stored || (prefersDark ? 'dark' : 'light'));
+    } catch (e) {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
+  })();
+  </script>
 </head>
 <body class="staff-body">
 
@@ -62,6 +75,22 @@
     <header class="topbar">
       <div class="breadcrumbs">{% block breadcrumbs %}{% endblock %}</div>
       <div class="topbar-right">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle light/dark theme" title="Toggle theme">
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
         <div class="user-chip">
           <span class="avatar">{{ request.user.username|first|upper }}</span>
           <span class="user-name">{{ request.user.username }}</span>
@@ -92,26 +121,26 @@
   (function() {
     'use strict';
 
-    // Only run on staff pages
-    if (!window.location.pathname.startsWith('/staff/')) return;
+    // Theme toggle
+    var btn = document.getElementById('theme-toggle');
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var current = document.documentElement.getAttribute('data-theme');
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('staff-theme', next); } catch (e) {}
+      });
+    }
 
-    // Add a guard state so the FIRST back press stays on the same page
-    // (absorbs one back press without leaving /staff/)
-    history.pushState({ staffGuard: true }, '', window.location.href);
-
-    // Trap every back/forward navigation
-    window.addEventListener('popstate', function() {
-      const path = window.location.pathname;
-
-      // Still inside /staff/ → let it through
-      if (path.startsWith('/staff/')) {
-        return;
-      }
-
-      // Outside /staff/ → immediately redirect back to dashboard.
-      // replace() so the abandoned page doesn't get added to history again.
-      window.location.replace('/staff/');
-    });
+    // Back button trap (staff-only)
+    if (window.location.pathname.startsWith('/staff/')) {
+      history.pushState({ staffGuard: true }, '', window.location.href);
+      window.addEventListener('popstate', function() {
+        if (!window.location.pathname.startsWith('/staff/')) {
+          window.location.replace('/staff/');
+        }
+      });
+    }
   })();
   </script>
 
