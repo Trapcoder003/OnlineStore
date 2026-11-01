@@ -8,6 +8,7 @@
 <title>Your cart · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/cart.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
+<link rel="stylesheet" href="{% static 'styles/free-ship.css' %}">
 </head>
 <body>
 
@@ -116,13 +117,22 @@
         <li class="total"><span>Total</span><strong data-total>KES {{ cart.total|money }}</strong></li>
       </ul>
 
-      <div class="ship-bar" data-ship-bar>
-        {% if cart.free_shipping_gap > 0 %}
-          <div class="ship-bar-top"><span data-ship-msg>Add <b>KES {{ cart.free_shipping_gap|money }}</b> more for free shipping</span><span class="ship-pct" data-ship-pct>0%</span></div>
-          <div class="ship-track"><i data-ship-fill style="width:0%"></i></div>
+      {# ---- FREE SHIPPING PROGRESS BAR (server-rendered correctly) ---- #}
+      <div class="ship-bar {% if has_free_shipping %}unlocked{% endif %}"
+           data-ship-bar
+           data-ship-threshold="{{ free_shipping_threshold }}">
+        {% if has_free_shipping %}
+          <div class="ship-bar-top">
+            <span data-ship-msg>🎉 Free shipping unlocked!</span>
+            <span class="ship-pct" data-ship-pct>100%</span>
+          </div>
+          <div class="ship-track"><i data-ship-fill style="width:100%"></i></div>
         {% else %}
-          <div class="ship-bar-top"><span>🎉 Free shipping unlocked</span><span class="ship-pct">100%</span></div>
-          <div class="ship-track"><i style="width:100%"></i></div>
+          <div class="ship-bar-top">
+            <span data-ship-msg>Add <b>KES {{ free_shipping_remaining|floatformat:0 }}</b> more for free shipping</span>
+            <span class="ship-pct" data-ship-pct>{{ free_shipping_progress }}%</span>
+          </div>
+          <div class="ship-track"><i data-ship-fill style="width:{{ free_shipping_progress }}%"></i></div>
         {% endif %}
       </div>
 
@@ -183,12 +193,31 @@
   const csrf = getCookie('csrftoken') || (document.querySelector('input[name=csrfmiddlewaretoken]') || {}).value || '';
   const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  // Read threshold from data attribute (configurable via settings.FREE_SHIPPING_THRESHOLD)
+  const shipBar = document.querySelector('[data-ship-bar]');
+  const SHIP_THRESHOLD = shipBar ? (parseFloat(shipBar.dataset.shipThreshold) || 5000) : 5000;
+
   function setShipBar(subtotal, discount) {
-    const bar = document.querySelector('[data-ship-bar]'); if (!bar) return;
-    const after = Number(subtotal) - Number(discount); const pct = Math.max(0, Math.min(100, (after / 5000) * 100));
-    const fill = bar.querySelector('[data-ship-fill]'), pctEl = bar.querySelector('[data-ship-pct]'), msg = bar.querySelector('[data-ship-msg]');
-    if (fill) fill.style.width = pct + '%'; if (pctEl) pctEl.textContent = Math.round(pct) + '%';
-    if (msg) { if (after >= 5000) { bar.classList.add('unlocked'); msg.innerHTML = '🎉 Free shipping unlocked'; if (pctEl) pctEl.textContent = '100%'; if (fill) fill.style.width = '100%'; } else { msg.innerHTML = 'Add <b>' + fmt(5000 - after) + '</b> more for free shipping'; } }
+    const bar = document.querySelector('[data-ship-bar]');
+    if (!bar) return;
+    const after = Number(subtotal) - Number(discount);
+    const pct = Math.max(0, Math.min(100, (after / SHIP_THRESHOLD) * 100));
+    const fill = bar.querySelector('[data-ship-fill]');
+    const pctEl = bar.querySelector('[data-ship-pct]');
+    const msg = bar.querySelector('[data-ship-msg]');
+
+    if (fill) fill.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+
+    if (after >= SHIP_THRESHOLD) {
+      bar.classList.add('unlocked');
+      if (msg) msg.innerHTML = '🎉 Free shipping unlocked!';
+      if (pctEl) pctEl.textContent = '100%';
+      if (fill) fill.style.width = '100%';
+    } else {
+      bar.classList.remove('unlocked');
+      if (msg) msg.innerHTML = 'Add <b>' + fmt(SHIP_THRESHOLD - after) + '</b> more for free shipping';
+    }
   }
 
   function updateTotals(json) {
@@ -213,7 +242,12 @@
   });
 
   document.addEventListener('click', (e) => { document.querySelectorAll('.rm-toggle').forEach(cb => { if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false; }); });
-  setShipBar(document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0, document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0);
+
+  // Initial sync — server render already correct, but this ensures consistency if DOM is edited
+  setShipBar(
+    document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0,
+    document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0
+  );
 })();
 </script>
 </body>

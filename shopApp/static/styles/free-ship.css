@@ -1,0 +1,105 @@
+/* ============================================================
+   Free-shipping progress bar
+   ============================================================ */
+
+.free-ship-bar {
+  padding: 16px 20px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255, 201, 60, 0.35);
+  background: rgba(255, 201, 60, 0.08);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.free-ship-bar.unlocked {
+  border-color: rgba(95, 227, 181, 0.4);
+  background: rgba(95, 227, 181, 0.08);
+}
+
+.free-ship-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--soft, rgba(255,255,255,0.72));
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.free-ship-text .fs-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.free-ship-text strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.free-ship-bar.unlocked .free-ship-text strong {
+  color: var(--mint, #5fe3b5);
+}
+
+.free-ship-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.free-ship-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--sun, #ffc93c), var(--pink, #ff77b1));
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.free-ship-bar.unlocked .free-ship-fill {
+  background: linear-gradient(90deg, var(--mint, #5fe3b5), var(--violet, #7b61ff));
+}
+
+/* Shimmer effect on the filled part */
+.free-ship-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: fs-shimmer 2s infinite;
+}
+
+@keyframes fs-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.free-ship-bar.unlocked .free-ship-fill::after {
+  animation: none;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .free-ship-bar {
+    padding: 14px 16px;
+    margin-bottom: 16px;
+  }
+  .free-ship-text {
+    font-size: 13px;
+    gap: 8px;
+  }
+  .free-ship-text .fs-icon {
+    font-size: 18px;
+  }
+  .free-ship-track {
+    height: 7px;
+  }
+}

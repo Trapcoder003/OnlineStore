@@ -160,7 +160,22 @@ def profile_settings(request):
 
 def cart_detail(request):
     cart = Cart(request)
-    return render(request, "pages/cart.html", {"cart": cart})
+
+    # Free-shipping progress — accounts for discounts
+    threshold = getattr(settings, "FREE_SHIPPING_THRESHOLD", 5000)
+    subtotal = float(cart.subtotal or 0)
+    discount = float(cart.discount or 0)
+    after_discount = max(0.0, subtotal - discount)
+    remaining = max(0.0, threshold - after_discount)
+    progress = min(100, int((after_discount / threshold) * 100)) if threshold else 100
+
+    return render(request, "pages/cart.html", {
+        "cart": cart,
+        "free_shipping_threshold": threshold,
+        "free_shipping_remaining": remaining,
+        "free_shipping_progress": progress,
+        "has_free_shipping": after_discount >= threshold,
+    })
 
 
 @require_POST
@@ -187,10 +202,21 @@ def cart_update(request, product_id):
     qty = int(request.POST.get("qty", 1))
     cart.update(product_id, qty)
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        # Include free-shipping state so JS doesn't need to recompute
+        threshold = getattr(settings, "FREE_SHIPPING_THRESHOLD", 5000)
+        subtotal = float(cart.subtotal or 0)
+        discount = float(cart.discount or 0)
+        after = max(0.0, subtotal - discount)
+        remaining = max(0.0, threshold - after)
+        progress = min(100, int((after / threshold) * 100)) if threshold else 100
         return JsonResponse({
             "ok": True, "cart_count": len(cart),
             "subtotal": f"{cart.subtotal:.2f}", "discount": f"{cart.discount:.2f}",
             "shipping": f"{cart.shipping:.2f}", "total": f"{cart.total:.2f}",
+            "free_shipping_threshold": threshold,
+            "free_shipping_remaining": remaining,
+            "free_shipping_progress": progress,
+            "has_free_shipping": after >= threshold,
         })
     return redirect("cart")
 
@@ -680,7 +706,6 @@ class CustomPasswordResetFromKeyView(AllauthPasswordResetFromKeyView):
         self.reset_user = None
         return self.render_to_response(self.get_context_data(token_fail=True))
 
-    # ✅ NEW: expose reset_user so the template shows "Resetting password for <username>"
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if "reset_user" not in context:
@@ -749,45 +774,37 @@ def delete_review(request, review_id):
     messages.success(request, "Your review has been deleted.")
     return redirect("product", slug=slug)
 
+
 @require_POST
 def cancel_order(request, number):
     """Deletes a pending order entirely from the database."""
     order = get_object_or_404(Order, order_number=number)
 
-    # Security check: Ensure this is the customer's order
     if order.user and order.user != request.user and not request.user.is_staff:
         messages.error(request, "You don't have access to this order.")
         return redirect("home")
 
-    # Business logic: Only allow deletion if status is pending
     if order.status == "pending":
         order.delete()
         messages.success(request, "Your pending order has been removed.")
-        return redirect("order_history") # Redirect to history because detail no longer exists
+        return redirect("order_history")
     else:
         messages.error(request, "Only pending orders can be cancelled.")
         return redirect("order_detail", number=order.order_number)
+
 
 # ---------------- STAFF LOGIN REDIRECT ----------------
 
 class StaffAwareLoginView(AllauthLoginView):
     """
     After successful login:
-    - Staff users land directly on /staff/ dashboard (no detour through /).
-    - Customers follow normal allauth redirect (next param or LOGIN_REDIRECT_URL).
+    - Staff users land directly on /staff/ dashboard.
+    - Customers follow normal allauth redirect.
     """
 
     def form_valid(self, form):
-        # At this point the form has already authenticated the user,
-        # but allauth hasn't called login() yet, so self.request.user
-        # is still AnonymousUser. form.user holds the real user.
         user = form.user
-
-        # Let allauth do its normal login + redirect
         response = super().form_valid(form)
-
-        # Override the redirect destination for staff users
         if user and user.is_staff:
             return redirect("staff:dashboard")
-
         return response

@@ -230,3 +230,11 @@ body::after{width:380px;height:380px;background:var(--pink);bottom:-120px;right:
   transition: none !important;
   scroll-behavior: auto !important;
 }
+/* Free-shipping bar — unlocked state */
+.ship-bar.unlocked {
+  background: rgba(95, 227, 181, 0.08);
+  border-color: rgba(95, 227, 181, 0.35);
+}
+.ship-bar.unlocked [data-ship-fill] {
+  background: linear-gradient(90deg, #5fe3b5, #7b61ff);
+}

@@ -222,6 +222,21 @@
   </div>
 </footer>
 
+<!-- ============================================================
+     STICKY ADD-TO-CART — mobile only (in stock products only)
+     ============================================================ -->
+{% if product.stock > 0 %}
+<div class="sticky-cart" id="stickyCart" aria-hidden="true">
+  <div class="sticky-cart-info">
+    <div class="sticky-cart-name">{{ product.name }}</div>
+    <div class="sticky-cart-price">KES {{ product.price|floatformat:0 }}</div>
+  </div>
+  <button type="button" class="sticky-cart-btn" id="stickyAddBtn">
+    + Add to cart
+  </button>
+</div>
+{% endif %}
+
 <script src="{% static 'js/toast.js' %}"></script>
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
@@ -266,6 +281,71 @@
         const preview = document.createElement('div'); preview.className = 'file-preview'; preview.textContent = `${kb} KB`; label.parentElement.appendChild(preview);
       } else { label.classList.remove('has-file'); label.textContent = input.name === 'image' ? '📷 Add Image' : '🎥 Add Video'; }
     });
+  });
+})();
+</script>
+<script>
+/* ============================================================
+   STICKY ADD-TO-CART — mobile only
+   Shows a fixed bar at the bottom when the original add-to-cart
+   button scrolls out of view. Delegates click to the original
+   button so the existing AJAX handler runs unchanged.
+   ============================================================ */
+(function() {
+  'use strict';
+
+  const stickyBar = document.getElementById('stickyCart');
+  const stickyBtn = document.getElementById('stickyAddBtn');
+  if (!stickyBar || !stickyBtn) return;
+
+  const originalForm = document.querySelector('form.add-form');
+  if (!originalForm) return;
+
+  const originalBtn = originalForm.querySelector('button[type="submit"]');
+  if (!originalBtn) return;
+
+  // Only run on mobile widths
+  const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+
+  if (!isMobile()) return;
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (!isMobile()) return;
+      const entry = entries[0];
+      const scrolledDown = window.scrollY > 200;
+      const shouldShow = !entry.isIntersecting && scrolledDown;
+
+      if (shouldShow) {
+        stickyBar.classList.add('is-visible');
+        stickyBar.setAttribute('aria-hidden', 'false');
+      } else {
+        stickyBar.classList.remove('is-visible');
+        stickyBar.setAttribute('aria-hidden', 'true');
+      }
+    },
+    { threshold: 0, rootMargin: '-80px 0px 0px 0px' }
+  );
+  observer.observe(originalBtn);
+
+  // Delegate click → original button, so existing AJAX submit runs unchanged
+  stickyBtn.addEventListener('click', function() {
+    if (originalBtn.disabled) return;
+    originalBtn.click();
+  });
+
+  // Sync disabled state (in case stock changes dynamically)
+  const mo = new MutationObserver(() => {
+    stickyBtn.disabled = originalBtn.disabled;
+  });
+  mo.observe(originalBtn, { attributes: true, attributeFilter: ['disabled'] });
+
+  // Also hide on resize to desktop
+  window.addEventListener('resize', () => {
+    if (!isMobile()) {
+      stickyBar.classList.remove('is-visible');
+      stickyBar.setAttribute('aria-hidden', 'true');
+    }
   });
 })();
 </script>
