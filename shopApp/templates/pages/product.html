@@ -8,15 +8,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ product.name }} · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/product.css' %}">
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
 
-<!-- HIDDEN DJANGO MESSAGES -->
 <div id="django-messages" style="display:none;">
   {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
 </div>
-
 
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
@@ -59,8 +58,6 @@
     <a href="{% url 'category' product.category.slug %}">{{ product.category.name }}</a><span aria-hidden="true">›</span>
     <span aria-current="page">{{ product.name }}</span>
   </nav>
-
-  
 
   <div class="product-layout">
     <section class="gallery">
@@ -193,11 +190,24 @@
 
   {% if related %}
   <section class="related">
-    <div class="sec-head"><div><h2>You might also like</h2><p>More from {{ product.category.name }}</p></div><a class="link" href="{% url 'category' product.category.slug %}">View category →</a></div>
+    <div class="sec-head">
+      <div>
+        <h2>You might also like</h2>
+        <p>More from {{ product.category.name }}</p>
+      </div>
+      <a class="link" href="{% url 'category' product.category.slug %}">View category →</a>
+    </div>
+    
     <div class="related-grid">
       {% for p in related %}
       <article class="related-card">
-        <a class="related-thumb" href="{% url 'product' p.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">{% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">{% else %}<span>🛍️</span>{% endif %}</a>
+        <a class="related-thumb" href="{% url 'product' p.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
+          {% if p.image %}
+            <img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy" decoding="async">
+          {% else %}
+            <span>🛍️</span>
+          {% endif %}
+        </a>
         <div class="related-info">
           <small class="related-cat">{{ p.category.name }}</small>
           <h3 class="related-name"><a href="{% url 'product' p.slug %}">{{ p.name }}</a></h3>
@@ -222,9 +232,6 @@
   </div>
 </footer>
 
-<!-- ============================================================
-     STICKY ADD-TO-CART — mobile only (in stock products only)
-     ============================================================ -->
 {% if product.stock > 0 %}
 <div class="sticky-cart" id="stickyCart" aria-hidden="true">
   <div class="sticky-cart-info">
@@ -285,37 +292,23 @@
 })();
 </script>
 <script>
-/* ============================================================
-   STICKY ADD-TO-CART — mobile only
-   Shows a fixed bar at the bottom when the original add-to-cart
-   button scrolls out of view. Delegates click to the original
-   button so the existing AJAX handler runs unchanged.
-   ============================================================ */
 (function() {
   'use strict';
-
   const stickyBar = document.getElementById('stickyCart');
   const stickyBtn = document.getElementById('stickyAddBtn');
   if (!stickyBar || !stickyBtn) return;
-
   const originalForm = document.querySelector('form.add-form');
   if (!originalForm) return;
-
   const originalBtn = originalForm.querySelector('button[type="submit"]');
   if (!originalBtn) return;
-
-  // Only run on mobile widths
   const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
-
   if (!isMobile()) return;
-
   const observer = new IntersectionObserver(
     (entries) => {
       if (!isMobile()) return;
       const entry = entries[0];
       const scrolledDown = window.scrollY > 200;
       const shouldShow = !entry.isIntersecting && scrolledDown;
-
       if (shouldShow) {
         stickyBar.classList.add('is-visible');
         stickyBar.setAttribute('aria-hidden', 'false');
@@ -327,20 +320,14 @@
     { threshold: 0, rootMargin: '-80px 0px 0px 0px' }
   );
   observer.observe(originalBtn);
-
-  // Delegate click → original button, so existing AJAX submit runs unchanged
   stickyBtn.addEventListener('click', function() {
     if (originalBtn.disabled) return;
     originalBtn.click();
   });
-
-  // Sync disabled state (in case stock changes dynamically)
   const mo = new MutationObserver(() => {
     stickyBtn.disabled = originalBtn.disabled;
   });
   mo.observe(originalBtn, { attributes: true, attributeFilter: ['disabled'] });
-
-  // Also hide on resize to desktop
   window.addEventListener('resize', () => {
     if (!isMobile()) {
       stickyBar.classList.remove('is-visible');
