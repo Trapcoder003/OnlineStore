@@ -162,13 +162,29 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Email — Resend HTTP API
 # ---------------------------------------------------------------
 # Bypasses SMTP entirely. Works on PythonAnywhere free tier.
-RESEND_API_KEY = config("RESEND_API_KEY", default="")
-resend.api_key = RESEND_API_KEY
+# ---------- Email ----------
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = config("EMAIL_HOST", default="")
+EMAIL_PORT = config("EMAIL_PORT", default=587, cast=int)
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
+EMAIL_TIMEOUT = 15
 
-EMAIL_BACKEND = "shopApp.email_backends.ResendBackend"
-DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="onboarding@resend.dev")
+DEFAULT_FROM_EMAIL = config(
+    "DEFAULT_FROM_EMAIL",
+    default="E-Shop <davidambale860@gmail.com>",
+)
 CONTACT_RECEIVER = config("CONTACT_RECEIVER", default="davidambale860@gmail.com")
 
+# Resend kept for future use — only active if EMAIL_BACKEND is set to ResendBackend
+RESEND_API_KEY = config("RESEND_API_KEY", default="")
+if RESEND_API_KEY:
+    import resend
+    resend.api_key = RESEND_API_KEY
 
 # ---------------------------------------------------------------
 # CSRF & site URL
