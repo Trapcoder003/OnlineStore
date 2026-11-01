@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.db import models, transaction
-from django.db.models import Q, Avg, Sum
+from django.db.models import Q, Avg, Sum, Count
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.template.loader import render_to_string
@@ -202,7 +202,6 @@ def cart_update(request, product_id):
     qty = int(request.POST.get("qty", 1))
     cart.update(product_id, qty)
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        # Include free-shipping state so JS doesn't need to recompute
         threshold = getattr(settings, "FREE_SHIPPING_THRESHOLD", 5000)
         subtotal = float(cart.subtotal or 0)
         discount = float(cart.discount or 0)
@@ -390,13 +389,54 @@ def order_receipt(request, number):
 def order_history(request):
     if not request.user.is_authenticated:
         return redirect("account_login")
-    orders = (
-    Order.objects
-    .filter(user=request.user)
-    .select_related("user", "user__profile")
-    .prefetch_related("items")
-)
-    return render(request, "pages/order_history.html", {"orders": orders})
+
+    all_orders = (
+        Order.objects
+        .filter(user=request.user)
+        .select_related("user", "user__profile")
+        .prefetch_related("items")
+        .order_by("-created_at")
+    )
+
+    status_filter = request.GET.get("status", "all").lower()
+
+    # Counts per tab group
+    counts = all_orders.aggregate(
+        total=Count("id"),
+        pending=Count("id", filter=Q(status="pending")),
+        paid=Count("id", filter=Q(status="paid")),
+        processing=Count("id", filter=Q(status__in=["processing", "shipped", "ready_for_pickup"])),
+        completed=Count("id", filter=Q(status="picked_up")),
+        cancelled=Count("id", filter=Q(status__in=["cancelled", "failed", "refunded"])),
+    )
+
+    # Filter by tab
+    if status_filter == "pending":
+        orders = all_orders.filter(status="pending")
+    elif status_filter == "paid":
+        orders = all_orders.filter(status="paid")
+    elif status_filter == "processing":
+        orders = all_orders.filter(status__in=["processing", "shipped", "ready_for_pickup"])
+    elif status_filter == "completed":
+        orders = all_orders.filter(status="picked_up")
+    elif status_filter == "cancelled":
+        orders = all_orders.filter(status__in=["cancelled", "failed", "refunded"])
+    else:
+        status_filter = "all"
+        orders = all_orders
+
+    total_spent = (
+        all_orders
+        .filter(status__in=["paid", "processing", "shipped", "ready_for_pickup", "picked_up"])
+        .aggregate(t=Sum("total"))["t"] or 0
+    )
+
+    return render(request, "pages/order_history.html", {
+        "orders": orders,
+        "counts": counts,
+        "status_filter": status_filter,
+        "total_spent": total_spent,
+    })
 
 
 # ---------------- ORDER TRACKING ----------------
@@ -510,10 +550,6 @@ def staff_orders_dashboard(request):
 @staff_member_required
 @require_POST
 def staff_advance_order(request, order_number):
-    """
-    One-click advance to the next status.
-    BLOCKS advancement if payment hasn't been confirmed.
-    """
     order = get_object_or_404(Order, order_number=order_number)
     referer = request.META.get("HTTP_REFERER", "staff_orders_dashboard")
 
@@ -667,7 +703,6 @@ def mpesa_callback(request):
 
 
 def send_order_confirmation_email(order):
-    """Send receipt + order summary with working links."""
     base_url = getattr(settings, "SITE_URL", "http://localhost:8000").rstrip("/")
 
     subject = f"Order confirmed · {order.order_number} · E-Shop"
@@ -777,7 +812,6 @@ def delete_review(request, review_id):
 
 @require_POST
 def cancel_order(request, number):
-    """Deletes a pending order entirely from the database."""
     order = get_object_or_404(Order, order_number=number)
 
     if order.user and order.user != request.user and not request.user.is_staff:
