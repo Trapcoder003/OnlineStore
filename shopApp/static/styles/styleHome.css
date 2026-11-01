@@ -782,3 +782,27 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
 
 .toast-popup.info { border-color: #7b61ff; background: rgba(30, 25, 60, 0.95); }
 .toast-popup.info .t-icon { color: #7b61ff; }
+/* ============================================================
+   BUTTON LOADING SPINNER
+   ============================================================ */
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: btn-spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.btn-loading {
+  opacity: 0.75 !important;
+  cursor: wait !important;
+  pointer-events: none !important;
+}

@@ -1,3 +1,5 @@
+{% load i18n %}
+{% load account %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -7,6 +9,7 @@
 <meta name="theme-color" content="#14103a">
 <title>Sign in · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/auth.css' %}">
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 </head>
 <body class="auth-page">
 
@@ -71,7 +74,6 @@
             <input type="text" name="login" id="id_login" placeholder=" "
                    value="{{ form.login.value|default:'' }}" required autocomplete="username">
             <label for="id_login">Username</label>
-            <button type="button" class="pw-toggle" aria-label="Toggle" style="display:none;">👁</button>
             {% if form.login.errors %}<span class="err">{{ form.login.errors.0 }}</span>{% endif %}
           </div>
 
@@ -155,6 +157,21 @@
 </main>
 
 <script>
+// 1. GLOBAL LOADING TOGGLE
+window.toggleLoading = function(button, isLoading, loadingText) {
+  if (!button) return;
+  if (isLoading) {
+    button.dataset.originalHtml = button.innerHTML;
+    button.innerHTML = `<span class="btn-spinner"></span> ${loadingText || 'Processing...'}`;
+    button.classList.add('btn-loading');
+    button.disabled = true;
+  } else {
+    if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
+    button.classList.remove('btn-loading');
+    button.disabled = false;
+  }
+};
+
 (function () {
   'use strict';
 
@@ -213,11 +230,13 @@
   }
   if (pwd2) pwd2.addEventListener('input', checkMatch);
 
-  /* Submit spinner */
-  document.querySelectorAll('.form').forEach(function (f) {
+  /* 2. SUBMIT SPINNER FOR LOGIN AND SIGNUP FORMS */
+  document.querySelectorAll('form.form').forEach(function (f) {
     f.addEventListener('submit', function () {
       var btn = f.querySelector('button[type=submit]');
-      if (btn) { btn.disabled = true; btn.textContent = 'Please wait…'; }
+      if (btn && !btn.classList.contains('btn-loading')) { 
+        window.toggleLoading(btn, true, 'Please wait...'); 
+      }
     });
   });
 })();

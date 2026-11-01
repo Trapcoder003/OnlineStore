@@ -6,14 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shop · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/shop.css' %}">
+<link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 </head>
 <body>
 
-<!-- HIDDEN DJANGO MESSAGES -->
 <div id="django-messages" style="display:none;">
   {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
 </div>
-
 
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
@@ -33,7 +32,6 @@
 </header>
 
 <main class="wrap page">
-
   <section class="page-head">
     <h1>All Products</h1>
     <p>Browse our entire collection of high-quality items.</p>
@@ -129,9 +127,24 @@
   </div>
 </footer>
 
-
 <script src="{% static 'js/profile-menu.js' %}"></script>
+<script src="{% static 'js/toast.js' %}"></script>
 <script>
+// 1. GLOBAL LOADING TOGGLE
+window.toggleLoading = function(button, isLoading, loadingText) {
+  if (!button) return;
+  if (isLoading) {
+    button.dataset.originalHtml = button.innerHTML;
+    button.innerHTML = `<span class="btn-spinner"></span> ${loadingText || 'Processing...'}`;
+    button.classList.add('btn-loading');
+    button.disabled = true;
+  } else {
+    if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
+    button.classList.remove('btn-loading');
+    button.disabled = false;
+  }
+};
+
 (function () {
   'use strict';
 
@@ -153,9 +166,8 @@
     const btn = form.querySelector('button[type=submit]');
     if (!btn || btn.disabled) return;
 
-    const original = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Adding…';
+    // 2. SHOW SPINNER
+    window.toggleLoading(btn, true, 'Adding...');
 
     try {
       const res = await fetch(form.action, {
@@ -171,13 +183,18 @@
         el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
       });
 
-      // ✅ SHOW TOAST
       window.showToast((form.dataset.name || 'Item') + ' added to cart', 'success');
 
+      // 3. REMOVE SPINNER & SHOW SUCCESS
+      window.toggleLoading(btn, false);
       btn.textContent = '✓ Added';
-      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
+      setTimeout(() => { 
+        btn.textContent = btn.dataset.originalHtml ? btn.dataset.originalHtml : 'Add to cart'; 
+      }, 1100);
+
     } catch (err) {
       console.error('Add to cart failed:', err);
+      window.toggleLoading(btn, false); // Stop spinner on error
       form.submit();
     }
   });
@@ -198,7 +215,6 @@
         document.querySelectorAll('[data-wishlist-count]').forEach(el => el.textContent = json.count);
         if (!json.in_wishlist) this.checked = false;
 
-        // ✅ SHOW TOAST
         window.showToast(
           json.in_wishlist ? 'Added to wishlist' : 'Removed from wishlist',
           json.in_wishlist ? 'success' : 'info'
@@ -211,7 +227,5 @@
   });
 })();
 </script>
-
-<script src="{% static 'js/toast.js' %}"></script>
 </body>
 </html>
