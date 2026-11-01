@@ -158,21 +158,6 @@
 </main>
 
 <script>
-// 1. GLOBAL LOADING TOGGLE
-window.toggleLoading = function(button, isLoading, loadingText) {
-  if (!button) return;
-  if (isLoading) {
-    button.dataset.originalHtml = button.innerHTML;
-    button.innerHTML = `<span class="btn-spinner"></span> ${loadingText || 'Processing...'}`;
-    button.classList.add('btn-loading');
-    button.disabled = true;
-  } else {
-    if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
-    button.classList.remove('btn-loading');
-    button.disabled = false;
-  }
-};
-
 (function () {
   'use strict';
 
@@ -231,13 +216,11 @@ window.toggleLoading = function(button, isLoading, loadingText) {
   }
   if (pwd2) pwd2.addEventListener('input', checkMatch);
 
-  /* 2. SUBMIT SPINNER FOR BOTH FORMS */
+  /* Original Submit text for login and signup forms */
   document.querySelectorAll('form.form').forEach(function (f) {
     f.addEventListener('submit', function () {
       var btn = f.querySelector('button[type=submit]');
-      if (btn && !btn.classList.contains('btn-loading')) { 
-        window.toggleLoading(btn, true, 'Please wait...'); 
-      }
+      if (btn) { btn.disabled = true; btn.textContent = 'Please wait…'; }
     });
   });
 })();

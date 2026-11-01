@@ -65,7 +65,7 @@
     <a href="#order-receipt" class="co-strip-link">See breakdown ↓</a>
   </div>
 
-  <form method="post" class="co-form-wrap" novalidate id="checkoutForm">
+  <form method="post" class="co-form-wrap" novalidate>
     {% csrf_token %}
 
     <div class="co-section">
@@ -180,7 +180,7 @@
     </section>
 
     <div class="co-pay-block">
-      <button class="btn co-submit" type="submit" id="payBtn">
+      <button class="btn co-submit" type="submit">
         <span>Pay with M-Pesa</span>
         <span class="co-submit-icon">📲</span>
       </button>
@@ -199,35 +199,8 @@
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script src="{% static 'js/toast.js' %}"></script>
 <script>
-// 1. GLOBAL LOADING TOGGLE
-window.toggleLoading = function(button, isLoading, loadingText) {
-  if (!button) return;
-  if (isLoading) {
-    button.dataset.originalHtml = button.innerHTML;
-    button.innerHTML = `<span class="btn-spinner"></span> ${loadingText || 'Processing...'}`;
-    button.classList.add('btn-loading');
-    button.disabled = true;
-  } else {
-    if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
-    button.classList.remove('btn-loading');
-    button.disabled = false;
-  }
-};
-
 (function () {
   'use strict';
-
-  // 2. SHOW SPINNER ON CHECKOUT SUBMIT
-  const checkoutForm = document.getElementById('checkoutForm');
-  const payBtn = document.getElementById('payBtn');
-  
-  if (checkoutForm && payBtn) {
-    checkoutForm.addEventListener('submit', function() {
-      // We don't preventDefault here because we want the form to submit normally,
-      // but we show the spinner while the browser handles the request.
-      window.toggleLoading(payBtn, true, 'Connecting to M-Pesa...');
-    });
-  }
 
   const subtotal  = {{ cart.subtotal|floatformat:2 }};
   const discount  = {{ cart.discount|floatformat:2 }};

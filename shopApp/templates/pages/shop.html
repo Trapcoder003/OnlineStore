@@ -130,21 +130,6 @@
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script src="{% static 'js/toast.js' %}"></script>
 <script>
-// 1. GLOBAL LOADING TOGGLE
-window.toggleLoading = function(button, isLoading, loadingText) {
-  if (!button) return;
-  if (isLoading) {
-    button.dataset.originalHtml = button.innerHTML;
-    button.innerHTML = `<span class="btn-spinner"></span> ${loadingText || 'Processing...'}`;
-    button.classList.add('btn-loading');
-    button.disabled = true;
-  } else {
-    if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
-    button.classList.remove('btn-loading');
-    button.disabled = false;
-  }
-};
-
 (function () {
   'use strict';
 
@@ -166,8 +151,9 @@ window.toggleLoading = function(button, isLoading, loadingText) {
     const btn = form.querySelector('button[type=submit]');
     if (!btn || btn.disabled) return;
 
-    // 2. SHOW SPINNER
-    window.toggleLoading(btn, true, 'Adding...');
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Adding…';
 
     try {
       const res = await fetch(form.action, {
@@ -185,16 +171,10 @@ window.toggleLoading = function(button, isLoading, loadingText) {
 
       window.showToast((form.dataset.name || 'Item') + ' added to cart', 'success');
 
-      // 3. REMOVE SPINNER & SHOW SUCCESS
-      window.toggleLoading(btn, false);
       btn.textContent = '✓ Added';
-      setTimeout(() => { 
-        btn.textContent = btn.dataset.originalHtml ? btn.dataset.originalHtml : 'Add to cart'; 
-      }, 1100);
-
+      setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
     } catch (err) {
       console.error('Add to cart failed:', err);
-      window.toggleLoading(btn, false); // Stop spinner on error
       form.submit();
     }
   });
