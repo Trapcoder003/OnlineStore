@@ -4,16 +4,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#14103a">
 <title>Sign up · E-Shop</title>
-<link rel="stylesheet" href="{% static 'styles/signup.css' %}">
+<link rel="stylesheet" href="{% static 'styles/auth.css' %}">
 </head>
-<body>
+<body class="auth-page">
 
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
   <div class="wrap">
     <a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a>
-    <label class="burger" for="nav-toggle"><span></span><span></span></label>
+    <label class="burger" for="nav-toggle"><span></span><span></span><span></span></label>
     <nav class="links">
       <a href="{% url 'home' %}">Home</a>
       <a href="{% url 'shop' %}">Shop</a>
@@ -22,8 +23,8 @@
       <a href="{% url 'faq' %}">FAQ</a>
     </nav>
     <div class="icons">
-      <a class="icon" href="#" aria-label="Wishlist">♡<b>0</b></a>
-      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
+      <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b>{{ wishlist_count|default:0 }}</b></a>
+      <a class="icon" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count|default:0 }}</b></a>
       <a class="icon active" href="{% url 'account_login' %}" aria-label="Account">👤</a>
     </div>
   </div>
@@ -46,40 +47,34 @@
     <div class="tabs" role="tablist">
       <label for="tab-signin" role="tab">Sign in</label>
       <label for="tab-signup" role="tab">Sign up</label>
-      <i class="tab-ind"></i>
+      <i class="tab-ind" aria-hidden="true"></i>
     </div>
 
     <div class="panels">
 
-      <!-- ============ SIGN IN ============ -->
+      <!-- ============ SIGN IN (mirror) ============ -->
       <div class="panel panel-signin">
         <h1>Welcome back</h1>
         <p class="sub">Sign in to continue shopping.</p>
-
-        {% if form.non_field_errors %}
-          <div class="alert"><ul>{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
-        {% endif %}
 
         <form method="post" action="{% url 'account_login' %}" class="form">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
 
           <div class="field">
-            <input type="text" name="login" id="id_login" placeholder=" "
-                   value="{{ form.login.value|default:'' }}" required autocomplete="username">
-            <label for="id_login">Username</label>
-            {% if form.login.errors %}<span class="err">{{ form.login.errors.0 }}</span>{% endif %}
+            <input type="text" name="login" id="id_login_li" placeholder=" " required autocomplete="username">
+            <label for="id_login_li">Username</label>
           </div>
 
           <div class="field">
-            <input type="password" name="password" id="id_password" placeholder=" " required autocomplete="current-password">
-            <label for="id_password">Password</label>
-            {% if form.password.errors %}<span class="err">{{ form.password.errors.0 }}</span>{% endif %}
+            <input type="password" name="password" id="id_password_li" placeholder=" " required autocomplete="current-password">
+            <label for="id_password_li">Password</label>
+            <button type="button" class="pw-toggle" data-target="id_password_li" aria-label="Show password">👁</button>
           </div>
 
           <div class="row">
             <label class="check">
-              <input type="checkbox" name="remember" id="id_remember">
+              <input type="checkbox" name="remember" id="id_remember_li">
               <span>Remember me</span>
             </label>
             <a class="link" href="{% url 'account_reset_password' %}">Forgot password?</a>
@@ -93,7 +88,7 @@
         </p>
       </div>
 
-      <!-- ============ SIGN UP ============ -->
+      <!-- ============ SIGN UP (active) ============ -->
       <div class="panel panel-signup">
         <h1>Create account</h1>
         <p class="sub">Join thousands of happy shoppers.</p>
@@ -102,18 +97,22 @@
           <div class="alert"><ul>{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
         {% endif %}
 
-        <form method="post" action="{% url 'account_signup' %}" class="form">
+        <form method="post" action="{% url 'account_signup' %}" class="form" novalidate>
           {% csrf_token %}
-          <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
+          {% if redirect_field_value %}
+            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+          {% endif %}
 
           <div class="field">
-            <input type="text" name="username" id="id_username" placeholder=" " required autocomplete="username">
+            <input type="text" name="username" id="id_username" placeholder=" "
+                   value="{{ form.username.value|default:'' }}" required autocomplete="username">
             <label for="id_username">Username</label>
             {% if form.username.errors %}<span class="err">{{ form.username.errors.0 }}</span>{% endif %}
           </div>
 
           <div class="field">
-            <input type="email" name="email" id="id_email" placeholder=" " required autocomplete="email">
+            <input type="email" name="email" id="id_email" placeholder=" "
+                   value="{{ form.email.value|default:'' }}" required autocomplete="email">
             <label for="id_email">Email address</label>
             {% if form.email.errors %}<span class="err">{{ form.email.errors.0 }}</span>{% endif %}
           </div>
@@ -122,6 +121,7 @@
             <input type="password" name="password1" id="id_password1" placeholder=" " required
                    autocomplete="new-password" data-strength>
             <label for="id_password1">Password</label>
+            <button type="button" class="pw-toggle" data-target="id_password1" aria-label="Show password">👁</button>
             {% if form.password1.errors %}<span class="err">{{ form.password1.errors.0 }}</span>{% endif %}
           </div>
 
@@ -133,8 +133,10 @@
           <div class="field">
             <input type="password" name="password2" id="id_password2" placeholder=" " required autocomplete="new-password">
             <label for="id_password2">Confirm password</label>
+            <button type="button" class="pw-toggle" data-target="id_password2" aria-label="Show password">👁</button>
             {% if form.password2.errors %}<span class="err">{{ form.password2.errors.0 }}</span>{% endif %}
           </div>
+          <div class="pw-match" id="pwMatch"></div>
 
           <label class="check terms">
             <input type="checkbox" required>
@@ -158,38 +160,69 @@
 (function () {
   'use strict';
 
-  /* Password strength */
-  const input = document.querySelector('[data-strength]');
-  const bar = document.querySelector('.strength');
-  if (input && bar) {
-    const segs = bar.querySelectorAll('i');
-    const label = bar.querySelector('.strength-label');
-    function score(pw) {
-      let s = 0;
-      if (!pw) return 0;
-      if (pw.length >= 8) s++;
-      if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) s++;
-      if (/\d/.test(pw)) s++;
-      if (/[^A-Za-z0-9]/.test(pw)) s++;
-      return s;
-    }
-    input.addEventListener('input', () => {
-      const s = score(input.value);
-      bar.className = 'strength lvl-' + s;
-      segs.forEach((el, i) => el.classList.toggle('on', i < s));
-      label.textContent = ['', 'Weak', 'Fair', 'Good', 'Strong'][s] || '';
+  /* Password toggles */
+  document.querySelectorAll('.pw-toggle[data-target]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.getElementById(this.dataset.target);
+      if (!input) return;
+      var isPwd = input.type === 'password';
+      input.type = isPwd ? 'text' : 'password';
+      this.textContent = isPwd ? '🙈' : '👁';
     });
+  });
+
+  /* Password strength */
+  var pwd1 = document.getElementById('id_password1');
+  var pwd2 = document.getElementById('id_password2');
+  var strengthBar = document.querySelector('.strength');
+  var strengthLabel = strengthBar ? strengthBar.querySelector('.strength-label') : null;
+  var matchEl = document.getElementById('pwMatch');
+
+  function score(p) {
+    if (!p) return 0;
+    var s = 0;
+    if (p.length >= 8) s++;
+    if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+    if (/\d/.test(p)) s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+    return Math.min(4, s);
   }
 
+  function checkMatch() {
+    if (!pwd1 || !pwd2 || !matchEl) return;
+    if (!pwd2.value) { matchEl.textContent = ''; matchEl.className = 'pw-match'; return; }
+    if (pwd1.value === pwd2.value) {
+      matchEl.textContent = '✓ Passwords match';
+      matchEl.className = 'pw-match match';
+    } else {
+      matchEl.textContent = '✗ Passwords do not match';
+      matchEl.className = 'pw-match mismatch';
+    }
+  }
+
+  if (pwd1 && strengthBar) {
+    pwd1.addEventListener('input', function () {
+      var s = score(this.value);
+      strengthBar.className = 'strength lvl-' + s;
+      strengthBar.querySelectorAll('i').forEach(function (seg, i) {
+        seg.classList.toggle('on', i < s);
+      });
+      if (strengthLabel) {
+        strengthLabel.textContent = ['', 'Weak', 'Fair', 'Good', 'Strong'][s] || '';
+      }
+      checkMatch();
+    });
+  }
+  if (pwd2) pwd2.addEventListener('input', checkMatch);
+
   /* Submit spinner */
-  document.querySelectorAll('.form').forEach(f => {
-    f.addEventListener('submit', () => {
-      const btn = f.querySelector('button[type=submit]');
+  document.querySelectorAll('.form').forEach(function (f) {
+    f.addEventListener('submit', function () {
+      var btn = f.querySelector('button[type=submit]');
       if (btn) { btn.disabled = true; btn.textContent = 'Please wait…'; }
     });
   });
 })();
 </script>
-
 </body>
 </html>
