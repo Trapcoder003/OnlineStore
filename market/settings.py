@@ -37,8 +37,9 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "allauth",
     "allauth.account",
-
+        
     "shopApp.apps.ShopappConfig",
+    "anymail",
 ]
 
 
@@ -163,27 +164,19 @@ MEDIA_ROOT = BASE_DIR / "media"
 # ---------------------------------------------------------------
 # Bypasses SMTP entirely. Works on PythonAnywhere free tier.
 # ---------- Email ----------
-EMAIL_BACKEND = config(
-    "EMAIL_BACKEND",
-    default="django.core.mail.backends.smtp.EmailBackend",
-)
-EMAIL_HOST = config("EMAIL_HOST", default="")
-EMAIL_PORT = config("EMAIL_PORT", default=465, cast=int)
-EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=False, cast=bool)
-EMAIL_USE_SSL = config("EMAIL_USE_SSL", default=True, cast=bool)
+# ---------- Email (Resend via django-anymail) ----------
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+
+ANYMAIL = {
+    "RESEND_API_KEY": config("RESEND_API_KEY", default=""),
+        "USER_AGENT": "E-Shop/1.0",
+}
+
 DEFAULT_FROM_EMAIL = config(
     "DEFAULT_FROM_EMAIL",
-    default="E-Shop <davidambale860@gmail.com>",
+    default="E-Shop <onboarding@resend.dev>",
 )
 CONTACT_RECEIVER = config("CONTACT_RECEIVER", default="davidambale860@gmail.com")
-
-# Resend kept for future use — only active if EMAIL_BACKEND is set to ResendBackend
-RESEND_API_KEY = config("RESEND_API_KEY", default="")
-if RESEND_API_KEY:
-    import resend
-    resend.api_key = RESEND_API_KEY
 
 # ---------------------------------------------------------------
 # CSRF & site URL
