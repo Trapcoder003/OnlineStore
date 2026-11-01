@@ -273,11 +273,22 @@
   const modal = document.getElementById('coModal');
   const bar   = document.getElementById('coBar');
   let lastFocused = null;
+  let savedScrollY = 0;
 
   function openModal() {
     lastFocused = document.activeElement;
+    savedScrollY = window.scrollY;
+
+    // Measure scrollbar width and pad the body so background doesn't shift
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = scrollbarWidth + 'px';
+    }
+    document.body.style.overflow = 'hidden';
+
     modal.hidden = false;
     document.body.classList.add('co-modal-open');
+
     const closeBtn = modal.querySelector('.co-modal-close');
     if (closeBtn) closeBtn.focus();
   }
@@ -285,6 +296,12 @@
   function closeModal() {
     modal.hidden = true;
     document.body.classList.remove('co-modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+
+    // Restore scroll position in case the browser reset it
+    window.scrollTo(0, savedScrollY);
+
     if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
   }
 

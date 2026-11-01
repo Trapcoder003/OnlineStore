@@ -1,8 +1,8 @@
 /* ============================================================
-   CHECKOUT — Sticky summary bar + modal (mobile-optimized)
+   CHECKOUT — Sticky bar + centered floating modal
    ============================================================ */
 
-/* ---------- Prevent horizontal shift when scroll locks ---------- */
+/* Reserve scrollbar space — prevents horizontal shift */
 html {
   scrollbar-gutter: stable;
 }
@@ -72,7 +72,6 @@ html {
   flex-direction: column;
   gap: 12px;
 }
-
 .co-submit {
   width: 100%;
   padding: 18px 24px;
@@ -82,7 +81,6 @@ html {
   justify-content: center;
   gap: 10px;
 }
-
 .co-secure {
   color: var(--soft, rgba(255,255,255,0.72));
   font-size: 13px;
@@ -90,7 +88,6 @@ html {
   margin: 0;
   line-height: 1.5;
 }
-
 .co-back {
   color: var(--soft, rgba(255,255,255,0.72));
   text-align: center;
@@ -101,7 +98,7 @@ html {
 .co-back:hover { color: var(--mint, #5fe3b5); }
 
 /* ============================================================
-   MODAL — mobile-first, bottom-sheet on phones
+   MODAL — centered floating card on all screen sizes
    ============================================================ */
 
 .co-modal {
@@ -109,9 +106,9 @@ html {
   inset: 0;
   z-index: 9000;
   display: flex;
-  align-items: flex-end;
+  align-items: center;              /* CENTER vertically */
   justify-content: center;
-  /* Prevent scroll bleed from parent while open */
+  padding: 20px;                     /* space around modal — makes it "float" */
   overscroll-behavior: contain;
 }
 .co-modal[hidden] { display: none; }
@@ -119,70 +116,37 @@ html {
 .co-modal-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   animation: co-fade-in 0.2s ease;
 }
 
 .co-modal-panel {
   position: relative;
   width: 100%;
-  max-width: 520px;
-  /* Use dvh for correct mobile viewport (excludes address bar) */
-  max-height: 88dvh;
-  max-height: 88vh; /* fallback */
+  max-width: 440px;                  /* compact card — floats */
+  max-height: calc(100dvh - 40px);   /* fits viewport with margins */
+  max-height: calc(100vh - 40px);    /* fallback */
   background: #14103a;
-  border-radius: 24px 24px 0 0;
+  border-radius: 20px;               /* rounded all sides — floating look */
   display: flex;
   flex-direction: column;
-  animation: co-slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: co-scale-in 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.5);
-  /* Respect iPhone home bar */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
-/* Small grab-handle indicator on mobile */
-.co-modal-panel::before {
-  content: "";
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 36px;
-  height: 4px;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, 0.25);
-  z-index: 1;
-}
-
-/* Desktop: centered modal */
-@media (min-width: 640px) {
-  .co-modal {
-    align-items: center;
-    padding: 20px;
-  }
-  .co-modal-panel {
-    border-radius: 20px;
-    animation: co-scale-in 0.2s ease;
-    max-height: 90vh;
-    padding-bottom: 0;
-  }
-  .co-modal-panel::before { display: none; }
-}
-
-@keyframes co-fade-in   { from { opacity: 0; } to { opacity: 1; } }
-@keyframes co-slide-up  { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes co-scale-in  { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+@keyframes co-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes co-scale-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
 
 /* Header */
 .co-modal-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 20px 16px;
+  padding: 18px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
@@ -190,11 +154,11 @@ html {
 .co-modal-close {
   background: rgba(255, 255, 255, 0.06);
   border: none;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -203,24 +167,24 @@ html {
 }
 .co-modal-close:hover { background: rgba(255, 255, 255, 0.14); }
 
-/* Body — scrolls independently */
+/* Body — scrolls independently, never overflows the modal */
 .co-modal-body {
   padding: 16px 20px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   flex: 1 1 auto;
-  min-height: 0; /* critical for flex scroll to work */
+  min-height: 0;
 }
 
-/* ---------- Item rows — mobile-safe ---------- */
+/* ---------- Item rows — tight, mobile-safe ---------- */
 .co-items {
   list-style: none;
   padding: 0;
-  margin: 0 0 18px;
+  margin: 0 0 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 .co-item {
   display: flex;
@@ -230,15 +194,15 @@ html {
 }
 .co-item-thumb {
   position: relative;
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 10px;
   overflow: visible;
   background: rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  font-size: 22px;
+  font-size: 20px;
 }
 .co-item-thumb img {
   width: 100%;
@@ -265,7 +229,7 @@ html {
 }
 .co-item-info {
   flex: 1 1 0;
-  min-width: 0; /* allows truncation */
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -281,9 +245,9 @@ html {
 .co-item-info small {
   color: var(--soft, rgba(255,255,255,0.72));
   font-size: 12px;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .co-item-line {
   font-size: 13px;
@@ -291,24 +255,23 @@ html {
   color: #fff;
   white-space: nowrap;
   flex-shrink: 0;
-  text-align: right;
 }
 
-/* ---------- Totals lines ---------- */
+/* ---------- Totals ---------- */
 .co-lines {
   list-style: none;
-  padding: 14px 0 0;
-  margin: 0 0 14px;
+  padding: 12px 0 0;
+  margin: 0 0 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 .co-lines li {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--soft, rgba(255,255,255,0.72));
 }
 .co-lines li strong {
@@ -319,19 +282,18 @@ html {
 }
 .co-discount strong { color: var(--mint, #5fe3b5); }
 
-/* Total */
 .co-total {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   gap: 12px;
-  padding-top: 14px;
+  padding-top: 12px;
   border-top: 2px solid rgba(255, 255, 255, 0.14);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
 }
 .co-total strong {
-  font-size: 22px;
+  font-size: 20px;
   background: linear-gradient(90deg, #5fe3b5, #ff77b1);
   -webkit-background-clip: text;
   background-clip: text;
@@ -341,40 +303,42 @@ html {
 
 /* Footer */
 .co-modal-foot {
-  padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  padding: 14px 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(0, 0, 0, 0.15);
   flex-shrink: 0;
 }
 .co-modal-foot .btn { width: 100%; }
 
-/* ---------- Scroll lock ---------- */
+/* ---------- Bulletproof scroll lock — no content shift ---------- */
 body.co-modal-open {
   overflow: hidden;
-  /* Keep horizontal position stable */
-  padding-right: var(--scrollbar-width, 0);
+  /* padding-right is set via JS to match scrollbar width */
 }
 
-/* ---------- Mobile-specific tweaks ---------- */
+/* ---------- Small mobile tweaks ---------- */
 @media (max-width: 480px) {
   .co-bar { font-size: 13px; padding: 11px 14px; }
   .co-bar-chev { font-size: 12px; }
   .co-bar-icon { font-size: 16px; }
 
-  .co-modal-head { padding: 22px 16px 14px; }
+  .co-modal { padding: 16px; }        /* less margin on tiny screens */
+  .co-modal-panel { max-width: 100%; max-height: calc(100dvh - 32px); }
+
+  .co-modal-head { padding: 16px 16px; }
   .co-modal-head h2 { font-size: 16px; }
   .co-modal-close { width: 32px; height: 32px; }
 
   .co-modal-body { padding: 14px 16px; }
 
-  .co-item-thumb { width: 46px; height: 46px; }
+  .co-item-thumb { width: 44px; height: 44px; }
   .co-item-info strong { font-size: 13px; }
   .co-item-info small { font-size: 11px; }
   .co-item-line { font-size: 12px; }
 
-  .co-lines li { font-size: 13px; }
-  .co-total { font-size: 15px; }
-  .co-total strong { font-size: 20px; }
+  .co-lines li { font-size: 12.5px; }
+  .co-total { font-size: 14px; }
+  .co-total strong { font-size: 18px; }
 
-  .co-modal-foot { padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .co-modal-foot { padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px)); }
 }
