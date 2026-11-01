@@ -78,14 +78,14 @@
     <p>Almost there — confirm your details and complete payment.</p>
   </section>
 
-  {# STICKY SUMMARY BAR — tap to open modal #}
-  <button type="button" class="co-bar" id="coBar" aria-haspopup="dialog" aria-controls="coModal">
-    <span class="co-bar-icon">🛒</span>
-    <span class="co-bar-label">{{ cart|length }} item{{ cart|length|pluralize }}</span>
-    <span class="co-bar-dot">·</span>
-    <span class="co-bar-total" id="co-bar-total">KES {{ cart.total|money }}</span>
-    <span class="co-bar-chev">View details ▼</span>
-  </button>
+  {# STICKY TOTAL STRIP — always visible, no interaction, no overlay #}
+  <div class="co-strip" role="status" aria-live="polite">
+    <span class="co-strip-icon" aria-hidden="true">🛒</span>
+    <span class="co-strip-count">{{ cart|length }} item{{ cart|length|pluralize }}</span>
+    <span class="co-strip-sep" aria-hidden="true">·</span>
+    <span class="co-strip-total" id="co-strip-total">KES {{ cart.total|money }}</span>
+    <a href="#order-receipt" class="co-strip-link">See breakdown ↓</a>
+  </div>
 
   <form method="post" class="co-form-wrap" novalidate>
     {% csrf_token %}
@@ -164,37 +164,10 @@
       </div>
     </div>
 
-    <div class="co-pay-block">
-      <button class="btn co-submit" type="submit">
-        <span>Pay with M-Pesa</span>
-        <span class="co-submit-icon">📲</span>
-      </button>
-      <p class="co-secure">🔒 You'll receive an STK push on your phone. Enter your M-Pesa PIN to confirm.</p>
-      <a class="co-back" href="{% url 'cart' %}">← Back to cart</a>
-    </div>
-  </form>
+    {# INLINE RECEIPT CARD — placed right above the pay button #}
+    <section class="co-receipt" id="order-receipt" aria-labelledby="coReceiptTitle">
+      <h2 class="co-receipt-title" id="coReceiptTitle">📋 Order summary</h2>
 
-</main>
-
-<footer>
-  <div class="wrap">
-    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
-  </div>
-</footer>
-
-{# ============================================================
-   ORDER SUMMARY MODAL
-   ============================================================ #}
-<div class="co-modal" id="coModal" role="dialog" aria-modal="true" aria-labelledby="coModalTitle" hidden>
-  <div class="co-modal-backdrop" data-close></div>
-
-  <div class="co-modal-panel" role="document">
-    <header class="co-modal-head">
-      <h2 id="coModalTitle">Order summary</h2>
-      <button type="button" class="co-modal-close" aria-label="Close summary" data-close>✕</button>
-    </header>
-
-    <div class="co-modal-body">
       <ul class="co-items">
         {% for item in cart %}
           <li class="co-item">
@@ -225,30 +198,42 @@
 
       <div class="co-total">
         <span>Total</span>
-        <strong id="co-total">KES {{ cart.total|money }}</strong>
+        <strong id="co-receipt-total">KES {{ cart.total|money }}</strong>
       </div>
-    </div>
+    </section>
 
-    <footer class="co-modal-foot">
-      <button type="button" class="btn" data-close>Back to checkout</button>
-    </footer>
+    <div class="co-pay-block">
+      <button class="btn co-submit" type="submit">
+        <span>Pay with M-Pesa</span>
+        <span class="co-submit-icon">📲</span>
+      </button>
+      <p class="co-secure">🔒 You'll receive an STK push on your phone. Enter your M-Pesa PIN to confirm.</p>
+      <a class="co-back" href="{% url 'cart' %}">← Back to cart</a>
+    </div>
+  </form>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
-</div>
+</footer>
 
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
 (function () {
   'use strict';
 
-  const subtotal = {{ cart.subtotal|floatformat:2 }};
-  const discount = {{ cart.discount|floatformat:2 }};
-  const FREE = 5000;
-  const FEES = { pickup: 0, standard: 300, express: 500 };
+  const subtotal  = {{ cart.subtotal|floatformat:2 }};
+  const discount  = {{ cart.discount|floatformat:2 }};
+  const FREE      = 5000;
+  const FEES      = { pickup: 0, standard: 300, express: 500 };
 
-  const barTotal   = document.getElementById('co-bar-total');
-  const modalTotal = document.getElementById('co-total');
-  const deliveryEl = document.getElementById('co-delivery');
-  const radios     = document.querySelectorAll('input[name="delivery_method"]');
+  const stripTotal   = document.getElementById('co-strip-total');
+  const receiptTotal = document.getElementById('co-receipt-total');
+  const deliveryEl   = document.getElementById('co-delivery');
+  const radios       = document.querySelectorAll('input[name="delivery_method"]');
 
   const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', {
     minimumFractionDigits: 2, maximumFractionDigits: 2
@@ -261,64 +246,13 @@
     if (sel.value !== 'pickup' && subtotal >= FREE) fee = 0;
     const total = subtotal - discount + fee;
 
-    if (deliveryEl) deliveryEl.textContent = fee === 0 ? 'Free' : fmt(fee);
-    if (modalTotal) modalTotal.textContent = fmt(total);
-    if (barTotal)   barTotal.textContent   = fmt(total);
+    if (deliveryEl)   deliveryEl.textContent   = fee === 0 ? 'Free' : fmt(fee);
+    if (receiptTotal) receiptTotal.textContent = fmt(total);
+    if (stripTotal)   stripTotal.textContent   = fmt(total);
   }
 
   radios.forEach(r => r.addEventListener('change', updateTotals));
   updateTotals();
-
-  /* ---------- MODAL ---------- */
-  const modal = document.getElementById('coModal');
-  const bar   = document.getElementById('coBar');
-  let lastFocused = null;
-  let savedScrollY = 0;
-
-  function openModal() {
-    lastFocused = document.activeElement;
-    savedScrollY = window.scrollY;
-
-    // Measure scrollbar width and pad the body so background doesn't shift
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = scrollbarWidth + 'px';
-    }
-    document.body.style.overflow = 'hidden';
-
-    modal.hidden = false;
-    document.body.classList.add('co-modal-open');
-
-    const closeBtn = modal.querySelector('.co-modal-close');
-    if (closeBtn) closeBtn.focus();
-  }
-
-  function closeModal() {
-    modal.hidden = true;
-    document.body.classList.remove('co-modal-open');
-    document.body.style.overflow = '';
-    document.body.style.paddingRight = '';
-
-    // Restore scroll position in case the browser reset it
-    window.scrollTo(0, savedScrollY);
-
-    if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
-  }
-
-  if (bar) {
-    bar.addEventListener('click', openModal);
-    bar.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(); }
-    });
-  }
-
-  modal.querySelectorAll('[data-close]').forEach(el => {
-    el.addEventListener('click', closeModal);
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !modal.hidden) closeModal();
-  });
 })();
 </script>
 
