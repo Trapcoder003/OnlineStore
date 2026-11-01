@@ -169,12 +169,22 @@ def cart_detail(request):
     remaining = max(0.0, threshold - after_discount)
     progress = min(100, int((after_discount / threshold) * 100)) if threshold else 100
 
+    # Cross-sell: in-stock products not already in the cart
+    cart_product_ids = [item["product"].id for item in cart]
+    suggested_products = (
+        Product.objects
+        .filter(stock__gt=0)
+        .exclude(id__in=cart_product_ids)
+        .order_by("-sold_count", "-is_featured", "-id")[:4]
+    )
+
     return render(request, "pages/cart.html", {
         "cart": cart,
         "free_shipping_threshold": threshold,
         "free_shipping_remaining": remaining,
         "free_shipping_progress": progress,
         "has_free_shipping": after_discount >= threshold,
+        "suggested_products": suggested_products,
     })
 
 
@@ -400,7 +410,6 @@ def order_history(request):
 
     status_filter = request.GET.get("status", "all").lower()
 
-    # Counts per tab group
     counts = all_orders.aggregate(
         total=Count("id"),
         pending=Count("id", filter=Q(status="pending")),
@@ -410,7 +419,6 @@ def order_history(request):
         cancelled=Count("id", filter=Q(status__in=["cancelled", "failed", "refunded"])),
     )
 
-    # Filter by tab
     if status_filter == "pending":
         orders = all_orders.filter(status="pending")
     elif status_filter == "paid":

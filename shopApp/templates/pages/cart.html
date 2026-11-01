@@ -8,12 +8,10 @@
 <title>Your cart · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/cart.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
-<link rel="stylesheet" href="{% static 'styles/free-ship.css' %}">
 <link rel="stylesheet" href="{% static 'styles/payment-icons.css' %}">
 </head>
 <body>
 
-<!-- HIDDEN DJANGO MESSAGES -->
 <div id="django-messages" style="display:none;">
   {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
 </div>
@@ -33,19 +31,16 @@
     <div class="icons">
       <a class="icon" href="{% url 'wishlist' %}" aria-label="Wishlist">♡<b data-wishlist-count>{{ wishlist_count }}</b></a>
       <a class="icon active" href="{% url 'cart' %}" aria-label="Cart">🛒<b data-cart-count>{{ cart_count }}</b></a>
-
       <div class="profile-menu" id="profile-menu">
-        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" style="padding: 0; border: none; background: transparent; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
+        <button type="button" class="profile-trigger nav-avatar-btn" aria-label="Account menu" aria-haspopup="true" aria-expanded="false" style="padding:0;border:none;background:transparent;display:flex;align-items:center;justify-content:center;width:44px;height:44px;">
           {% if user.is_authenticated and user.profile.avatar %}
-            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img" style="width: 36px; height: 36px; min-width: 36px; min-height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.2); display: block;">
+            <img src="{{ user.profile.avatar.url }}" alt="{{ user.username }}" class="nav-avatar-img" style="width:36px;height:36px;min-width:36px;min-height:36px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.2);display:block;">
           {% else %}
-            <span style="font-size: 20px;">👤</span>
+            <span style="font-size:20px;">👤</span>
           {% endif %}
         </button>
         <div class="profile-dropdown" role="menu">
-          {% if user.is_staff %}
-            <div class="menu-divider"></div>
-          {% endif %}
+          {% if user.is_staff %}<div class="menu-divider"></div>{% endif %}
           <a href="{% url 'order_history' %}" role="menuitem"><span class="menu-emoji">📦</span><span>My Orders</span></a>
           <a href="{% url 'cart' %}" role="menuitem"><span class="menu-emoji">🛒</span><span>My Cart</span>{% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}</a>
           <a href="{% url 'wishlist' %}" role="menuitem"><span class="menu-emoji">♡</span><span>Wishlist</span>{% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}</a>
@@ -61,129 +56,217 @@
 <main class="wrap page">
 
   <section class="head">
-    <h1>Your cart</h1>
-    <p>{% if cart|length %}{{ cart|length }} item{{ cart|length|pluralize }} · ready when you are.{% else %}Nothing here yet.{% endif %}</p>
+    <div>
+      <h1>Your cart</h1>
+      <p>{% if cart|length %}{{ cart|length }} item{{ cart|length|pluralize }} · ready when you are.{% else %}Nothing here yet.{% endif %}</p>
+    </div>
+    {% if cart|length %}
+    <a href="{% url 'shop' %}" class="head-back">← Continue shopping</a>
+    {% endif %}
   </section>
 
   {% if cart|length %}
-  <div class="layout">
-    <section class="items">
+  <div class="cart-layout">
+
+    <section class="cart-items">
       {% for item in cart %}
-      <article class="item" data-id="{{ item.product.id }}" data-price="{{ item.price }}">
-        <a class="item-thumb" href="{% url 'product' item.product.slug %}" style="--c1:#7b61ff;--c2:#ff77b1">
-          {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">{% else %}<span>🛍️</span>{% endif %}
+      <article class="cart-item" data-id="{{ item.product.id }}" data-price="{{ item.price }}">
+        <a class="ci-thumb" href="{% url 'product' item.product.slug %}">
+          {% if item.product.image %}
+            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+          {% else %}
+            <span>🛍️</span>
+          {% endif %}
+          <em class="ci-qty-badge">{{ item.qty }}</em>
         </a>
-        <div class="item-body">
-          <div class="item-meta">
-            <small class="item-cat">{{ item.product.category.name }}</small>
-            <h3 class="item-name"><a href="{% url 'product' item.product.slug %}">{{ item.product.name }}</a></h3>
-            {% if item.product.brand %}<p class="item-brand">{{ item.product.brand }}</p>{% endif %}
-            <p class="item-stock">{% if item.product.stock == 0 %}<em class="out">Out of stock</em>{% elif item.product.stock < 5 %}<em class="low">Only {{ item.product.stock }} left</em>{% else %}<em class="ok">In stock</em>{% endif %}</p>
+
+        <div class="ci-body">
+          <div class="ci-head">
+            <small class="ci-cat">{{ item.product.category.name }}</small>
+            <h3 class="ci-name"><a href="{% url 'product' item.product.slug %}">{{ item.product.name }}</a></h3>
+            {% if item.product.brand %}<p class="ci-brand">{{ item.product.brand }}</p>{% endif %}
           </div>
-          <div class="item-controls">
+
+          <p class="ci-stock">
+            {% if item.product.stock == 0 %}<span class="stock-out">Out of stock</span>
+            {% elif item.product.stock < 5 %}<span class="stock-low">Only {{ item.product.stock }} left</span>
+            {% else %}<span class="stock-ok">In stock</span>{% endif %}
+          </p>
+
+          <div class="ci-controls">
             <div class="qty" role="group" aria-label="Quantity">
               <button type="button" class="step" data-action="dec" aria-label="Decrease">−</button>
               <input type="number" name="qty" value="{{ item.qty }}" min="1" max="{{ item.product.stock }}" inputmode="numeric" aria-label="Quantity">
               <button type="button" class="step" data-action="inc" aria-label="Increase">+</button>
             </div>
-            <div class="item-price"><strong data-line>KES {{ item.subtotal|money }}</strong><small>KES {{ item.price|floatformat:2 }} each</small></div>
           </div>
         </div>
-        <div class="item-remove">
-          <input type="checkbox" id="rm{{ item.product.id }}" class="rm-toggle" aria-label="Remove {{ item.product.name }}">
-          <label for="rm{{ item.product.id }}" class="rm-btn" title="Remove">✕</label>
-          <div class="rm-popover" role="dialog" aria-label="Confirm removal">
-            <p>Remove this item?</p>
-            <div class="rm-actions">
-              <form method="post" action="{% url 'cart_remove' item.product.id %}">{% csrf_token %}<button class="btn tiny danger" type="submit">Remove</button></form>
-              <label for="rm{{ item.product.id }}" class="btn tiny ghost">Cancel</label>
+
+        <div class="ci-meta">
+          <strong class="ci-line" data-line>KES {{ item.subtotal|money }}</strong>
+          <small>KES {{ item.price|floatformat:0 }} each</small>
+
+          <div class="ci-actions">
+            <input type="checkbox" id="rm{{ item.product.id }}" class="rm-toggle" aria-label="Remove {{ item.product.name }}">
+            <label for="rm{{ item.product.id }}" class="ci-remove-btn" title="Remove">✕</label>
+            <div class="rm-popover" role="dialog">
+              <p>Remove this item?</p>
+              <div class="rm-actions">
+                <form method="post" action="{% url 'cart_remove' item.product.id %}">
+                  {% csrf_token %}
+                  <button class="btn tiny danger" type="submit">Remove</button>
+                </form>
+                <label for="rm{{ item.product.id }}" class="btn tiny ghost">Cancel</label>
+              </div>
             </div>
           </div>
         </div>
       </article>
       {% endfor %}
-      <div class="items-actions"><a class="btn ghost" href="{% url 'shop' %}">← Continue shopping</a></div>
     </section>
 
-    <aside class="summary">
-      <h2>Order summary</h2>
-      <ul class="lines">
-        <li><span>Subtotal</span><strong data-subtotal>KES {{ cart.subtotal|money }}</strong></li>
-        {% if cart.coupon %}
-          <li class="discount"><span>Coupon <b>{{ cart.coupon.code }}</b></span><strong data-discount>− KES {{ cart.discount|money }}</strong></li>
-        {% else %}
-          <li class="hidden" data-discount-row><span>Discount</span><strong data-discount>− KES 0.00</strong></li>
-        {% endif %}
-        <li><span>Shipping</span><strong data-shipping>{% if cart.shipping == 0 %}Free{% else %}KES {{ cart.shipping|money }}{% endif %}</strong></li>
-        <li class="total"><span>Total</span><strong data-total>KES {{ cart.total|money }}</strong></li>
-      </ul>
+    <aside class="cart-summary">
 
-      <div class="ship-bar {% if has_free_shipping %}unlocked{% endif %}"
+      {# Free shipping progress #}
+      <div class="cs-ship {% if has_free_shipping %}unlocked{% endif %}"
            data-ship-bar
            data-ship-threshold="{{ free_shipping_threshold }}">
         {% if has_free_shipping %}
-          <div class="ship-bar-top">
-            <span data-ship-msg>🎉 Free shipping unlocked!</span>
-            <span class="ship-pct" data-ship-pct>100%</span>
+          <div class="cs-ship-icon">🎉</div>
+          <div class="cs-ship-body">
+            <strong>Free shipping unlocked!</strong>
+            <span>Your order qualifies for free standard delivery.</span>
           </div>
-          <div class="ship-track"><i data-ship-fill style="width:100%"></i></div>
         {% else %}
-          <div class="ship-bar-top">
-            <span data-ship-msg>Add <b>KES {{ free_shipping_remaining|floatformat:0 }}</b> more for free shipping</span>
-            <span class="ship-pct" data-ship-pct>{{ free_shipping_progress }}%</span>
+          <div class="cs-ship-icon">🚚</div>
+          <div class="cs-ship-body">
+            <strong data-ship-msg>Add <b>KES {{ free_shipping_remaining|floatformat:0 }}</b> for free shipping</strong>
+            <div class="cs-ship-track"><i data-ship-fill style="width:{{ free_shipping_progress }}%"></i></div>
+            <span class="cs-ship-pct" data-ship-pct>{{ free_shipping_progress }}%</span>
           </div>
-          <div class="ship-track"><i data-ship-fill style="width:{{ free_shipping_progress }}%"></i></div>
         {% endif %}
       </div>
 
-      <div class="coupon">
-        {% if cart.coupon %}
-          <div class="coupon-applied">
-            <span>🏷️ <b>{{ cart.coupon.code }}</b> · {{ cart.coupon.percent }}% off</span>
-            <form method="post" action="{% url 'cart_remove_coupon' %}">{% csrf_token %}<button class="link-btn" type="submit">Remove</button></form>
-          </div>
-        {% else %}
-          <input type="checkbox" id="cp-toggle" class="cp-toggle">
-          <label for="cp-toggle" class="cp-label">Have a coupon? <span>Add code →</span></label>
-          <form class="cp-form" method="post" action="{% url 'cart_apply_coupon' %}">
-            {% csrf_token %}
-            <input type="text" name="code" placeholder="e.g. WELCOME10" autocomplete="off" aria-label="Coupon code">
-            <button class="btn tiny" type="submit">Apply</button>
-          </form>
-        {% endif %}
-      </div>
+      <div class="cs-body">
+        <h2>Order summary</h2>
 
-      <div class="checkout-section">
-        <a class="btn checkout" href="{% url 'checkout' %}"><span>Proceed to checkout</span><span class="checkout-arrow">→</span></a>
+        <ul class="cs-lines">
+          <li><span>Subtotal</span><strong data-subtotal>KES {{ cart.subtotal|money }}</strong></li>
+          {% if cart.coupon %}
+            <li class="discount"><span>Coupon <b>{{ cart.coupon.code }}</b></span><strong data-discount>− KES {{ cart.discount|money }}</strong></li>
+          {% else %}
+            <li class="hidden" data-discount-row><span>Discount</span><strong data-discount>− KES 0</strong></li>
+          {% endif %}
+          <li><span>Delivery</span><strong data-shipping>{% if cart.shipping == 0 %}Free{% else %}KES {{ cart.shipping|money }}{% endif %}</strong></li>
+        </ul>
 
-        <div class="payment-icons" aria-label="Accepted payment methods">
-          <span class="payment-icons-label">We accept</span>
+        <div class="cs-total">
+          <span>Total</span>
+          <strong data-total>KES {{ cart.total|money }}</strong>
+        </div>
+
+        <p class="cs-delivery">🚚 Estimated delivery: <strong>2–3 business days</strong></p>
+
+        <div class="cs-coupon">
+          {% if cart.coupon %}
+            <div class="coupon-applied">
+              <span>🏷️ <b>{{ cart.coupon.code }}</b> · {{ cart.coupon.percent }}% off</span>
+              <form method="post" action="{% url 'cart_remove_coupon' %}">{% csrf_token %}<button class="link-btn" type="submit">Remove</button></form>
+            </div>
+          {% else %}
+            <input type="checkbox" id="cp-toggle" class="cp-toggle">
+            <label for="cp-toggle" class="cp-label">Have a coupon? <span>Add code →</span></label>
+            <form class="cp-form" method="post" action="{% url 'cart_apply_coupon' %}">
+              {% csrf_token %}
+              <input type="text" name="code" placeholder="e.g. WELCOME10" autocomplete="off" aria-label="Coupon code">
+              <button class="btn tiny" type="submit">Apply</button>
+            </form>
+          {% endif %}
+        </div>
+
+        <a class="btn-checkout" href="{% url 'checkout' %}">
+          <span>Proceed to checkout</span>
+          <span>→</span>
+        </a>
+
+        <div class="cs-payment">
+          <span class="cs-pay-label">We accept</span>
           <div class="pay-badge mpesa">M-PESA</div>
           <div class="pay-badge airtel">Airtel Money</div>
         </div>
 
-        <p class="secure">🔒 Secure payment via M-Pesa on the next step.</p>
+        <ul class="cs-trust">
+          <li><span>🔒</span> Secure M-Pesa</li>
+          <li><span>🚚</span> Fast delivery</li>
+          <li><span>↩️</span> 14-day returns</li>
+          <li><span>💬</span> WhatsApp support</li>
+        </ul>
       </div>
     </aside>
   </div>
-  {% else %}
-  <div class="empty">
-    <span aria-hidden="true">🛒</span>
-    <h2>Your cart is empty</h2>
-    <p>Browse the shop and add something you like.</p>
-    <div class="empty-actions"><a class="btn" href="{% url 'shop' %}">Browse the shop →</a><a class="btn ghost" href="{% url 'home' %}">Back to home</a></div>
-  </div>
+
+  {% if suggested_products %}
+  <section class="cart-cross">
+    <div class="cross-head">
+      <div>
+        <span class="cross-eyebrow">You might also like</span>
+        <h2>Complete your purchase</h2>
+      </div>
+      <a href="{% url 'shop' %}" class="cross-link">View all →</a>
+    </div>
+
+    <div class="cross-grid">
+      {% for p in suggested_products %}
+      <article class="cross-card">
+        <a class="cross-thumb" href="{% url 'product' p.slug %}">
+          {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}" loading="lazy">
+          {% else %}<span>🛍️</span>{% endif %}
+        </a>
+        <div class="cross-body">
+          <small class="cross-cat">{{ p.category.name }}</small>
+          <h3 class="cross-name"><a href="{% url 'product' p.slug %}">{{ p.name }}</a></h3>
+          <div class="cross-price">KES {{ p.price|floatformat:0 }}</div>
+          <form method="post" action="{% url 'cart_add' p.id %}" class="add-form" data-name="{{ p.name }}">
+            {% csrf_token %}
+            <input type="hidden" name="qty" value="1">
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button type="submit" class="btn small primary">+ Add</button>
+          </form>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
   {% endif %}
+
+  {% else %}
+
+  <div class="empty">
+    <div class="empty-icon">🛒</div>
+    <h2>Your cart is empty</h2>
+    <p>Looks like you haven't added anything yet. Explore our collection and find something you love.</p>
+    <div class="empty-actions">
+      <a class="btn" href="{% url 'shop' %}">Browse the shop →</a>
+      <a class="btn ghost" href="{% url 'home' %}">Back to home</a>
+    </div>
+  </div>
+
+  {% endif %}
+
 </main>
+
+{% if cart|length %}
+<div class="cart-mobile-bar">
+  <div class="cmb-info">
+    <span>{{ cart|length }} item{{ cart|length|pluralize }}</span>
+    <strong data-mobile-total>KES {{ cart.total|money }}</strong>
+  </div>
+  <a href="{% url 'checkout' %}" class="cmb-btn">Checkout →</a>
+</div>
+{% endif %}
 
 <footer class="foot">
   <div class="wrap">
-    <div class="fgrid">
-      <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
-      <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="{% url 'home' %}#categories">Categories</a></div>
-      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a href="{% url 'contact' %}">Contact us</a></div>
-      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></div>
-    </div>
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
@@ -193,6 +276,7 @@
 <script>
 (function () {
   'use strict';
+
   function getCookie(name) {
     const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
     return m ? decodeURIComponent(m.pop()) : '';
@@ -212,17 +296,16 @@
     const pctEl = bar.querySelector('[data-ship-pct]');
     const msg = bar.querySelector('[data-ship-msg]');
 
-    if (fill) fill.style.width = pct + '%';
-    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
-
     if (after >= SHIP_THRESHOLD) {
       bar.classList.add('unlocked');
-      if (msg) msg.innerHTML = '🎉 Free shipping unlocked!';
+      if (msg) msg.innerHTML = '🎉 <strong>Free shipping unlocked!</strong>';
       if (pctEl) pctEl.textContent = '100%';
       if (fill) fill.style.width = '100%';
     } else {
       bar.classList.remove('unlocked');
-      if (msg) msg.innerHTML = 'Add <b>' + fmt(SHIP_THRESHOLD - after) + '</b> more for free shipping';
+      if (fill) fill.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+      if (msg) msg.innerHTML = 'Add <b>' + fmt(SHIP_THRESHOLD - after) + '</b> for free shipping';
     }
   }
 
@@ -231,24 +314,68 @@
     document.querySelectorAll('[data-discount]').forEach(el => el.textContent = '− ' + fmt(json.discount));
     document.querySelectorAll('[data-shipping]').forEach(el => el.textContent = Number(json.shipping) === 0 ? 'Free' : fmt(json.shipping));
     document.querySelectorAll('[data-total]').forEach(el => el.textContent = fmt(json.total));
-    document.querySelectorAll('[data-cart-count]').forEach(el => { el.textContent = json.cart_count; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
+    document.querySelectorAll('[data-mobile-total]').forEach(el => el.textContent = fmt(json.total));
+    document.querySelectorAll('[data-cart-count]').forEach(el => {
+      el.textContent = json.cart_count;
+      el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+    });
     setShipBar(json.subtotal, json.discount);
   }
 
   async function postUpdate(id, qty) {
-    const res = await fetch('/cart/update/' + id + '/', { method: 'POST', headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'qty=' + encodeURIComponent(qty) });
-    if (!res.ok) return; const json = await res.json(); updateTotals(json);
-    const item = document.querySelector('.item[data-id="' + id + '"]'); if (item) { const price = parseFloat(item.dataset.price); const line = item.querySelector('[data-line]'); if (line) line.textContent = fmt(price * qty); }
+    const res = await fetch('/cart/update/' + id + '/', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrf,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'qty=' + encodeURIComponent(qty)
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    updateTotals(json);
+    const item = document.querySelector('.cart-item[data-id="' + id + '"]');
+    if (item) {
+      const price = parseFloat(item.dataset.price);
+      const line = item.querySelector('[data-line]');
+      if (line) line.textContent = fmt(price * qty);
+      const badge = item.querySelector('.ci-qty-badge');
+      if (badge) badge.textContent = qty;
+    }
   }
 
-  document.querySelectorAll('.item').forEach(item => {
-    const id = item.dataset.id; const input = item.querySelector('input[name=qty]'); const max = parseInt(input.max, 10) || 9999;
-    item.querySelectorAll('.step').forEach(btn => { btn.addEventListener('click', () => { let v = parseInt(input.value, 10) || 1; if (btn.dataset.action === 'inc') v = Math.min(max, v + 1); if (btn.dataset.action === 'dec') v = Math.max(1, v - 1); input.value = v; postUpdate(id, v); }); });
-    input.addEventListener('change', () => { let v = parseInt(input.value, 10) || 1; v = Math.max(1, Math.min(max, v)); input.value = v; postUpdate(id, v); });
+  document.querySelectorAll('.cart-item').forEach(item => {
+    const id = item.dataset.id;
+    const input = item.querySelector('input[name=qty]');
+    const max = parseInt(input.max, 10) || 9999;
+
+    item.querySelectorAll('.step').forEach(btn => {
+      btn.addEventListener('click', () => {
+        let v = parseInt(input.value, 10) || 1;
+        if (btn.dataset.action === 'inc') v = Math.min(max, v + 1);
+        if (btn.dataset.action === 'dec') v = Math.max(1, v - 1);
+        input.value = v;
+        postUpdate(id, v);
+      });
+    });
+
+    input.addEventListener('change', () => {
+      let v = parseInt(input.value, 10) || 1;
+      v = Math.max(1, Math.min(max, v));
+      input.value = v;
+      postUpdate(id, v);
+    });
   });
 
-  document.addEventListener('click', (e) => { document.querySelectorAll('.rm-toggle').forEach(cb => { if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false; }); });
+  // Close any open remove-confirmation when clicking elsewhere
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.rm-toggle').forEach(cb => {
+      if (cb.checked && !e.target.closest('.ci-actions')) cb.checked = false;
+    });
+  });
 
+  // Initial sync (server-render already correct)
   setShipBar(
     document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0,
     document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0
