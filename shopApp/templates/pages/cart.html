@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{% static 'styles/cart.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 <link rel="stylesheet" href="{% static 'styles/free-ship.css' %}">
+<link rel="stylesheet" href="{% static 'styles/payment-icons.css' %}">
 </head>
 <body>
 
@@ -117,7 +118,6 @@
         <li class="total"><span>Total</span><strong data-total>KES {{ cart.total|money }}</strong></li>
       </ul>
 
-      {# ---- FREE SHIPPING PROGRESS BAR (server-rendered correctly) ---- #}
       <div class="ship-bar {% if has_free_shipping %}unlocked{% endif %}"
            data-ship-bar
            data-ship-threshold="{{ free_shipping_threshold }}">
@@ -155,6 +155,13 @@
 
       <div class="checkout-section">
         <a class="btn checkout" href="{% url 'checkout' %}"><span>Proceed to checkout</span><span class="checkout-arrow">→</span></a>
+
+        <div class="payment-icons" aria-label="Accepted payment methods">
+          <span class="payment-icons-label">We accept</span>
+          <div class="pay-badge mpesa">M-PESA</div>
+          <div class="pay-badge airtel">Airtel Money</div>
+        </div>
+
         <p class="secure">🔒 Secure payment via M-Pesa on the next step.</p>
       </div>
     </aside>
@@ -193,7 +200,6 @@
   const csrf = getCookie('csrftoken') || (document.querySelector('input[name=csrfmiddlewaretoken]') || {}).value || '';
   const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  // Read threshold from data attribute (configurable via settings.FREE_SHIPPING_THRESHOLD)
   const shipBar = document.querySelector('[data-ship-bar]');
   const SHIP_THRESHOLD = shipBar ? (parseFloat(shipBar.dataset.shipThreshold) || 5000) : 5000;
 
@@ -243,7 +249,6 @@
 
   document.addEventListener('click', (e) => { document.querySelectorAll('.rm-toggle').forEach(cb => { if (cb.checked && !e.target.closest('.item-remove')) cb.checked = false; }); });
 
-  // Initial sync — server render already correct, but this ensures consistency if DOM is edited
   setShipBar(
     document.querySelector('[data-subtotal]')?.textContent.replace(/[^0-9.]/g,'') || 0,
     document.querySelector('[data-discount]')?.textContent.replace(/[^0-9.]/g,'') || 0

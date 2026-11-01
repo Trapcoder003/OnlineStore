@@ -8,6 +8,7 @@
 <title>Checkout · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 <link rel="stylesheet" href="{% static 'styles/checkout.css' %}">
+<link rel="stylesheet" href="{% static 'styles/checkout-summary.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
@@ -77,92 +78,123 @@
     <p>Almost there — confirm your details and complete payment.</p>
   </section>
 
-  
+  {# STICKY SUMMARY BAR — tap to open modal #}
+  <button type="button" class="co-bar" id="coBar" aria-haspopup="dialog" aria-controls="coModal">
+    <span class="co-bar-icon">🛒</span>
+    <span class="co-bar-label">{{ cart|length }} item{{ cart|length|pluralize }}</span>
+    <span class="co-bar-dot">·</span>
+    <span class="co-bar-total" id="co-bar-total">KES {{ cart.total|money }}</span>
+    <span class="co-bar-chev">View details ▼</span>
+  </button>
 
-  <form method="post" class="checkout-layout" novalidate>
+  <form method="post" class="co-form-wrap" novalidate>
     {% csrf_token %}
 
-    <div class="checkout-form">
-
-      <div class="co-section">
-        <h2><span class="co-num">1</span> Contact</h2>
-        <div class="co-row">
-          <div class="co-field">
-            <label for="{{ form.email.id_for_label }}">Email</label>
-            {{ form.email }}
-            {% if form.email.errors %}<ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-            <small>We'll send your receipt here.</small>
-          </div>
-          <div class="co-field">
-            <label for="{{ form.phone.id_for_label }}">Phone number</label>
-            {{ form.phone }}
-            {% if form.phone.errors %}<ul class="errorlist">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-            <small>M-Pesa STK push will be sent to this number.</small>
-          </div>
-        </div>
-      </div>
-
-      <div class="co-section">
-        <h2><span class="co-num">2</span> Delivery details</h2>
-        <div class="co-row">
-          <div class="co-field">
-            <label for="{{ form.ship_name.id_for_label }}">Full name</label>
-            {{ form.ship_name }}
-            {% if form.ship_name.errors %}<ul class="errorlist">{% for e in form.ship_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-          </div>
-          <div class="co-field">
-            <label for="{{ form.ship_phone.id_for_label }}">Recipient phone</label>
-            {{ form.ship_phone }}
-            {% if form.ship_phone.errors %}<ul class="errorlist">{% for e in form.ship_phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-          </div>
-        </div>
-        <div class="co-row">
-          <div class="co-field">
-            <label for="{{ form.ship_county.id_for_label }}">County</label>
-            {{ form.ship_county }}
-            {% if form.ship_county.errors %}<ul class="errorlist">{% for e in form.ship_county.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-          </div>
-          <div class="co-field">
-            <label for="{{ form.ship_town.id_for_label }}">Town / area</label>
-            {{ form.ship_town }}
-            {% if form.ship_town.errors %}<ul class="errorlist">{% for e in form.ship_town.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-          </div>
+    <div class="co-section">
+      <h2><span class="co-num">1</span> Contact</h2>
+      <div class="co-row">
+        <div class="co-field">
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          <small>We'll send your receipt here.</small>
         </div>
         <div class="co-field">
-          <label for="{{ form.ship_address.id_for_label }}">Address details</label>
-          {{ form.ship_address }}
-          {% if form.ship_address.errors %}<ul class="errorlist">{% for e in form.ship_address.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          <label for="{{ form.phone.id_for_label }}">Phone number</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<ul class="errorlist">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+          <small>M-Pesa STK push will be sent to this number.</small>
         </div>
       </div>
-
-      <div class="co-section">
-        <h2><span class="co-num">3</span> Delivery method</h2>
-        <div class="delivery-options">
-          {% for radio in form.delivery_method %}
-            <label class="delivery-option">
-              {{ radio.tag }}
-              <span class="delivery-label">
-                <strong>{{ radio.choice_label }}</strong>
-              </span>
-            </label>
-          {% endfor %}
-        </div>
-        {% if form.delivery_method.errors %}<ul class="errorlist">{% for e in form.delivery_method.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-        <small class="delivery-note">Free standard delivery on orders over KES 5,000.</small>
-      </div>
-
-      <div class="co-section">
-        <h2><span class="co-num">4</span> Order notes <em>(optional)</em></h2>
-        <div class="co-field">
-          {{ form.notes }}
-        </div>
-      </div>
-
     </div>
 
-    <aside class="checkout-summary">
-      <h2>Order summary</h2>
+    <div class="co-section">
+      <h2><span class="co-num">2</span> Delivery details</h2>
+      <div class="co-row">
+        <div class="co-field">
+          <label for="{{ form.ship_name.id_for_label }}">Full name</label>
+          {{ form.ship_name }}
+          {% if form.ship_name.errors %}<ul class="errorlist">{% for e in form.ship_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div class="co-field">
+          <label for="{{ form.ship_phone.id_for_label }}">Recipient phone</label>
+          {{ form.ship_phone }}
+          {% if form.ship_phone.errors %}<ul class="errorlist">{% for e in form.ship_phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+      </div>
+      <div class="co-row">
+        <div class="co-field">
+          <label for="{{ form.ship_county.id_for_label }}">County</label>
+          {{ form.ship_county }}
+          {% if form.ship_county.errors %}<ul class="errorlist">{% for e in form.ship_county.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+        <div class="co-field">
+          <label for="{{ form.ship_town.id_for_label }}">Town / area</label>
+          {{ form.ship_town }}
+          {% if form.ship_town.errors %}<ul class="errorlist">{% for e in form.ship_town.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+        </div>
+      </div>
+      <div class="co-field">
+        <label for="{{ form.ship_address.id_for_label }}">Address details</label>
+        {{ form.ship_address }}
+        {% if form.ship_address.errors %}<ul class="errorlist">{% for e in form.ship_address.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    </div>
 
+    <div class="co-section">
+      <h2><span class="co-num">3</span> Delivery method</h2>
+      <div class="delivery-options">
+        {% for radio in form.delivery_method %}
+          <label class="delivery-option">
+            {{ radio.tag }}
+            <span class="delivery-label">
+              <strong>{{ radio.choice_label }}</strong>
+            </span>
+          </label>
+        {% endfor %}
+      </div>
+      {% if form.delivery_method.errors %}<ul class="errorlist">{% for e in form.delivery_method.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+      <small class="delivery-note">Free standard delivery on orders over KES 5,000.</small>
+    </div>
+
+    <div class="co-section">
+      <h2><span class="co-num">4</span> Order notes <em>(optional)</em></h2>
+      <div class="co-field">
+        {{ form.notes }}
+      </div>
+    </div>
+
+    <div class="co-pay-block">
+      <button class="btn co-submit" type="submit">
+        <span>Pay with M-Pesa</span>
+        <span class="co-submit-icon">📲</span>
+      </button>
+      <p class="co-secure">🔒 You'll receive an STK push on your phone. Enter your M-Pesa PIN to confirm.</p>
+      <a class="co-back" href="{% url 'cart' %}">← Back to cart</a>
+    </div>
+  </form>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
+  </div>
+</footer>
+
+{# ============================================================
+   ORDER SUMMARY MODAL
+   ============================================================ #}
+<div class="co-modal" id="coModal" role="dialog" aria-modal="true" aria-labelledby="coModalTitle" hidden>
+  <div class="co-modal-backdrop" data-close></div>
+
+  <div class="co-modal-panel" role="document">
+    <header class="co-modal-head">
+      <h2 id="coModalTitle">Order summary</h2>
+      <button type="button" class="co-modal-close" aria-label="Close summary" data-close>✕</button>
+    </header>
+
+    <div class="co-modal-body">
       <ul class="co-items">
         {% for item in cart %}
           <li class="co-item">
@@ -195,27 +227,13 @@
         <span>Total</span>
         <strong id="co-total">KES {{ cart.total|money }}</strong>
       </div>
+    </div>
 
-      <button class="btn co-submit" type="submit">
-        <span>Pay with M-Pesa</span>
-        <span class="co-submit-icon">📲</span>
-      </button>
-
-      <p class="co-secure">
-        🔒 You'll receive an STK push on your phone. Enter your M-Pesa PIN to confirm.
-      </p>
-
-      <a class="co-back" href="{% url 'cart' %}">← Back to cart</a>
-    </aside>
-  </form>
-
-</main>
-
-<footer>
-  <div class="wrap">
-    <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
+    <footer class="co-modal-foot">
+      <button type="button" class="btn" data-close>Back to checkout</button>
+    </footer>
   </div>
-</footer>
+</div>
 
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
@@ -227,26 +245,63 @@
   const FREE = 5000;
   const FEES = { pickup: 0, standard: 300, express: 500 };
 
-  const radios = document.querySelectorAll('input[name="delivery_method"]');
+  const barTotal   = document.getElementById('co-bar-total');
+  const modalTotal = document.getElementById('co-total');
   const deliveryEl = document.getElementById('co-delivery');
-  const totalEl = document.getElementById('co-total');
+  const radios     = document.querySelectorAll('input[name="delivery_method"]');
 
   const fmt = n => 'KES ' + Number(n).toLocaleString('en-KE', {
     minimumFractionDigits: 2, maximumFractionDigits: 2
   });
 
-  function update() {
+  function updateTotals() {
     const sel = document.querySelector('input[name="delivery_method"]:checked');
     if (!sel) return;
     let fee = FEES[sel.value] || 0;
     if (sel.value !== 'pickup' && subtotal >= FREE) fee = 0;
+    const total = subtotal - discount + fee;
 
-    deliveryEl.textContent = fee === 0 ? 'Free' : fmt(fee);
-    totalEl.textContent = fmt(subtotal - discount + fee);
+    if (deliveryEl) deliveryEl.textContent = fee === 0 ? 'Free' : fmt(fee);
+    if (modalTotal) modalTotal.textContent = fmt(total);
+    if (barTotal)   barTotal.textContent   = fmt(total);
   }
 
-  radios.forEach(r => r.addEventListener('change', update));
-  update();
+  radios.forEach(r => r.addEventListener('change', updateTotals));
+  updateTotals();
+
+  /* ---------- MODAL ---------- */
+  const modal = document.getElementById('coModal');
+  const bar   = document.getElementById('coBar');
+  let lastFocused = null;
+
+  function openModal() {
+    lastFocused = document.activeElement;
+    modal.hidden = false;
+    document.body.classList.add('co-modal-open');
+    const closeBtn = modal.querySelector('.co-modal-close');
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.classList.remove('co-modal-open');
+    if (lastFocused && typeof lastFocused.focus === 'function') lastFocused.focus();
+  }
+
+  if (bar) {
+    bar.addEventListener('click', openModal);
+    bar.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(); }
+    });
+  }
+
+  modal.querySelectorAll('[data-close]').forEach(el => {
+    el.addEventListener('click', closeModal);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !modal.hidden) closeModal();
+  });
 })();
 </script>
 

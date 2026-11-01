@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 <link rel="stylesheet" href="{% static 'styles/whatsapp-floating.css' %}">
+<link rel="stylesheet" href="{% static 'styles/payment-icons.css' %}">
 </head>
 <body>
 
@@ -155,6 +156,13 @@
       <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'contact' %}">Contact us</a></div>
       <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a></div>
     </div>
+
+    <div class="payment-icons compact" style="justify-content:center; padding:24px 0 8px;" aria-label="Accepted payment methods">
+      <span class="payment-icons-label">We accept</span>
+      <div class="pay-badge mpesa">M-PESA</div>
+      <div class="pay-badge airtel">Airtel Money</div>
+    </div>
+
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
