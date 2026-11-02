@@ -240,17 +240,37 @@ body::after { width: 380px; height: 380px; background: var(--pink); bottom: -120
 }
 
 /* ============================================================
-   WELCOME EDITORIAL
+   WELCOME EDITORIAL (UPDATED WITH BACKGROUND IMAGE)
    ============================================================ */
-.welcome-editorial { text-align: center; max-width: 800px; margin: 50px auto 80px; padding: 0 12px; }
+.welcome-editorial { 
+  position: relative;
+  text-align: center; 
+  max-width: 900px; 
+  margin: 50px auto 80px; 
+  padding: 60px 40px; 
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  
+  /* Background Image + Dark Overlay for readability */
+  background-image: 
+    linear-gradient(to bottom, rgba(20, 16, 58, 0.75), rgba(20, 16, 58, 0.95)),
+    url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2000&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
 .welcome-pill {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 18px; border-radius: 99px;
-  background: rgba(95, 227, 181, 0.1);
+  background: rgba(95, 227, 181, 0.15);
   border: 1px solid rgba(95, 227, 181, 0.35);
   color: var(--mint); font-size: 11px; font-weight: 800;
   text-transform: uppercase; letter-spacing: 0.14em;
   margin-bottom: 26px;
+  backdrop-filter: blur(4px);
 }
 .welcome-pill::before {
   content: "";
@@ -264,16 +284,18 @@ body::after { width: 380px; height: 380px; background: var(--pink); bottom: -120
   letter-spacing: -0.03em;
   color: #fff;
   margin: 0 0 22px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 .welcome-editorial h1 em {
   font-style: normal;
   background: linear-gradient(135deg, var(--violet) 0%, var(--pink) 60%, var(--sun) 100%);
   -webkit-background-clip: text; background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: none;
 }
 .welcome-editorial p {
   font-size: 17px; line-height: 1.65;
-  color: var(--soft);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0 auto 40px;
   max-width: 580px;
 }
@@ -284,12 +306,12 @@ body::after { width: 380px; height: 380px; background: var(--pink); bottom: -120
 .welcome-stats {
   display: flex; gap: 44px; justify-content: center; flex-wrap: wrap;
   padding-top: 34px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 .ws-item { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 76px; }
 .ws-item > span { font-size: 26px; line-height: 1; }
 .ws-item strong { font-size: 24px; font-weight: 800; color: #fff; line-height: 1; }
-.ws-item small { font-size: 10px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+.ws-item small { font-size: 10px; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
 
 /* ============================================================
    SHARED SECTION
@@ -566,6 +588,8 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
   .hero-arrow { display: none; }
   .hero-wrap::after { border-radius: 22px; }
 
+  .welcome-editorial { padding: 40px 30px; }
+
   .fgrid { grid-template-columns: 1fr 1fr; gap: 28px; }
 }
 
@@ -605,8 +629,13 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
   .hero-dot { width: 8px; height: 8px; }
   .hero-dot.active { width: 26px; }
 
-  /* WELCOME */
-  .welcome-editorial { margin: 20px auto 40px; padding: 0; }
+  /* WELCOME - Mobile Adjustments for Background Image */
+  .welcome-editorial { 
+    margin: 20px auto 40px; 
+    padding: 40px 20px; 
+    border-radius: 20px;
+    background-position: 70% center; /* Shifts image so the best part shows on mobile */
+  }
   .welcome-pill { padding: 6px 14px; font-size: 10px; margin-bottom: 16px; }
   .welcome-editorial h1 { font-size: clamp(26px, 8.5vw, 38px); margin-bottom: 14px; }
   .welcome-editorial p { font-size: 14px; margin-bottom: 22px; line-height: 1.6; }
@@ -700,6 +729,7 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
   .hero-emoji { font-size: 34px; }
   .hero-cta { padding: 12px 22px; font-size: 13px; }
 
+  .welcome-editorial { padding: 30px 16px; }
   .welcome-editorial h1 { font-size: clamp(22px, 8.5vw, 30px); }
   .welcome-editorial p { font-size: 13px; }
   .welcome-stats { gap: 12px; }
