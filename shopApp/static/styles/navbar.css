@@ -112,11 +112,24 @@
 #nav-toggle:checked ~ .wrap .burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 #nav-toggle:checked ~ .wrap .burger span:nth-child(2) { transform: translateY(-7px) rotate(-45deg); }
 
+/* ============================================================
+   MOBILE / TABLET ADJUSTMENTS (≤ 900px)
+   ============================================================ */
 @media (max-width: 900px) {
   .nav { top: 12px; width: calc(100% - 24px); }
   .nav .wrap { height: 60px; padding: 0 10px 0 16px; }
-  .burger { display: block; order: 3; margin-left: 4px; }
-  .icons { margin-left: auto; order: 2; }
+
+  /* 🚨 ORDER FIX: Profile is now at the very end */
+  .burger { 
+    display: block; 
+    order: 2; /* Burger comes right after the brand/links */
+    margin-left: auto; /* Pushes the burger and icons to the right */
+    margin-right: 8px; 
+  }
+  .icons { 
+    margin-left: 0; 
+    order: 3; /* Icons (and profile) come last */
+  }
 
   .links {
     position: absolute; top: 72px; left: 0; right: 0;
