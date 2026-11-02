@@ -1,0 +1,140 @@
+/* ============================================================
+   GLOBAL NAVBAR - MODERN FLOATING GLASS PILL
+   ============================================================ */
+.nav {
+  position: sticky; 
+  top: 16px; 
+  z-index: 50;
+  width: calc(100% - 32px);
+  max-width: 1100px;
+  margin: 16px auto 24px;
+  background: rgba(20, 16, 58, 0.65);
+  backdrop-filter: blur(24px); 
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.nav .wrap { 
+  display: flex; 
+  align-items: center; 
+  gap: 12px; 
+  height: 64px; 
+  padding: 0 12px 0 20px; 
+  max-width: 100%;
+}
+
+.brand { 
+  font-weight: 800; 
+  font-size: 20px; 
+  display: inline-flex; 
+  align-items: center; 
+  white-space: nowrap; 
+  transition: transform 0.2s;
+  flex-shrink: 0; 
+}
+.brand:hover { transform: scale(1.03); }
+.brand i { 
+  display: inline-block; 
+  width: 12px; 
+  height: 12px; 
+  margin-right: 8px; 
+  background: var(--mint, #5fe3b5); 
+  border-radius: 50%; 
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(95, 227, 181, 0.6); 
+}
+
+.links { display: flex; gap: 4px; margin-left: auto; margin-right: 12px; }
+.links a { 
+  position: relative; 
+  padding: 8px 16px; 
+  color: var(--soft, rgba(255, 255, 255, 0.72)); 
+  font-size: 14px; 
+  font-weight: 600;
+  border-radius: 99px; 
+  transition: all 0.25s ease; 
+}
+.links a:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+.icons { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.icon { 
+  position: relative; 
+  padding: 8px; 
+  font-size: 18px; 
+  line-height: 1; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  min-width: 40px; 
+  min-height: 40px; 
+  border-radius: 50%; 
+  transition: background 0.2s;
+}
+.icon:hover { background: rgba(255, 255, 255, 0.1); }
+.icon b { 
+  position: absolute; 
+  top: 2px; 
+  right: 2px; 
+  min-width: 18px; 
+  height: 18px; 
+  padding: 0 4px; 
+  border-radius: 99px; 
+  background: var(--pink, #ff77b1); 
+  font-size: 10px; 
+  line-height: 18px; 
+  text-align: center; 
+  color: #fff; 
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(255, 119, 177, 0.4);
+}
+
+#nav-toggle { display: none; }
+.burger { 
+  display: none; 
+  padding: 10px; 
+  cursor: pointer; 
+  border-radius: 50%;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.burger:hover { background: rgba(255, 255, 255, 0.1); }
+.burger span { 
+  display: block; 
+  width: 22px; 
+  height: 2px; 
+  margin: 5px 0; 
+  background: #fff; 
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#nav-toggle:checked ~ .wrap .burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+#nav-toggle:checked ~ .wrap .burger span:nth-child(2) { transform: translateY(-7px) rotate(-45deg); }
+
+@media (max-width: 900px) {
+  .nav { top: 12px; width: calc(100% - 24px); }
+  .nav .wrap { height: 60px; padding: 0 10px 0 16px; }
+  .burger { display: block; order: 3; margin-left: 4px; }
+  .icons { margin-left: auto; order: 2; }
+
+  .links {
+    position: absolute; top: 72px; left: 0; right: 0;
+    flex-direction: column; margin: 0; padding: 12px;
+    background: rgba(20, 16, 58, 0.85);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0; transform: translateY(-10px) scale(0.98); pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+    transform-origin: top center;
+  }
+  #nav-toggle:checked ~ .wrap .links { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+  .links a { padding: 14px 18px; font-size: 15px; border-radius: 12px; }
+  .links a:hover { background: rgba(255, 255, 255, 0.08); }
+  
+  .brand { font-size: 18px; }
+  .brand i { width: 10px; height: 10px; margin-right: 6px; }
+  .icon { font-size: 17px; padding: 4px; min-width: 34px; min-height: 34px; }
+}

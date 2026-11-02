@@ -6,16 +6,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% if q %}Search: {{ q }}{% else %}Search{% endif %} · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/navbar.css' %}">
 <link rel="stylesheet" href="{% static 'styles/search.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
 
-<!-- HIDDEN DJANGO MESSAGES -->
 <div id="django-messages" style="display:none;">
   {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
 </div>
-
 
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">

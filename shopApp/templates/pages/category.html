@@ -5,16 +5,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ category.name }} · E-Shop</title>
+<link rel="stylesheet" href="{% static 'styles/navbar.css' %}">
 <link rel="stylesheet" href="{% static 'styles/category.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 </head>
 <body>
 
-<!-- HIDDEN DJANGO MESSAGES -->
 <div id="django-messages" style="display:none;">
   {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
 </div>
-
 
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
@@ -142,43 +141,4 @@
     <div class="fgrid">
       <div><a class="brand" href="{% url 'home' %}"><i></i>E-Shop</a><p>Secure, simple online shopping with fast delivery.</p></div>
       <div><h4>Shop</h4><a href="{% url 'shop' %}">All products</a><a href="{% url 'home' %}#categories">Categories</a></div>
-      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a href="{% url 'contact' %}">Contact us</a></div>
-      <div><h4>Company</h4><a href="{% url 'about' %}">About</a><a href="{% url 'privacy' %}">Privacy Policy</a><a href="{% url 'terms' %}">Terms of Service</a></div>
-    </div>
-    <div class="copy">© E-Shop. All rights reserved.</div>
-  </div>
-</footer>
-
-<script src="{% static 'js/profile-menu.js' %}"></script>
-<script>
-(function () {
-  'use strict';
-  function getCookie(name) { const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)'); return m ? decodeURIComponent(m.pop()) : ''; }
-  function csrfToken() { const el = document.querySelector('input[name=csrfmiddlewaretoken]'); return (el && el.value) || getCookie('csrftoken') || ''; }
-  document.addEventListener('submit', async (e) => {
-    const form = e.target; if (!form.classList || !form.classList.contains('add-form')) return; e.preventDefault();
-    const btn = form.querySelector('button[type=submit]'); if (!btn || btn.disabled) return;
-    const original = btn.textContent; btn.disabled = true; btn.textContent = 'Adding…';
-    try {
-      const res = await fetch(form.action, { method: 'POST', headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' }, body: new FormData(form) });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const json = await res.json();
-      document.querySelectorAll('[data-cart-count]').forEach(el => { el.textContent = json.cart_count; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); });
-      let t = document.getElementById('toast'); t.textContent = (form.dataset.name || 'Item') + ' added to cart'; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200);
-      btn.textContent = '✓ Added'; setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 1100);
-    } catch (err) { console.error('Add to cart failed:', err); form.submit(); }
-  });
-  document.querySelectorAll('.wishlist-checkbox').forEach(cb => {
-    cb.addEventListener('change', async function() {
-      try {
-        const res = await fetch(`/wishlist/toggle/${this.dataset.id}/`, { method: 'POST', headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest' } });
-        if (res.status === 401) { window.location.href = "{% url 'account_login' %}?next=" + window.location.pathname; return; }
-        const json = await res.json(); document.querySelectorAll('[data-wishlist-count]').forEach(el => el.textContent = json.count); if (!json.in_wishlist) this.checked = false;
-      } catch (err) { console.error(err); this.checked = !this.checked; }
-    });
-  });
-})();
-</script>
-<script src="{% static 'js/toast.js' %}"></script>
-</body>
-</html>
+      <div><h4>Help</h4><a href="{% url 'faq' %}">FAQ</a><a href="{% url 'shipping' %}">Shipping &amp; Returns</a><a
