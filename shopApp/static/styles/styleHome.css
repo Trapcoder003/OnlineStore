@@ -46,30 +46,140 @@ body::after { width: 380px; height: 380px; background: var(--pink); bottom: -120
 .page { padding: 20px 20px 60px; }
 
 /* ============================================================
-   NAVBAR
+   NAVBAR - MODERN FLOATING GLASS PILL
    ============================================================ */
 .nav {
-  position: sticky; top: 0; z-index: 50;
-  background: rgba(20, 16, 58, 0.85);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--line);
+  position: sticky; 
+  top: 16px; /* Floats down slightly from the top */
+  z-index: 50;
+  
+  /* Floating Pill Setup */
+  width: calc(100% - 32px);
+  max-width: 1100px;
+  margin: 16px auto 24px;
+  
+  /* Modern Glass Look */
+  background: rgba(20, 16, 58, 0.65);
+  backdrop-filter: blur(24px); 
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1); /* 3D glass edge highlight */
 }
-.nav .wrap { display: flex; align-items: center; gap: 18px; height: 68px; }
-.brand { font-weight: 800; font-size: 22px; display: inline-flex; align-items: center; white-space: nowrap; }
-.brand i { display: inline-block; width: 13px; height: 13px; margin-right: 8px; background: var(--mint); border-radius: 50%; flex-shrink: 0; }
-.links { display: flex; gap: 4px; margin-left: auto; }
-.links a { position: relative; padding: 8px 14px; color: var(--soft); font-size: 15px; transition: color 0.2s; }
-.links a::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 2px; height: 2px; background: linear-gradient(90deg, var(--pink), var(--mint)); transform: scaleX(0); transition: transform 0.3s; }
-.links a:hover { color: #fff; }
-.links a:hover::after { transform: scaleX(1); }
 
+.nav .wrap { 
+  display: flex; 
+  align-items: center; 
+  gap: 16px; 
+  height: 64px; 
+  padding: 0 12px 0 20px; /* Tighter padding inside the pill */
+  max-width: 100%;
+}
+
+/* Brand */
+.brand { 
+  font-weight: 800; 
+  font-size: 20px; 
+  display: inline-flex; 
+  align-items: center; 
+  white-space: nowrap; 
+  transition: transform 0.2s;
+}
+.brand:hover { transform: scale(1.03); }
+.brand i { 
+  display: inline-block; 
+  width: 12px; 
+  height: 12px; 
+  margin-right: 8px; 
+  background: var(--mint); 
+  border-radius: 50%; 
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(95, 227, 181, 0.6); /* Glowing dot */
+}
+
+/* Desktop Links */
+.links { 
+  display: flex; 
+  gap: 4px; 
+  margin-left: auto; 
+  margin-right: 12px;
+}
+.links a { 
+  position: relative; 
+  padding: 8px 16px; 
+  color: var(--soft); 
+  font-size: 14px; 
+  font-weight: 600;
+  border-radius: 99px; /* Pill shape for hover */
+  transition: all 0.25s ease; 
+}
+.links a:hover { 
+  color: #fff; 
+  background: rgba(255, 255, 255, 0.1); /* Soft background on hover */
+}
+
+/* Icons */
 .icons { display: flex; gap: 6px; align-items: center; }
-.icon { position: relative; padding: 8px 10px; font-size: 20px; line-height: 1; display: inline-flex; align-items: center; justify-content: center; min-width: 40px; min-height: 40px; }
-.icon b { position: absolute; top: -1px; right: -1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 99px; background: var(--pink); font-size: 11px; line-height: 19px; text-align: center; color: #fff; font-weight: 700; }
+.icon { 
+  position: relative; 
+  padding: 8px; 
+  font-size: 18px; 
+  line-height: 1; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  min-width: 40px; 
+  min-height: 40px; 
+  border-radius: 50%; /* Circle hover */
+  transition: background 0.2s;
+}
+.icon:hover { background: rgba(255, 255, 255, 0.1); }
+.icon b { 
+  position: absolute; 
+  top: 2px; 
+  right: 2px; 
+  min-width: 18px; 
+  height: 18px; 
+  padding: 0 4px; 
+  border-radius: 99px; 
+  background: var(--pink); 
+  font-size: 10px; 
+  line-height: 18px; 
+  text-align: center; 
+  color: #fff; 
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(255, 119, 177, 0.4);
+}
 
+/* Modern Burger Menu */
 #nav-toggle { display: none; }
-.burger { display: none; margin-left: auto; padding: 8px; cursor: pointer; }
-.burger span { display: block; width: 24px; height: 2px; margin: 6px 0; background: #fff; }
+.burger { 
+  display: none; 
+  margin-left: auto; 
+  padding: 10px; 
+  cursor: pointer; 
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.burger:hover { background: rgba(255, 255, 255, 0.1); }
+.burger span { 
+  display: block; 
+  width: 22px; 
+  height: 2px; 
+  margin: 5px 0; 
+  background: #fff; 
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Animate Burger to X */
+#nav-toggle:checked ~ .wrap .burger span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+#nav-toggle:checked ~ .wrap .burger span:nth-child(2) {
+  transform: translateY(-7px) rotate(-45deg);
+}
 
 /* ============================================================
    BUTTONS
@@ -554,30 +664,63 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
 .icon b.bump { animation: bump 0.4s; }
 
 /* ============================================================
-   TABLET (≤ 900px)
+   TABLET / MOBILE NAVBAR FIXES (≤ 900px)
    ============================================================ */
 @media (max-width: 900px) {
+  .nav {
+    top: 12px; /* Float slightly closer to top on mobile */
+    width: calc(100% - 24px);
+  }
+  
+  .nav .wrap {
+    height: 60px;
+    padding: 0 12px 0 16px;
+  }
+
   .burger { display: block; }
   .icons { margin-left: 0; }
+
+  /* Floating Mobile Menu Dropdown */
   .links {
     position: absolute;
-    top: 68px;
-    left: 0; right: 0;
+    top: 72px; /* Sits right below the floating navbar */
+    left: 0; 
+    right: 0;
     flex-direction: column;
     margin: 0;
-    padding: 12px 20px 20px;
-    background: rgba(20, 16, 58, 0.98);
-    border-bottom: 1px solid var(--line);
+    padding: 12px;
+    
+    /* Match the glass pill style */
+    background: rgba(20, 16, 58, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    
+    /* Animation */
     opacity: 0;
-    transform: translateY(-12px);
+    transform: translateY(-10px) scale(0.98);
     pointer-events: none;
-    transition: all 0.3s;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+    transform-origin: top center;
   }
-  #nav-toggle:checked ~ .wrap .links { opacity: 1; transform: none; pointer-events: auto; }
-  .links a { padding: 14px 12px; font-size: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
-  .links a:last-child { border-bottom: none; }
-  .links a::after { display: none; }
+  
+  #nav-toggle:checked ~ .wrap .links { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+    pointer-events: auto; 
+  }
+  
+  .links a { 
+    padding: 14px 18px; 
+    font-size: 15px; 
+    border-radius: 12px;
+    border-bottom: none; /* Remove old border */
+  }
+  .links a:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
 
   .hero-wrap { min-height: 360px; border-radius: 22px; }
   .hero-slide { padding: 40px 32px; }
@@ -599,10 +742,11 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
 @media (max-width: 768px) {
   .wrap { padding: 0 16px; }
   .page { padding: 12px 16px 40px; }
-  .nav .wrap { height: 60px; gap: 12px; }
-  .brand { font-size: 19px; }
-  .brand i { width: 11px; height: 11px; margin-right: 6px; }
-  .icon { font-size: 18px; padding: 6px 8px; min-width: 36px; min-height: 36px; }
+  
+  /* Mobile Nav Adjustments */
+  .brand { font-size: 18px; }
+  .brand i { width: 10px; height: 10px; margin-right: 6px; }
+  .icon { font-size: 18px; padding: 6px; min-width: 36px; min-height: 36px; }
 
   /* HERO — no fixed min-height, auto-grows with content */
   .hero { margin: 6px 0 28px; }
