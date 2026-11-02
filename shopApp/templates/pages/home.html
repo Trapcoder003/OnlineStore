@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#14103a">
 <title>E-Shop · Curated finds, delivered fast</title>
+<!-- 🚨 navbar.css must load FIRST -->
+<link rel="stylesheet" href="{% static 'styles/navbar.css' %}">
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
 <link rel="stylesheet" href="{% static 'styles/profile-menu.css' %}">
 <link rel="stylesheet" href="{% static 'styles/whatsapp-floating.css' %}">
@@ -17,7 +19,6 @@
 <div id="django-messages" style="display:none;">
   {% for m in messages %}<div data-msg="{{ m }}" data-tag="{{ m.tags }}"></div>{% endfor %}
 </div>
-
 
 <header class="nav">
   <input type="checkbox" id="nav-toggle" aria-label="Toggle menu">
@@ -44,9 +45,6 @@
           {% endif %}
         </button>
         <div class="profile-dropdown" role="menu">
-          {% if user.is_staff %}
-            <div class="menu-divider"></div>
-          {% endif %}
           <a href="{% url 'order_history' %}" role="menuitem"><span class="menu-emoji">📦</span><span>My Orders</span></a>
           <a href="{% url 'cart' %}" role="menuitem"><span class="menu-emoji">🛒</span><span>My Cart</span>{% if cart_count %}<span class="menu-count">{{ cart_count }}</span>{% endif %}</a>
           <a href="{% url 'wishlist' %}" role="menuitem"><span class="menu-emoji">♡</span><span>Wishlist</span>{% if wishlist_count %}<span class="menu-count">{{ wishlist_count }}</span>{% endif %}</a>
@@ -60,7 +58,6 @@
 </header>
 
 <main class="wrap page">
-
   {% if banners %}
   <section class="hero" id="hero">
     <div class="hero-wrap" id="hero-wrap">
@@ -86,7 +83,6 @@
   </section>
   {% endif %}
 
-  <!-- THIS IS THE SECTION THAT NOW HAS A BACKGROUND IMAGE -->
   <section class="welcome-editorial">
     <span class="welcome-pill">Welcome to E-Shop</span>
     <h1>Curated finds, <em>delivered fast</em>.</h1>
@@ -146,7 +142,6 @@
       <div class="cta-buttons"><a class="btn" href="{% url 'shop' %}">Shop now →</a><a class="btn ghost" href="{% url 'contact' %}">Contact us</a></div>
     </div>
   </section>
-
 </main>
 
 <footer>
@@ -167,7 +162,6 @@
     <div class="copy">© {% now "Y" %} E-Shop. All rights reserved.</div>
   </div>
 </footer>
-
 
 <script src="{% static 'js/profile-menu.js' %}"></script>
 <script>
