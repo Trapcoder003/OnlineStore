@@ -8,6 +8,15 @@
 <title>Sign up · E-Shop</title>
 <link rel="stylesheet" href="{% static 'styles/auth.css' %}">
 <link rel="stylesheet" href="{% static 'styles/styleHome.css' %}">
+
+    <!-- PWA & FAVICONS -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'images/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'images/favicon-16x16.png' %}">
+
 </head>
 <body class="auth-page">
 
@@ -225,5 +234,16 @@
   });
 })();
 </script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register("{% static 'js/sw.js' %}")
+        .then(registration => console.log('ServiceWorker registered successfully:', registration.scope))
+        .catch(error => console.log('ServiceWorker registration failed:', error));
+    });
+  }
+</script>
+
 </body>
 </html>
