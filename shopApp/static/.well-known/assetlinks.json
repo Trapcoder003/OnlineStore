@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.pythonanywhere.trapcoder.twa",
+    "sha256_cert_fingerprints": ["41:09:7A:C6:A2:34:FE:21:EE:A1:80:32:C9:1B:EE:0B:54:95:20:54:33:89:6E:CE:5F:36:41:C6:55:EA:0E:65"]
+  }
+}]
