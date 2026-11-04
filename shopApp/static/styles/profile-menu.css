@@ -32,19 +32,21 @@
   position: absolute;
   top: calc(100% + 10px);
   right: 0;
+  left: auto; /* Prevents it from stretching left */
   min-width: 220px;
+  max-width: 90vw; /* Never wider than the phone screen */
   padding: 8px;
   border-radius: 14px;
-  background: rgba(20, 16, 58, 0.98);
+  
+  /* Solid background to prevent bleed-through */
+  background: #14103a;
   border: 1px solid var(--line, rgba(255, 255, 255, 0.18));
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   opacity: 0;
   transform: translateY(-8px);
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
-  z-index: 50;
+  z-index: 9999; /* High z-index to stay above everything */
 }
 
 .profile-menu.open .profile-dropdown {
@@ -53,6 +55,7 @@
   pointer-events: auto;
 }
 
+/* The little arrow pointing to the avatar */
 .profile-dropdown::before {
   content: "";
   position: absolute;
@@ -60,22 +63,23 @@
   right: 18px;
   width: 12px;
   height: 12px;
-  background: rgba(20, 16, 58, 0.98);
+  background: #14103a;
   border-left: 1px solid var(--line, rgba(255, 255, 255, 0.18));
   border-top: 1px solid var(--line, rgba(255, 255, 255, 0.18));
   transform: rotate(45deg);
 }
 
+/* Dropdown Links */
 .profile-dropdown a,
 .profile-dropdown button {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px; /* Space between emoji and text */
   width: 100%;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: 8px;
   font-size: 14px;
-  color: var(--soft, rgba(255, 255, 255, 0.72));
+  color: #fff;
   background: none;
   border: 0;
   cursor: pointer;
@@ -83,12 +87,13 @@
   font-family: inherit;
   transition: background 0.2s, color 0.2s;
   text-decoration: none;
+  white-space: nowrap; /* FORCES text to stay on one line (fixes My Cart1) */
+  box-sizing: border-box;
 }
 
 .profile-dropdown a:hover,
 .profile-dropdown button:hover {
   background: rgba(123, 97, 255, 0.15);
-  color: #fff;
 }
 
 .profile-dropdown .menu-emoji {
@@ -99,8 +104,9 @@
   flex-shrink: 0;
 }
 
+/* The number badges (1, 8) */
 .profile-dropdown .menu-count {
-  margin-left: auto;
+  margin-left: auto; /* Pushes the number to the far right */
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
@@ -124,12 +130,16 @@
   color: #ff6b9b;
 }
 
+/* ============================================================
+   MOBILE FIX
+   ============================================================ */
 @media (max-width: 820px) {
   .profile-dropdown {
-    right: -10px;
+    right: 0; /* 🚨 FIXED: Was -10px. This keeps it inside the screen */
     min-width: 200px;
   }
 }
+
 /* ============================================================
    Avatar styles — profile dropdown, reviews, order pages
    ============================================================ */
