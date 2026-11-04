@@ -108,19 +108,19 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- NATIVE PWA INSTALL BANNER -->
+  <!-- APK DOWNLOAD BANNER -->
   <!-- ========================================== -->
   <div class="app-download-banner" id="app-download-banner" style="display: none;">
     <div class="app-text">
       <h3>Get the E-Shop App</h3>
       <p>Faster checkout and exclusive app-only deals.</p>
       <p style="font-size: 11px; color: #ff77b1; margin-top: 6px; font-weight: 600;">
-        Tap below to install directly to your home screen.
+        ⚠️ After downloading, open the file to install. If you see a browser bar on the first open, close the app, wait 1 minute, and open it again from your home screen.
       </p>
     </div>
-    <button id="install-app-btn" class="btn-download" style="border: none; cursor: pointer;">
-      <span>⬇</span> Install App
-    </button>
+    <a href="{% static 'downloads/E-Shop-signed.apk' %}" class="btn-download" download>
+      <span>⬇</span> Download APK
+    </a>
   </div>
   <!-- ========================================== -->
 
@@ -219,61 +219,18 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); } if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); } });
   restartProgress(); scheduleNext();
 })();
-</script>
 
-<script>
-  // PWA Install Prompt Logic
-  let deferredPrompt;
-  const installBanner = document.getElementById('app-download-banner');
-  const installBtn = document.getElementById('install-app-btn');
+// --- APP DOWNLOAD BANNER LOGIC (Mobile Only) ---
+(function() {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const banner = document.getElementById('app-download-banner');
 
-  // Check if the app is already installed and running in standalone mode
-  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-    if (installBanner) installBanner.style.display = 'none';
+  // If on mobile AND not already inside the installed app, show the banner
+  if (isMobile && !isStandalone && banner) {
+    banner.style.display = 'flex';
   }
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent the mini-infobar from appearing on mobile automatically
-    e.preventDefault();
-    // Stash the event so it can be triggered later.
-    deferredPrompt = e;
-    
-    // Show our custom banner now that we know the app can be installed
-    if (installBanner) {
-      installBanner.style.display = 'flex';
-    }
-  });
-
-  if (installBtn) {
-    installBtn.addEventListener('click', async () => {
-      if (!deferredPrompt) {
-        // Fallback: If the prompt isn't available (e.g., on iOS or desktop), 
-        // redirect to the APK download as a backup.
-        window.location.href = "{% static 'downloads/E-Shop-signed.apk' %}";
-        return;
-      }
-      
-      // Show the native install prompt
-      deferredPrompt.prompt();
-      
-      // Wait for the user to respond to the prompt
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
-      
-      // We've used the prompt, and can't use it again, throw it away
-      deferredPrompt = null;
-      
-      // Hide the banner after they install
-      if (installBanner) {
-        installBanner.style.display = 'none';
-      }
-    });
-  }
-
-  // Hide the banner if the app is installed
-  window.addEventListener('appinstalled', () => {
-    if (installBanner) installBanner.style.display = 'none';
-  });
+})();
 </script>
 
 <script src="{% static 'js/toast.js' %}"></script>
