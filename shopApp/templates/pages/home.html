@@ -107,6 +107,20 @@
     </div>
   </section>
 
+  <!-- ========================================== -->
+  <!-- NEW APP DOWNLOAD BANNER -->
+  <!-- ========================================== -->
+  <div class="app-download-banner" id="app-download-banner">
+    <div class="app-text">
+      <h3>Get the E-Shop App</h3>
+      <p>Faster checkout and exclusive app-only deals.</p>
+    </div>
+    <a href="{% static 'downloads/E-Shop-signed.apk' %}" class="btn-download" download>
+      <span>⬇</span> Download App
+    </a>
+  </div>
+  <!-- ========================================== -->
+
   <section id="categories" class="section">
     <div class="section-head">
       <div><span class="section-eyebrow">Explore</span><h2>Shop by category</h2></div>
@@ -202,6 +216,12 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); } if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); } });
   restartProgress(); scheduleNext();
 })();
+
+// Hide the download banner if the user is already using the installed App (standalone mode)
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+  const banner = document.getElementById('app-download-banner');
+  if (banner) banner.style.display = 'none';
+}
 </script>
 
 <script src="{% static 'js/toast.js' %}"></script>

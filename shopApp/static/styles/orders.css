@@ -3,6 +3,10 @@
    ============================================================ */
 
 /* ---------- Waiting page ---------- */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
 .waiting-card {
   max-width: 520px;
   margin: 60px auto;

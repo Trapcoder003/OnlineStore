@@ -783,3 +783,79 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
   cursor: wait !important;
   pointer-events: none !important;
 }
+/* ============================================================
+   APP DOWNLOAD BANNER (Homepage)
+   ============================================================ */
+
+.app-download-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05); /* Glass effect */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 30px auto 60px; /* Centered with space above and below */
+  max-width: 900px; /* Matches your welcome section width */
+  gap: 15px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.app-download-banner .app-text h3 {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.app-download-banner .app-text p {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(120deg, var(--violet, #7b61ff), var(--pink, #ff77b1));
+  color: #fff;
+  text-decoration: none;
+  padding: 12px 24px;
+  border-radius: 99px;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(123, 97, 255, 0.3);
+}
+
+.btn-download:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 119, 177, 0.5);
+}
+
+/* Hide the banner on Desktop/Laptops (Only show on mobile screens) */
+@media (min-width: 769px) {
+  .app-download-banner {
+    display: none;
+  }
+}
+
+/* Adjust for small phones to stack nicely */
+@media (max-width: 480px) {
+  .app-download-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 20px;
+    margin: 20px auto 40px;
+  }
+  
+  .btn-download {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 15px;
+  }
+}
