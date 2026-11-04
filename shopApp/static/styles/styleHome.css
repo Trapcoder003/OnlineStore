@@ -864,3 +864,77 @@ footer { margin-top: 80px; padding: 48px 0 26px; border-top: 1px solid var(--lin
     font-size: 15px;
   }
 }
+/* ============================================================
+   BULLETPROOF NAVBAR & DROPDOWN FIX
+   ============================================================ */
+
+/* 1. Stop the whole page from scrolling sideways */
+html, body {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+}
+
+/* 2. Force the navbar to stay within the screen */
+.nav {
+  width: calc(100% - 24px) !important;
+  max-width: 100vw !important;
+  box-sizing: border-box !important;
+}
+
+.nav .wrap {
+  display: flex !important;
+  flex-wrap: nowrap !important; /* Stop items from wrapping to a new line */
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 10px !important;
+}
+
+/* 3. Stop the icons from pushing the layout out */
+.icons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+}
+
+/* 4. Fix the profile menu container */
+.profile-menu {
+  position: relative !important;
+}
+
+/* 5. The Magic Fix: Make the dropdown stay inside the screen */
+.profile-dropdown {
+  position: absolute !important;
+  top: calc(100% + 12px) !important; /* Drops down right below the avatar */
+  right: 0 !important;  /* Aligns to the right edge */
+  left: auto !important; /* Prevents it from stretching to the left */
+  min-width: 200px !important;
+  max-width: 85vw !important; /* Never wider than the phone screen */
+  z-index: 9999 !important;
+  
+  /* Give it a solid background so it doesn't blend with the page */
+  background: #1a1643 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  padding: 8px !important;
+}
+
+/* Make sure dropdown links stay on one line and don't break */
+.profile-dropdown a {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  color: #fff !important;
+  text-decoration: none !important;
+  font-size: 14px !important;
+  white-space: nowrap !important;
+}
+
+.profile-dropdown a:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
