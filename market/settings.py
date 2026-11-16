@@ -186,7 +186,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "https://trapcoder.pythonanywhere.com",
     "https://*.trycloudflare.com",
-    "https://*.onlinestore-3-uiq9.onrender.com",
+    "https://onlinestore-4-81ss.onrender.com",
 ]
 
 # Public site URL — used in email links (must include https://)
