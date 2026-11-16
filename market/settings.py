@@ -18,7 +18,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="build-time-placeholder")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
-    default="localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.trycloudflare.com",
+    default="localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.trycloudflare.com,.onlinestore-3-uiq9.onrender.com",
     cast=Csv(),
 )
 
@@ -186,6 +186,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "https://trapcoder.pythonanywhere.com",
     "https://*.trycloudflare.com",
+    "https://*.onlinestore-3-uiq9.onrender.com",
 ]
 
 # Public site URL — used in email links (must include https://)
