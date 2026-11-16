@@ -18,7 +18,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
-    default="localhost,127.0.0.1",
+    default="localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.trycloudflare.com",
     cast=Csv(),
 )
 
