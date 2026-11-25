@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security / debug
 # ---------------------------------------------------------------
 SECRET_KEY = config("DJANGO_SECRET_KEY", default="build-time-placeholder")
-DEBUG = config("DEBUG", default=False, cast=bool)
+DEBUG = config("DEBUG", default=True, cast=bool)
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
     default="localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.trycloudflare.com,.onrender.com",
