@@ -18,7 +18,7 @@ SECRET_KEY = config("DJANGO_SECRET_KEY", default="build-time-placeholder")
 DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config(
     "ALLOWED_HOSTS",
-    default="localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.trycloudflare.com,.onlinestore-3-uiq9.onrender.com",
+    default="localhost,127.0.0.1,.vercel.app,.pythonanywhere.com,.trycloudflare.com,.https://onlinestore-4-81ss.onrender.com,
     cast=Csv(),
 )
 
