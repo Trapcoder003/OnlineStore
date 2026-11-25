@@ -79,6 +79,7 @@ ACCOUNT_LOGIN_ON_PASSWORD_RESET = False
 # ---------------------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # <-- ADD THIS LINE
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -89,7 +90,6 @@ MIDDLEWARE = [
     "shopApp.middleware.LoginRequiredMiddleware",
     "shopApp.middleware.StaffNoShoppingMiddleware",
 ]
-
 
 ROOT_URLCONF = "market.urls"
 
